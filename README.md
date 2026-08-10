@@ -51,7 +51,7 @@ Au seuil de stage, il apparaît. **Seuls les clics font des dégâts** (dégât 
 | Staff | **32** | 7 (Office) + 5 par stage suivant ; de l'Intern (0,1/s) à The Absolute (40M/s de base — les multiplicateurs font le reste) |
 | Upgrades | **39** | uniques ; production, clic, stamps/s |
 | Departments | **22** | achats uniques ; multiplicateurs et stamps/s ; HR : staff −10 % |
-| Policies | **8** | uniques ; *Mandatory Overtime* : +100 % production mais événements négatifs +50 % |
+| Policies | **8** | uniques ; *Mandatory Overtime* : +50 % production mais événements négatifs +50 % |
 | Investments | **9** (232 niveaux) | répétables, payés en stamps ; ~1e12 stamps pour tout maxer |
 | Achievements | **45** | chacun donne **+1 % de production** |
 | Événements aléatoires | **24** | toutes les ~30-60 s ; bonus basés sur la production/s, malus en % des forms en caisse |
