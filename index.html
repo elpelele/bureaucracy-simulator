@@ -15,7 +15,7 @@
     <div id="stage-display" class="stage-display">
       <div id="stage-name" class="stage-name">The Office</div>
       <div class="progress-bar">
-        <div id="stage-progress" class="progress-fill" style="width: 0%"></div>
+        <div id="stage-progress" class="progress-fill" style="width: 0"></div>
       </div>
       <div id="stage-progress-label" class="stage-progress-label"></div>
     </div>
@@ -56,16 +56,23 @@
       <div class="click-info" id="click-info">1 form per click</div>
 
       <div class="inbox-display" id="inbox-display" style="display:none;">
-        <div class="inbox-header">
-          <span class="inbox-label">APPROVAL INBOX</span>
-          <span class="inbox-amount" id="inbox-amount">0 / 0</span>
-        </div>
-        <div class="inbox-bar">
-          <div id="inbox-fill" class="inbox-fill" style="width:0%"></div>
-        </div>
-        <div class="inbox-footer">
-          <button id="approve-btn" class="approve-btn">APPROVE ALL</button>
-          <span class="inbox-hint">This piled up while you were away and needs your signature. Clicking PROCESS FORM approves it too. Once it's full, production is wasted!</span>
+        <div class="inbox-pile" id="inbox-pile" title="The approval pile"></div>
+        <div class="inbox-main">
+          <div class="inbox-header">
+            <span class="inbox-label">APPROVAL INBOX</span>
+            <span class="inbox-amount" id="inbox-amount"></span>
+          </div>
+          <div class="inbox-cap" id="inbox-cap-label"></div>
+          <div id="inbox-pending">
+            <div class="inbox-bar">
+              <div id="inbox-fill" class="inbox-fill" style="width:0"></div>
+            </div>
+            <div class="inbox-footer">
+              <button id="approve-btn" class="approve-btn">APPROVE ALL</button>
+              <span class="inbox-hint">This piled up while you were away and needs your signature. Clicking PROCESS FORM approves it too. Once it's full, production is wasted!</span>
+            </div>
+          </div>
+          <div class="inbox-empty-hint" id="inbox-empty-hint">While you're at your desk, production flows straight through. Walk away and it piles up here.</div>
         </div>
       </div>
     </div>

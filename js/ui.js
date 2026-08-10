@@ -19,6 +19,10 @@ const els = {
   inboxDisplay: document.getElementById('inbox-display'),
   inboxAmount: document.getElementById('inbox-amount'),
   inboxFill: document.getElementById('inbox-fill'),
+  inboxPile: document.getElementById('inbox-pile'),
+  inboxCapLabel: document.getElementById('inbox-cap-label'),
+  inboxPending: document.getElementById('inbox-pending'),
+  inboxEmptyHint: document.getElementById('inbox-empty-hint'),
   approveBtn: document.getElementById('approve-btn'),
   bossContainer: document.getElementById('boss-container'),
   staffList: document.getElementById('staff-list'),
@@ -136,20 +140,52 @@ function renderSideStatus(now) {
   els.sideStatus.style.display = lines.length ? 'block' : 'none';
 }
 
+let inboxPileKey = '';
+
 function renderInbox() {
   if (!els.inboxDisplay) return;
   const cap = getInboxCapacity();
-  // Only shown when something actually piled up while the player was away —
-  // during active play, production flows straight into the forms counter
-  if (cap <= 0 || game.inbox < 1) {
+  if (cap <= 0) {
     els.inboxDisplay.style.display = 'none';
     return;
   }
-  els.inboxDisplay.style.display = 'block';
-  els.inboxAmount.textContent = `${formatNumber(game.inbox)} / ${formatNumber(cap)}`;
+  els.inboxDisplay.style.display = 'flex';
+
+  const capInvestment = INVESTMENTS.find(i => i.id === 'inbox_capacity');
+  const level = capInvestment ? capInvestment.level : 0;
+  const capSeconds = INBOX_BASE_SECONDS + game.inboxCapacityBonus;
+  els.inboxCapLabel.textContent =
+    `Capacity: ${formatNumber(cap)} forms (${formatDuration(capSeconds * 1000)} of production)` +
+    (level > 0 ? ` — Bigger Inbox Lv.${level}` : '');
+
+  const hasPending = game.inbox >= 1;
   const pct = Math.min(100, (game.inbox / cap) * 100);
-  els.inboxFill.style.width = pct + '%';
-  els.inboxFill.classList.toggle('full', pct >= 99);
+
+  if (els.inboxPending) els.inboxPending.style.display = hasPending ? 'block' : 'none';
+  if (els.inboxEmptyHint) els.inboxEmptyHint.style.display = hasPending ? 'none' : 'block';
+  els.inboxAmount.textContent = hasPending ? `${formatNumber(game.inbox)} / ${formatNumber(cap)}` : '';
+  if (hasPending) {
+    els.inboxFill.style.width = pct + '%';
+    els.inboxFill.classList.toggle('full', pct >= 99);
+  }
+
+  // The paper pile: solid sheets = current fill, ghost sheets = remaining
+  // capacity. Buying "Bigger Inbox" visibly makes the pile taller.
+  if (els.inboxPile) {
+    const maxSheets = 6 + level;
+    const filled = Math.min(maxSheets, Math.ceil((pct / 100) * maxSheets));
+    const key = filled + '/' + maxSheets;
+    if (key !== inboxPileKey) {
+      inboxPileKey = key;
+      let html = '';
+      for (let i = 0; i < maxSheets; i++) {
+        const rot = ((i * 37) % 9) - 4; // deterministic messy-pile look
+        html += `<div class="inbox-sheet ${i < filled ? '' : 'ghost'}" style="transform: rotate(${rot}deg)"></div>`;
+      }
+      els.inboxPile.innerHTML = html;
+    }
+    els.inboxPile.classList.toggle('full', pct >= 99);
+  }
 }
 
 // --------------------------------------------

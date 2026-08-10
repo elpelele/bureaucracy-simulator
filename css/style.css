@@ -451,6 +451,57 @@ body {
   background: #fffdf5;
   border: 1px solid #d8cfa8;
   text-align: left;
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.inbox-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The paper pile: grows as the inbox fills; ghost sheets show max capacity */
+.inbox-pile {
+  width: 46px;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  padding-bottom: 2px;
+  min-height: 30px;
+  flex-shrink: 0;
+}
+
+.inbox-sheet {
+  width: 38px;
+  height: 5px;
+  background: #fffef8;
+  border: 1px solid #c9bd8f;
+  border-radius: 1px;
+  margin-top: -1px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.06);
+}
+
+.inbox-sheet.ghost {
+  background: transparent;
+  border: 1px dashed #d8cfa8;
+  box-shadow: none;
+  opacity: 0.45;
+}
+
+.inbox-pile.full .inbox-sheet:not(.ghost) {
+  border-color: #b22;
+}
+
+.inbox-cap {
+  font-size: 10px;
+  color: #999;
+  margin-bottom: 6px;
+}
+
+.inbox-empty-hint {
+  font-size: 10px;
+  color: #aaa;
 }
 
 .inbox-header {
@@ -962,6 +1013,9 @@ body.dark .inbox-display { background: #2a2820; border-color: #5a5030; }
 body.dark .inbox-label { color: #d4a017; }
 body.dark .inbox-amount { color: #999; }
 body.dark .inbox-bar { background: #333; border-color: #555; }
+body.dark .inbox-sheet { background: #3a3830; border-color: #6a6040; box-shadow: none; }
+body.dark .inbox-sheet.ghost { background: transparent; border-color: #555; }
+body.dark .inbox-empty-hint { color: #777; }
 
 body.dark .boss-panel { background: #2a1a1a; }
 body.dark .boss-panel.active { animation-name: boss-pulse-dark; }
