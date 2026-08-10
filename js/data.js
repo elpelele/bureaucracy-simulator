@@ -33,21 +33,21 @@ const STAGES = [
     id: 'global',
     name: 'The Global Council',
     desc: 'International bureaucracy. Every nation requires your approval.',
-    threshold: 1e12,
+    threshold: 3e12,
     color: '#ff9800'
   },
   {
     id: 'cosmic',
     name: 'The Cosmic Bureau',
     desc: 'Alien civilizations must file their existence permits.',
-    threshold: 1e15,
+    threshold: 3e16,
     color: '#e91e63'
   },
   {
     id: 'existential',
     name: 'The Existential Office',
     desc: 'Reality itself requires proper documentation.',
-    threshold: 1e18,
+    threshold: 1e21,
     color: '#00bcd4'
   }
 ];
@@ -140,9 +140,9 @@ const STAFF = [
     id: 'civil_servant',
     name: 'Civil Servant',
     desc: 'Lifetime job security. Processes forms in their sleep.',
-    baseCost: 500000,
+    baseCost: 780000,
     costCurrency: 'forms',
-    fps: 600,
+    fps: 100,
     owned: 0,
     stage: 'administration',
     unlockAt: 1e6
@@ -151,9 +151,9 @@ const STAFF = [
     id: 'inspector',
     name: 'Inspector',
     desc: 'Inspects the inspectors who inspect.',
-    baseCost: 2e6,
+    baseCost: 3.1e6,
     costCurrency: 'forms',
-    fps: 960,
+    fps: 330,
     owned: 0,
     stage: 'administration',
     unlockAt: 4e6
@@ -162,9 +162,9 @@ const STAFF = [
     id: 'auditor',
     name: 'Auditor',
     desc: 'Finds forms you didn\'t know existed.',
-    baseCost: 8e6,
+    baseCost: 12.5e6,
     costCurrency: 'forms',
-    fps: 1550,
+    fps: 970,
     owned: 0,
     stage: 'administration',
     unlockAt: 15e6
@@ -173,7 +173,7 @@ const STAFF = [
     id: 'commissioner',
     name: 'Commissioner',
     desc: 'Commands an army of paper pushers.',
-    baseCost: 30e6,
+    baseCost: 47e6,
     costCurrency: 'forms',
     fps: 2500,
     owned: 0,
@@ -184,9 +184,9 @@ const STAFF = [
     id: 'prefect',
     name: 'Prefect',
     desc: 'Regional authority. Forms tremble before them.',
-    baseCost: 100e6,
+    baseCost: 156e6,
     costCurrency: 'forms',
-    fps: 4000,
+    fps: 5100,
     owned: 0,
     stage: 'administration',
     unlockAt: 250e6
@@ -197,9 +197,9 @@ const STAFF = [
     id: 'undersecretary',
     name: 'Undersecretary',
     desc: 'The power behind the throne of paperwork.',
-    baseCost: 500e6,
+    baseCost: 900e6,
     costCurrency: 'forms',
-    fps: 6000,
+    fps: 17000,
     owned: 0,
     stage: 'ministry',
     unlockAt: 1e9
@@ -208,9 +208,9 @@ const STAFF = [
     id: 'deputy_minister',
     name: 'Deputy Minister',
     desc: 'Signs documents without reading them.',
-    baseCost: 2e9,
+    baseCost: 3.6e9,
     costCurrency: 'forms',
-    fps: 9600,
+    fps: 52000,
     owned: 0,
     stage: 'ministry',
     unlockAt: 4e9
@@ -219,9 +219,9 @@ const STAFF = [
     id: 'minister',
     name: 'Minister',
     desc: 'Creates new forms to process old forms.',
-    baseCost: 10e9,
+    baseCost: 18e9,
     costCurrency: 'forms',
-    fps: 15500,
+    fps: 185000,
     owned: 0,
     stage: 'ministry',
     unlockAt: 15e9
@@ -230,9 +230,9 @@ const STAFF = [
     id: 'prime_bureaucrat',
     name: 'Prime Bureaucrat',
     desc: 'The ultimate form-processing entity.',
-    baseCost: 50e9,
+    baseCost: 90e9,
     costCurrency: 'forms',
-    fps: 25000,
+    fps: 640000,
     owned: 0,
     stage: 'ministry',
     unlockAt: 60e9
@@ -241,9 +241,9 @@ const STAFF = [
     id: 'shadow_council',
     name: 'Shadow Council',
     desc: 'They control the bureaucracy from the shadows.',
-    baseCost: 200e9,
+    baseCost: 360e9,
     costCurrency: 'forms',
-    fps: 40000,
+    fps: 1.8e6,
     owned: 0,
     stage: 'ministry',
     unlockAt: 250e9
@@ -254,56 +254,56 @@ const STAFF = [
     id: 'diplomat',
     name: 'Diplomat',
     desc: 'Makes international paperwork possible.',
-    baseCost: 1e12,
+    baseCost: 40e12,
     costCurrency: 'forms',
-    fps: 60000,
+    fps: 780e3,
     owned: 0,
     stage: 'global',
-    unlockAt: 1e12
+    unlockAt: 3e12
   },
   {
     id: 'ambassador',
     name: 'Ambassador',
     desc: 'Every country needs their forms approved.',
-    baseCost: 5e12,
+    baseCost: 200e12,
     costCurrency: 'forms',
-    fps: 96000,
+    fps: 2.9e6,
     owned: 0,
     stage: 'global',
-    unlockAt: 4e12
+    unlockAt: 12e12
   },
   {
     id: 'secretary_general',
     name: 'Secretary General',
     desc: 'The world\'s chief bureaucrat.',
-    baseCost: 25e12,
+    baseCost: 4e15,
     costCurrency: 'forms',
-    fps: 155000,
+    fps: 11.4e6,
     owned: 0,
     stage: 'global',
-    unlockAt: 15e12
+    unlockAt: 45e12
   },
   {
     id: 'world_council',
     name: 'World Council',
     desc: 'A council of councils. Bureaucracy squared.',
-    baseCost: 100e12,
+    baseCost: 1e15,
     costCurrency: 'forms',
-    fps: 250000,
+    fps: 35.7e6,
     owned: 0,
     stage: 'global',
-    unlockAt: 60e12
+    unlockAt: 180e12
   },
   {
     id: 'global_overseer',
     name: 'Global Overseer',
     desc: 'Sees all forms. Approves none.',
-    baseCost: 500e12,
+    baseCost: 20e15,
     costCurrency: 'forms',
-    fps: 400000,
+    fps: 132e6,
     owned: 0,
     stage: 'global',
-    unlockAt: 250e12
+    unlockAt: 750e12
   },
 
   // === STAGE 5: THE COSMIC BUREAU ===
@@ -311,56 +311,56 @@ const STAFF = [
     id: 'space_clerk',
     name: 'Space Clerk',
     desc: 'Processes alien visa applications.',
-    baseCost: 1e15,
+    baseCost: 1e17,
     costCurrency: 'forms',
-    fps: 600000,
+    fps: 330e6,
     owned: 0,
     stage: 'cosmic',
-    unlockAt: 1e15
+    unlockAt: 3e16
   },
   {
     id: 'galactic_auditor',
     name: 'Galactic Auditor',
     desc: 'Audits entire solar systems.',
-    baseCost: 10e15,
+    baseCost: 1e18,
     costCurrency: 'forms',
-    fps: 960000,
+    fps: 2.55e9,
     owned: 0,
     stage: 'cosmic',
-    unlockAt: 4e15
+    unlockAt: 1.2e17
   },
   {
     id: 'void_administrator',
     name: 'Void Administrator',
     desc: 'Manages the bureaucracy of empty space.',
-    baseCost: 100e15,
+    baseCost: 1e19,
     costCurrency: 'forms',
-    fps: 1.55e6,
+    fps: 19.5e9,
     owned: 0,
     stage: 'cosmic',
-    unlockAt: 15e15
+    unlockAt: 4.5e17
   },
   {
     id: 'cosmic_emperor',
     name: 'Cosmic Emperor',
     desc: 'Rules the universe through proper documentation.',
-    baseCost: 500e15,
+    baseCost: 5e19,
     costCurrency: 'forms',
-    fps: 2.5e6,
+    fps: 75e9,
     owned: 0,
     stage: 'cosmic',
-    unlockAt: 60e15
+    unlockAt: 1.8e18
   },
   {
     id: 'dimension_lord',
     name: 'Dimension Lord',
     desc: 'Controls bureaucracy across dimensions.',
-    baseCost: 1e18,
+    baseCost: 1e20,
     costCurrency: 'forms',
-    fps: 4e6,
+    fps: 126e9,
     owned: 0,
     stage: 'cosmic',
-    unlockAt: 250e15
+    unlockAt: 7.5e18
   },
 
   // === STAGE 6: THE EXISTENTIAL OFFICE ===
@@ -368,56 +368,56 @@ const STAFF = [
     id: 'time_clerk',
     name: 'Time Clerk',
     desc: 'Files forms before they\'re submitted.',
-    baseCost: 5e18,
+    baseCost: 5e21,
     costCurrency: 'forms',
-    fps: 6e6,
+    fps: 6e12,
     owned: 0,
     stage: 'existential',
-    unlockAt: 1e18
+    unlockAt: 1e21
   },
   {
     id: 'reality_auditor',
     name: 'Reality Auditor',
     desc: 'Ensures reality complies with regulations.',
-    baseCost: 50e18,
+    baseCost: 5e22,
     costCurrency: 'forms',
-    fps: 9.6e6,
+    fps: 44e12,
     owned: 0,
     stage: 'existential',
-    unlockAt: 4e18
+    unlockAt: 4e21
   },
   {
     id: 'entropy_manager',
     name: 'Entropy Manager',
     desc: 'Manages the heat death of bureaucracy.',
-    baseCost: 500e18,
+    baseCost: 5e23,
     costCurrency: 'forms',
-    fps: 15.5e6,
+    fps: 330e12,
     owned: 0,
     stage: 'existential',
-    unlockAt: 15e18
+    unlockAt: 1.5e22
   },
   {
     id: 'god_of_forms',
     name: 'God of Forms',
     desc: 'The divine entity of paperwork.',
-    baseCost: 5e21,
+    baseCost: 5e24,
     costCurrency: 'forms',
-    fps: 25e6,
+    fps: 2.6e15,
     owned: 0,
     stage: 'existential',
-    unlockAt: 60e18
+    unlockAt: 6e22
   },
   {
     id: 'the_absolute',
     name: 'The Absolute',
     desc: 'IS bureaucracy. Always was. Always will be.',
-    baseCost: 50e21,
+    baseCost: 5e25,
     costCurrency: 'forms',
-    fps: 40e6,
+    fps: 20e15,
     owned: 0,
     stage: 'existential',
-    unlockAt: 250e18
+    unlockAt: 2.5e23
   }
 ];
 
@@ -698,10 +698,10 @@ const UPGRADES = [
     id: 'un_resolution',
     name: 'UN Resolution 4081',
     desc: 'All nations must process forms. +50% production.',
-    cost: 50e12,
+    cost: 150e12,
     costCurrency: 'forms',
     effect: () => { game.globalMultiplier *= 1.5; },
-    unlocked: () => game.totalForms >= 6e12,
+    unlocked: () => game.totalForms >= 18e12,
     stage: 'global'
   },
   {
@@ -718,20 +718,20 @@ const UPGRADES = [
     id: 'global_automation',
     name: 'Global Form Automation',
     desc: 'Every computer processes forms. +50% production.',
-    cost: 640e12,
+    cost: 1.92e15,
     costCurrency: 'forms',
     effect: () => { game.globalMultiplier *= 1.5; },
-    unlocked: () => game.totalForms >= 80e12,
+    unlocked: () => game.totalForms >= 240e12,
     stage: 'global'
   },
   {
     id: 'click_nuke',
     name: 'Nuclear Stamp',
     desc: 'One click, million forms. +100000 forms/click.',
-    cost: 500e12,
+    cost: 1.5e15,
     costCurrency: 'forms',
     effect: () => { game.formsPerClick += 100000; },
-    unlocked: () => game.totalForms >= 200e12,
+    unlocked: () => game.totalForms >= 600e12,
     stage: 'global'
   },
 
@@ -740,20 +740,20 @@ const UPGRADES = [
     id: 'alien_paperwork',
     name: 'Alien Paperwork Treaty',
     desc: 'Extraterrestrials must file forms. +50% production.',
-    cost: 50e15,
+    cost: 1.5e18,
     costCurrency: 'forms',
     effect: () => { game.globalMultiplier *= 1.5; },
-    unlocked: () => game.totalForms >= 6e15,
+    unlocked: () => game.totalForms >= 180e15,
     stage: 'cosmic'
   },
   {
     id: 'quantum_forms',
     name: 'Quantum Forms',
     desc: 'Forms exist in superposition. +50% production.',
-    cost: 640e15,
+    cost: 19.2e18,
     costCurrency: 'forms',
     effect: () => { game.globalMultiplier *= 1.5; },
-    unlocked: () => game.totalForms >= 80e15,
+    unlocked: () => game.totalForms >= 2.4e18,
     stage: 'cosmic'
   },
   {
@@ -770,10 +770,10 @@ const UPGRADES = [
     id: 'galaxy_brain',
     name: 'Galaxy Brain Bureaucracy',
     desc: 'Think at galactic scale. +1M forms/click.',
-    cost: 500e15,
+    cost: 15e18,
     costCurrency: 'forms',
     effect: () => { game.formsPerClick += 1e6; },
-    unlocked: () => game.totalForms >= 200e15,
+    unlocked: () => game.totalForms >= 6e18,
     stage: 'cosmic'
   },
 
@@ -782,10 +782,10 @@ const UPGRADES = [
     id: 'time_forms',
     name: 'Temporal Form Processing',
     desc: 'Process forms from all timelines. +50% production.',
-    cost: 50e18,
+    cost: 50e21,
     costCurrency: 'forms',
     effect: () => { game.globalMultiplier *= 1.5; },
-    unlocked: () => game.totalForms >= 6e18,
+    unlocked: () => game.totalForms >= 6e21,
     stage: 'existential'
   },
   {
@@ -802,30 +802,30 @@ const UPGRADES = [
     id: 'entropy_forms',
     name: 'Entropy Reversal Forms',
     desc: 'Bureaucracy defies physics. +100% production.',
-    cost: 640e18,
+    cost: 640e21,
     costCurrency: 'forms',
     effect: () => { game.globalMultiplier *= 2; },
-    unlocked: () => game.totalForms >= 80e18,
+    unlocked: () => game.totalForms >= 80e21,
     stage: 'existential'
   },
   {
     id: 'omniscient_click',
     name: 'Omniscient Click',
     desc: 'One click processes all forms ever. +1B forms/click.',
-    cost: 500e18,
+    cost: 500e21,
     costCurrency: 'forms',
     effect: () => { game.formsPerClick += 1e9; },
-    unlocked: () => game.totalForms >= 200e18,
+    unlocked: () => game.totalForms >= 200e21,
     stage: 'existential'
   },
   {
     id: 'the_final_form',
     name: 'The Final Form',
     desc: 'The last form. Or is it? ×3 production.',
-    cost: 8e21,
+    cost: 8e24,
     costCurrency: 'forms',
     effect: () => { game.globalMultiplier *= 3; },
-    unlocked: () => game.totalForms >= 800e18,
+    unlocked: () => game.totalForms >= 800e21,
     stage: 'existential'
   }
 ];
@@ -988,11 +988,11 @@ const DEPARTMENTS = [
     id: 'un_bureau',
     name: 'United Nations Bureau',
     desc: 'Global bureaucracy coordination. +25% production.',
-    cost: 160e12,
+    cost: 480e12,
     costCurrency: 'forms',
     effect: () => { game.globalMultiplier *= 1.25; },
     owned: false,
-    unlocked: () => game.totalForms >= 20e12,
+    unlocked: () => game.totalForms >= 60e12,
     stage: 'global'
   },
   {
@@ -1010,11 +1010,11 @@ const DEPARTMENTS = [
     id: 'international_court',
     name: 'International Form Court',
     desc: 'Judge all nations by their paperwork. +50% production.',
-    cost: 2.4e15,
+    cost: 7.2e15,
     costCurrency: 'forms',
     effect: () => { game.globalMultiplier *= 1.5; },
     owned: false,
-    unlocked: () => game.totalForms >= 300e12,
+    unlocked: () => game.totalForms >= 900e12,
     stage: 'global'
   },
 
@@ -1023,11 +1023,11 @@ const DEPARTMENTS = [
     id: 'space_station',
     name: 'Orbital Filing Station',
     desc: 'Process forms from orbit. +25% production.',
-    cost: 160e15,
+    cost: 4.8e18,
     costCurrency: 'forms',
     effect: () => { game.globalMultiplier *= 1.25; },
     owned: false,
-    unlocked: () => game.totalForms >= 20e15,
+    unlocked: () => game.totalForms >= 600e15,
     stage: 'cosmic'
   },
   {
@@ -1045,11 +1045,11 @@ const DEPARTMENTS = [
     id: 'galactic_senate',
     name: 'Galactic Senate',
     desc: 'Govern the galaxy through committees. +50% production.',
-    cost: 2.4e18,
+    cost: 72e18,
     costCurrency: 'forms',
     effect: () => { game.globalMultiplier *= 1.5; },
     owned: false,
-    unlocked: () => game.totalForms >= 300e15,
+    unlocked: () => game.totalForms >= 9e18,
     stage: 'cosmic'
   },
 
@@ -1058,18 +1058,18 @@ const DEPARTMENTS = [
     id: 'time_bureau',
     name: 'Temporal Affairs Bureau',
     desc: 'File forms across all timelines. +50% production.',
-    cost: 160e18,
+    cost: 160e21,
     costCurrency: 'forms',
     effect: () => { game.globalMultiplier *= 1.5; },
     owned: false,
-    unlocked: () => game.totalForms >= 20e18,
+    unlocked: () => game.totalForms >= 20e21,
     stage: 'existential'
   },
   {
     id: 'reality_office',
     name: 'Office of Reality',
     desc: 'Determine what exists. +10M stamps/sec.',
-    cost: 100e18,
+    cost: 100e21,
     costCurrency: 'forms',
     effect: () => { game.stampsPerSec += 10e6; },
     owned: false,
@@ -1080,11 +1080,11 @@ const DEPARTMENTS = [
     id: 'void_ministry',
     name: 'Ministry of the Void',
     desc: 'Administer nothingness. +100% production.',
-    cost: 2.4e21,
+    cost: 2.4e24,
     costCurrency: 'forms',
     effect: () => { game.globalMultiplier *= 2; },
     owned: false,
-    unlocked: () => game.totalForms >= 300e18,
+    unlocked: () => game.totalForms >= 300e21,
     stage: 'existential'
   }
 ];
@@ -1585,10 +1585,10 @@ const POLICIES = [
     id: 'universal_forms',
     name: 'Universal Form Standard',
     desc: 'One form for all nations. +25% production.',
-    cost: 15e12,
+    cost: 45e12,
     costCurrency: 'forms',
     active: false,
-    unlocked: () => game.totalForms >= 2e12,
+    unlocked: () => game.totalForms >= 6e12,
     stage: 'global',
     effect: () => { game.globalMultiplier *= 1.25; }
   },
@@ -1596,10 +1596,10 @@ const POLICIES = [
     id: 'quantum_filing',
     name: 'Quantum Filing System',
     desc: 'Forms exist in all states. +25% production.',
-    cost: 15e15,
+    cost: 450e15,
     costCurrency: 'forms',
     active: false,
-    unlocked: () => game.totalForms >= 2e15,
+    unlocked: () => game.totalForms >= 60e15,
     stage: 'cosmic',
     effect: () => { game.globalMultiplier *= 1.25; }
   },
@@ -1607,10 +1607,10 @@ const POLICIES = [
     id: 'reality_mandate',
     name: 'Reality Mandate',
     desc: 'Existence requires permits. +50% production.',
-    cost: 15e18,
+    cost: 15e21,
     costCurrency: 'forms',
     active: false,
-    unlocked: () => game.totalForms >= 2e18,
+    unlocked: () => game.totalForms >= 2e21,
     stage: 'existential',
     effect: () => { game.globalMultiplier *= 1.5; }
   }
@@ -1703,7 +1703,7 @@ const INVESTMENTS = [
     id: 'bureaucratic_mastery',
     name: 'Bureaucratic Mastery',
     desc: '+10% global production per level.',
-    baseCost: 3000,
+    baseCost: 3e6,
     costMultiplier: 4,
     level: 0,
     maxLevel: 10,
@@ -1714,7 +1714,7 @@ const INVESTMENTS = [
     id: 'infinite_ink',
     name: 'Infinite Ink Supply',
     desc: '+20% global production per level.',
-    baseCost: 1e6,
+    baseCost: 1e11,
     costMultiplier: 8,
     level: 0,
     maxLevel: 5,
@@ -1735,7 +1735,7 @@ const MONSTERS = [
     id: 'unstable_pile',
     name: 'The Unstable Pile',
     desc: 'A tower of unfiled paperwork. It sways. It hungers.',
-    power: 6e3,
+    power: 2500,
     duration: 10 * 60 * 1000,
     absurdity: 1,
     relic: 'ancient_stamp'
@@ -1744,7 +1744,7 @@ const MONSTERS = [
     id: 'duplicate_hydra',
     name: 'The Duplicate Hydra',
     desc: 'Destroy one form, two copies grow back. In triplicate.',
-    power: 40e3,
+    power: 35e3,
     duration: 30 * 60 * 1000,
     absurdity: 3,
     relic: 'red_stapler'
@@ -1753,7 +1753,7 @@ const MONSTERS = [
     id: 'eternal_paperclip',
     name: 'The Eternal Paperclip',
     desc: '"It looks like you\'re trying to escape. Would you like help?"',
-    power: 400e3,
+    power: 1.5e6,
     duration: 60 * 60 * 1000,
     absurdity: 8,
     relic: 'coffee_pot'
@@ -1762,7 +1762,7 @@ const MONSTERS = [
     id: 'possessed_printer',
     name: 'The Possessed Printer of Sub-Level 3',
     desc: 'PC LOAD LETTER. Forever. For everyone.',
-    power: 4e6,
+    power: 8e6,
     duration: 2 * 3600 * 1000,
     absurdity: 20,
     relic: 'org_chart'
@@ -1771,7 +1771,7 @@ const MONSTERS = [
     id: 'ghost_file',
     name: 'The Ghost of the Lost File (1974)',
     desc: 'Nobody ever found it. Nobody ever will. It found YOU.',
-    power: 40e6,
+    power: 450e6,
     duration: 4 * 3600 * 1000,
     absurdity: 50,
     relic: 'self_inking_seal'
@@ -1780,7 +1780,7 @@ const MONSTERS = [
     id: 'emeritus_director',
     name: 'The Emeritus Director',
     desc: 'Retired 12 years ago. Still signs decrees. Still attends meetings.',
-    power: 400e6,
+    power: 600e9,
     duration: 6 * 3600 * 1000,
     absurdity: 120,
     relic: 'golden_paperclip'
@@ -1789,7 +1789,7 @@ const MONSTERS = [
     id: 'form_a0',
     name: 'FORM A-0',
     desc: 'The form you must fill to be allowed to fill forms. The final boss of paperwork.',
-    power: 4e9,
+    power: 40e15,
     duration: 8 * 3600 * 1000,
     absurdity: 300,
     relic: 'form_a0_trophy'

@@ -433,10 +433,16 @@ function bossDefeated() {
   game.stageIndex++;
   game.bossesDefeated++;
 
+  // The hoard built up during the previous stage's tail would let the player
+  // insta-buy the new stage's staff tiers and skip it — the Inspector takes it
+  const confiscated = Math.floor(game.forms * 0.9);
+  game.forms -= confiscated;
+
   const stage = STAGES[game.stageIndex];
   setStageClass(stage.id);
   playSound('ding', 0.8);
   log(`INSPECTOR DEFEATED! Welcome to ${stage.name}. (+5% permanent production)`, 'special');
+  log(`He confiscated ${formatNumber(confiscated)} forms on his way out. "Evidence", he said.`, 'warning');
   log(stage.desc, 'info');
 
   recalcAll();

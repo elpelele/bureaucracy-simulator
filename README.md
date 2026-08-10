@@ -34,13 +34,13 @@ Atteindre le seuil ne suffit pas : **l'Inspecteur Général** bloque chaque prom
 | 1 | The Office | 0 |
 | 2 | The Administration | 1 000 000 |
 | 3 | The Ministry | 1e9 |
-| 4 | The Global Council | 1e12 |
-| 5 | The Cosmic Bureau | 1e15 |
-| 6 | The Existential Office | 1e18 |
+| 4 | The Global Council | 3e12 |
+| 5 | The Cosmic Bureau | 3e16 |
+| 6 | The Existential Office | 1e21 |
 
 ### Le boss : l'Inspecteur Général (5 combats)
 
-Au seuil de stage, il apparaît. **Seuls les clics font des dégâts** (dégât = puissance de clic + 5 % de la production/s ; 10 % de critiques ×5 « REJECTED! »). Ses points de conformité valent ~40 coups, à détruire en **30 secondes** — impossible en AFK. Échec : il revient 60 s plus tard. Victoire : stage suivant + **+5 % de production permanent**.
+Au seuil de stage, il apparaît. **Seuls les clics font des dégâts** (dégât = puissance de clic + 5 % de la production/s ; 10 % de critiques ×5 « REJECTED! »). Ses points de conformité valent ~40 coups, à détruire en **30 secondes** — impossible en AFK. Échec : il revient 60 s plus tard. Victoire : stage suivant + **+5 % de production permanent** — mais il **confisque 90 % des forms en caisse** en partant (« pièces à conviction »), pour que chaque stage démarre par une vraie reconstruction.
 
 ---
 
@@ -52,7 +52,7 @@ Au seuil de stage, il apparaît. **Seuls les clics font des dégâts** (dégât 
 | Upgrades | **39** | uniques ; production, clic, stamps/s |
 | Departments | **22** | achats uniques ; multiplicateurs et stamps/s ; HR : staff −10 % |
 | Policies | **8** | uniques ; *Mandatory Overtime* : +50 % production mais événements négatifs +50 % |
-| Investments | **9** (232 niveaux) | répétables, payés en stamps ; ~1e12 stamps pour tout maxer |
+| Investments | **9** (232 niveaux) | répétables, payés en stamps ; ~5e14 stamps pour tout maxer |
 | Achievements | **45** | chacun donne **+1 % de production** |
 | Événements aléatoires | **24** | toutes les ~30-60 s ; bonus basés sur la production/s, malus en % des forms en caisse |
 | Monstres d'expédition | **7** | + 7 reliques permanentes |
@@ -66,13 +66,13 @@ Débloquées à **The Administration**. On compose une escouade de **3 types de 
 
 | Monstre | Puissance | Durée | Absurdity | Relique (1re victoire) |
 |---------|-----------|-------|-----------|------------------------|
-| The Unstable Pile | 6 000 | 10 min | +1 | Stamp of the Ancien Régime (+25 % clic) |
-| The Duplicate Hydra | 40 000 | 30 min | +3 | The Red Stapler (événements négatifs −30 %) |
-| The Eternal Paperclip | 400 000 | 1 h | +8 | Emergency Coffee Pot (+10 % production) |
-| The Possessed Printer of Sub-Level 3 | 4e6 | 2 h | +20 | Laminated Org Chart (staff −10 %) |
-| The Ghost of the Lost File (1974) | 40e6 | 4 h | +50 | Self-Inking Seal (+50 % stamps) |
-| The Emeritus Director | 400e6 | 6 h | +120 | The Golden Paperclip (priority forms +30 %) |
-| FORM A-0 | 4e9 | 8 h | +300 | FORM A-0 encadré (+50 % production) |
+| The Unstable Pile | 2 500 | 10 min | +1 | Stamp of the Ancien Régime (+25 % clic) |
+| The Duplicate Hydra | 35 000 | 30 min | +3 | The Red Stapler (événements négatifs −30 %) |
+| The Eternal Paperclip | 1,5e6 | 1 h | +8 | Emergency Coffee Pot (+10 % production) |
+| The Possessed Printer of Sub-Level 3 | 8e6 | 2 h | +20 | Laminated Org Chart (staff −10 %) |
+| The Ghost of the Lost File (1974) | 450e6 | 4 h | +50 | Self-Inking Seal (+50 % stamps) |
+| The Emeritus Director | 600e9 | 6 h | +120 | The Golden Paperclip (priority forms +30 %) |
+| FORM A-0 | 40e15 | 8 h | +300 | FORM A-0 encadré (+50 % production) |
 
 - **La bureaucratie s'adapte** : chaque victoire multiplie la puissance de ce monstre par **×2,5** — le farm s'auto-limite.
 - **Échec** : 10 % de l'escouade démissionne (perdus définitivement).
@@ -112,5 +112,5 @@ Principes :
 
 - **Rien de dérivé n'est sauvegardé.** `recalcAll()` recalcule tous les multiplicateurs depuis les faits (possédé/acheté/niveaux) — on peut rééquilibrer `data.js` sans casser les sauvegardes. Les sauvegardes v2 migrent automatiquement.
 - **Jamais de gain en % du solde de stamps** dans les événements : à ~90 événements/h, ça compose exponentiellement même AFK (mesuré ×2867 en une nuit avant correctif). Tous les gains d'événements sont basés sur le revenu (`stampsPerSec × durée`).
-- **Courbe de progression** : les paliers de staff donnent ~×10 de fps de base par stage et le contenu d'un stage ~×10 de multiplicateurs, étalés sur toute sa largeur — face à des seuils ×1000, chaque stage est un peu plus long que le précédent. Le mur du Cosmic (~4 h de jeu actif) est voulu : c'est la Réforme qui fait avancer au-delà. Rythme mesuré au bot (humain ≈ ×1,5-2) : Office 24 min, Administration 14, Ministry 12, Global 21, Cosmic ~4 h.
+- **Courbe de progression** : les seuils de stage sont **super-exponentiels** (×1000, ×3000, ×10⁴, ×3×10⁴) parce que la croissance intra-stage compose (~×3000/stage) ; les fps du staff sont dérivés de `coût / (multiplicateur cumulé attendu × temps de rentabilisation)`, ce dernier croissant par stage ; le contenu est étalé sur toute la largeur de chaque stage et chaque investment de production se finance un stage plus tard que le précédent (les jalons de stamps étant linéaires en forms). Rythme mesuré au bot optimal (humain ≈ ×1,5-2) : Office 23 min, Administration 20, Ministry 28, Global 20, Cosmic ~1 h 40, Existential ~2 h 20 — ~5 h 30 pour un premier clear complet, la Réforme accélérant les suivants.
 - Tests : harnais headless Node (stubs DOM + fichiers concaténés + assertions), 71 tests, plus des simulations de rythme (bot glouton) et d'économie.
