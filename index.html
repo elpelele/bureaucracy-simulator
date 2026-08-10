@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bureaucracy Simulator</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="stage-office">
+<div class="game-container">
+  <!-- LEFT: Stats -->
+  <div class="stats-panel">
+    <div class="game-title">BUREAUCRACY SIMULATOR</div>
+
+    <div id="stage-display" class="stage-display">
+      <div id="stage-name" class="stage-name">The Office</div>
+      <div class="progress-bar">
+        <div id="stage-progress" class="progress-fill" style="width: 0%"></div>
+      </div>
+      <div id="stage-progress-label" class="stage-progress-label"></div>
+    </div>
+
+    <div id="side-status" class="side-status" style="display:none;"></div>
+
+    <div class="resource">
+      <div class="resource-label">Forms Processed</div>
+      <div class="resource-value" id="forms-display">0</div>
+      <div class="resource-rate" id="forms-rate">+0/sec</div>
+    </div>
+
+    <div class="resource">
+      <div class="resource-label">Stamps</div>
+      <div class="resource-value" id="stamps-display">0</div>
+      <div class="resource-rate" id="stamps-rate">+0/sec</div>
+    </div>
+
+    <div class="resource" id="absurdity-container" style="display:none;">
+      <div class="resource-label">Absurdity</div>
+      <div class="resource-value" id="absurdity-display">0</div>
+      <div class="resource-rate">+2% production each</div>
+    </div>
+
+    <div class="stats-section">
+      <div>Total forms: <span id="total-forms">0</span></div>
+      <div>Total clicks: <span id="total-clicks">0</span></div>
+      <div>Time played: <span id="time-played">0:00</span></div>
+    </div>
+  </div>
+
+  <!-- CENTER: Main -->
+  <div class="main-area">
+    <div id="boss-container"></div>
+
+    <div class="clicker-section">
+      <button id="stamp-btn">PROCESS FORM</button>
+      <div class="click-info" id="click-info">1 form per click</div>
+
+      <div class="inbox-display" id="inbox-display" style="display:none;">
+        <div class="inbox-header">
+          <span class="inbox-label">APPROVAL INBOX</span>
+          <span class="inbox-amount" id="inbox-amount">0 / 0</span>
+        </div>
+        <div class="inbox-bar">
+          <div id="inbox-fill" class="inbox-fill" style="width:0%"></div>
+        </div>
+        <div class="inbox-footer">
+          <button id="approve-btn" class="approve-btn">APPROVE ALL</button>
+          <span class="inbox-hint">This piled up while you were away and needs your signature. Clicking PROCESS FORM approves it too. Once it's full, production is wasted!</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="buy-quantity">
+      <span>Buy:</span>
+      <button class="qty-btn active" onclick="setBuyQty(1)">x1</button>
+      <button class="qty-btn" onclick="setBuyQty(10)">x10</button>
+      <button class="qty-btn" onclick="setBuyQty(100)">x100</button>
+      <button class="qty-btn" onclick="setBuyQty(-1)">Max</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="staff">Staff</button>
+      <button class="tab-btn" data-tab="upgrades">Upgrades</button>
+      <button class="tab-btn locked" data-tab="departments" id="tab-departments">Departments</button>
+      <button class="tab-btn locked" data-tab="policies" id="tab-policies">Policies</button>
+      <button class="tab-btn" data-tab="investments" id="tab-investments">Investments</button>
+      <button class="tab-btn locked" data-tab="expeditions" id="tab-expeditions">Expeditions</button>
+      <button class="tab-btn locked" data-tab="reform" id="tab-reform">Reform</button>
+      <button class="tab-btn" data-tab="achievements">Achievements</button>
+      <button class="tab-btn" data-tab="stats">Stats</button>
+      <button class="tab-btn" data-tab="settings">Settings</button>
+    </div>
+
+    <div class="tab-content active" id="tab-content-staff">
+      <div id="staff-list"></div>
+    </div>
+
+    <div class="tab-content" id="tab-content-upgrades">
+      <div id="upgrades-list"></div>
+    </div>
+
+    <div class="tab-content" id="tab-content-departments">
+      <div id="departments-list"></div>
+    </div>
+
+    <div class="tab-content" id="tab-content-policies">
+      <div id="policies-list"></div>
+    </div>
+
+    <div class="tab-content" id="tab-content-investments">
+      <div class="investments-header">Spend stamps for permanent bonuses. Costs increase each level.</div>
+      <div id="investments-list"></div>
+    </div>
+
+    <div class="tab-content" id="tab-content-expeditions">
+      <div id="expeditions-list"></div>
+    </div>
+
+    <div class="tab-content" id="tab-content-reform">
+      <div id="reform-panel"></div>
+    </div>
+
+    <div class="tab-content" id="tab-content-achievements">
+      <div id="achievements-list"></div>
+    </div>
+
+    <div class="tab-content" id="tab-content-stats">
+      <div id="stats-values"></div>
+    </div>
+
+    <div class="tab-content" id="tab-content-settings">
+      <div class="category-header">Options</div>
+      <label class="setting-row">
+        <input type="checkbox" id="setting-dark" onchange="toggleDarkMode(this.checked)">
+        <span>Dark mode</span>
+      </label>
+      <label class="setting-row">
+        <input type="checkbox" id="setting-sound" checked onchange="toggleSound(this.checked)">
+        <span>Stamp sounds</span>
+        <button class="save-btn test-sound-btn" onclick="playSound('stamp')">TEST</button>
+      </label>
+
+      <div class="save-tools">
+        <div class="category-header">Save Management</div>
+        <div class="settings-hint">The game auto-saves every 30 seconds and when you close the tab.</div>
+        <textarea id="export-area" class="export-area" aria-label="Save data" placeholder="Exported save appears here. Paste a save here to import it." spellcheck="false"></textarea>
+        <div class="save-buttons">
+          <button class="save-btn" onclick="exportSave()">EXPORT SAVE</button>
+          <button class="save-btn" onclick="importSave()">IMPORT SAVE</button>
+          <button class="save-btn danger" onclick="hardReset()">HARD RESET</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Log -->
+  <div class="log-panel">
+    <div class="log-header">Activity Log</div>
+    <div class="log-content" id="log-content"></div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/state.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/game.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,731 @@
+// ============================================
+// DOM ELEMENTS
+// ============================================
+
+const els = {
+  formsDisplay: document.getElementById('forms-display'),
+  stampsDisplay: document.getElementById('stamps-display'),
+  absurdityDisplay: document.getElementById('absurdity-display'),
+  absurdityContainer: document.getElementById('absurdity-container'),
+  formsRate: document.getElementById('forms-rate'),
+  stampsRate: document.getElementById('stamps-rate'),
+  clickInfo: document.getElementById('click-info'),
+  stageProgressLabel: document.getElementById('stage-progress-label'),
+  totalForms: document.getElementById('total-forms'),
+  totalClicks: document.getElementById('total-clicks'),
+  timePlayed: document.getElementById('time-played'),
+  sideStatus: document.getElementById('side-status'),
+  stampBtn: document.getElementById('stamp-btn'),
+  inboxDisplay: document.getElementById('inbox-display'),
+  inboxAmount: document.getElementById('inbox-amount'),
+  inboxFill: document.getElementById('inbox-fill'),
+  approveBtn: document.getElementById('approve-btn'),
+  bossContainer: document.getElementById('boss-container'),
+  staffList: document.getElementById('staff-list'),
+  upgradesList: document.getElementById('upgrades-list'),
+  departmentsList: document.getElementById('departments-list'),
+  policiesList: document.getElementById('policies-list'),
+  investmentsList: document.getElementById('investments-list'),
+  expeditionsList: document.getElementById('expeditions-list'),
+  reformPanel: document.getElementById('reform-panel'),
+  statsValues: document.getElementById('stats-values'),
+  achievementsList: document.getElementById('achievements-list'),
+  logContent: document.getElementById('log-content'),
+  tabDepartments: document.getElementById('tab-departments'),
+  tabPolicies: document.getElementById('tab-policies'),
+  tabExpeditions: document.getElementById('tab-expeditions'),
+  tabReform: document.getElementById('tab-reform'),
+  stageDisplay: document.getElementById('stage-display'),
+  stageName: document.getElementById('stage-name'),
+  stageProgress: document.getElementById('stage-progress')
+};
+
+let activeTab = 'staff';
+
+// ============================================
+// FLOAT TEXT (click feedback)
+// ============================================
+
+function showFloatText(x, y, text) {
+  const float = document.createElement('div');
+  float.className = 'float-text';
+  float.textContent = text;
+  float.style.left = x + 'px';
+  float.style.top = y + 'px';
+  document.body.appendChild(float);
+
+  // Animate and remove
+  requestAnimationFrame(() => {
+    float.style.transform = 'translateY(-50px)';
+    float.style.opacity = '0';
+  });
+
+  setTimeout(() => float.remove(), 500);
+}
+
+// ============================================
+// LOGGING (limited to 20 entries)
+// ============================================
+
+function log(message, type = 'info') {
+  const entry = document.createElement('div');
+  entry.className = `log-entry ${type}`;
+  entry.innerHTML = `
+    <div class="log-time">${new Date().toLocaleTimeString()}</div>
+    <div class="log-message">${message}</div>
+  `;
+  els.logContent.prepend(entry);
+
+  // Keep max 20 entries
+  while (els.logContent.children.length > 20) {
+    els.logContent.removeChild(els.logContent.lastChild);
+  }
+}
+
+// ============================================
+// RENDERING
+// ============================================
+
+function render() {
+  const now = Date.now();
+  const frenzy = frenzyFactor(now);
+
+  els.formsDisplay.textContent = formatNumber(game.forms);
+  els.stampsDisplay.textContent = formatNumber(game.stamps);
+  els.absurdityDisplay.textContent = formatNumber(game.absurdity);
+
+  const effectiveClickPower = game.formsPerClick * game.clickMultiplier;
+  let rateText = `+${formatNumber(game.formsPerSec * frenzy)}/sec`;
+  if (frenzy > 1) rateText += ` [FRENZY ×${frenzy}]`;
+  els.formsRate.textContent = rateText;
+  els.formsRate.classList.toggle('frenzy', frenzy > 1);
+  els.stampsRate.textContent = `+${formatNumber(game.stampsPerSec)}/sec`;
+  els.clickInfo.textContent = `${formatNumber(effectiveClickPower)} ${effectiveClickPower < 2 ? 'form' : 'forms'} per click`;
+
+  els.totalForms.textContent = formatNumber(game.totalForms);
+  els.totalClicks.textContent = formatNumber(game.totalClicks);
+  els.timePlayed.textContent = formatTime(now - game.startTime);
+
+  renderSideStatus(now);
+  renderInbox();
+  renderBoss(now);
+  renderStage();
+}
+
+// Small status lines in the left panel (frenzy timer, expedition countdown)
+function renderSideStatus(now) {
+  if (!els.sideStatus) return;
+  const lines = [];
+  if (now < game.frenzyUntil) {
+    lines.push(`FRENZY ×${FRENZY_MULTIPLIER} — ${Math.ceil((game.frenzyUntil - now) / 1000)}s`);
+  }
+  if (game.expedition.active) {
+    const monster = MONSTERS.find(m => m.id === game.expedition.monsterId);
+    lines.push(`Expedition: ${monster ? monster.name : '?'} — ${formatDuration(game.expedition.endTime - now)}`);
+  }
+  els.sideStatus.innerHTML = lines.map(l => `<div>${l}</div>`).join('');
+  els.sideStatus.style.display = lines.length ? 'block' : 'none';
+}
+
+function renderInbox() {
+  if (!els.inboxDisplay) return;
+  const cap = getInboxCapacity();
+  // Only shown when something actually piled up while the player was away —
+  // during active play, production flows straight into the forms counter
+  if (cap <= 0 || game.inbox < 1) {
+    els.inboxDisplay.style.display = 'none';
+    return;
+  }
+  els.inboxDisplay.style.display = 'block';
+  els.inboxAmount.textContent = `${formatNumber(game.inbox)} / ${formatNumber(cap)}`;
+  const pct = Math.min(100, (game.inbox / cap) * 100);
+  els.inboxFill.style.width = pct + '%';
+  els.inboxFill.classList.toggle('full', pct >= 99);
+}
+
+// --------------------------------------------
+// Boss panel — rebuilt only on state change, updated in place otherwise
+// --------------------------------------------
+let bossUiState = 'hidden';
+
+function renderBoss(now) {
+  if (!els.bossContainer) return;
+  now = now || Date.now();
+
+  let state = 'hidden';
+  if (game.boss.active) state = 'active';
+  else if (bossPending()) state = now < game.boss.cooldownUntil ? 'cooldown' : 'pending';
+
+  if (state !== bossUiState) {
+    bossUiState = state;
+    if (state === 'hidden') {
+      els.bossContainer.innerHTML = '';
+    } else if (state === 'pending') {
+      const nextStage = STAGES[game.stageIndex + 1];
+      els.bossContainer.innerHTML = `
+        <div class="boss-panel">
+          <div class="boss-title">THE INSPECTOR GENERAL</div>
+          <div class="boss-desc">He blocks your promotion to ${nextStage.name}. Only YOUR clicks can defeat him — production won't help.</div>
+          <button class="boss-fight-btn" onclick="startBossFight()">CONFRONT HIM</button>
+        </div>
+      `;
+    } else if (state === 'cooldown') {
+      els.bossContainer.innerHTML = `
+        <div class="boss-panel">
+          <div class="boss-title">THE INSPECTOR GENERAL</div>
+          <div class="boss-desc">He is reviewing his complaint file. He returns in <span id="boss-cooldown">?</span>s.</div>
+        </div>
+      `;
+    } else if (state === 'active') {
+      els.bossContainer.innerHTML = `
+        <div class="boss-panel active">
+          <div class="boss-title">THE INSPECTOR GENERAL — <span id="boss-timer">30</span>s</div>
+          <div class="boss-hp-bar"><div id="boss-hp-fill" class="boss-hp-fill" style="width:100%"></div></div>
+          <div class="boss-hp-text" id="boss-hp-text"></div>
+          <button class="boss-attack-btn" id="boss-attack-btn">FILE OBJECTION (ATTACK)</button>
+        </div>
+      `;
+      const attackBtn = document.getElementById('boss-attack-btn');
+      if (attackBtn) attackBtn.addEventListener('click', attackBoss);
+    }
+  }
+
+  // In-place updates
+  if (state === 'active') {
+    const fill = document.getElementById('boss-hp-fill');
+    const text = document.getElementById('boss-hp-text');
+    const timer = document.getElementById('boss-timer');
+    if (fill) fill.style.width = Math.max(0, (game.boss.hp / game.boss.maxHp) * 100) + '%';
+    if (text) text.textContent = `${formatNumber(Math.max(0, game.boss.hp))} / ${formatNumber(game.boss.maxHp)} compliance points`;
+    if (timer) timer.textContent = Math.max(0, Math.ceil((game.boss.endTime - now) / 1000));
+  } else if (state === 'cooldown') {
+    const cd = document.getElementById('boss-cooldown');
+    if (cd) cd.textContent = Math.max(0, Math.ceil((game.boss.cooldownUntil - now) / 1000));
+  }
+}
+
+function renderStage() {
+  const currentStage = getCurrentStage();
+  const nextStage = STAGES[game.stageIndex + 1];
+
+  if (els.stageName) {
+    els.stageName.textContent = bossPending() || game.boss.active
+      ? `${currentStage.name} — INSPECTOR AWAITS`
+      : currentStage.name;
+  }
+
+  if (els.stageProgress && nextStage) {
+    const progress = Math.min(100, (game.totalForms / nextStage.threshold) * 100);
+    els.stageProgress.style.width = progress + '%';
+  } else if (els.stageProgress) {
+    els.stageProgress.style.width = '100%';
+  }
+
+  if (els.stageProgressLabel) {
+    if (bossPending() || game.boss.active) {
+      els.stageProgressLabel.textContent = 'Defeat the Inspector General to advance!';
+    } else if (nextStage) {
+      els.stageProgressLabel.textContent = `${formatNumber(game.totalForms)} / ${formatNumber(nextStage.threshold)} forms`;
+    } else {
+      els.stageProgressLabel.textContent = 'Final stage — reality is fully documented';
+    }
+  }
+}
+
+function renderStaff() {
+  const unlockedStaff = STAFF.filter(s => isStaffUnlocked(s));
+
+  if (unlockedStaff.length === 0) {
+    els.staffList.innerHTML = '<div class="empty-state">No staff available yet.</div>';
+    return;
+  }
+
+  // Group by stage
+  const byStage = {};
+  unlockedStaff.forEach(staff => {
+    if (!byStage[staff.stage]) byStage[staff.stage] = [];
+    byStage[staff.stage].push(staff);
+  });
+
+  let html = '';
+  for (const [stageId, staffList] of Object.entries(byStage)) {
+    const stage = STAGES.find(s => s.id === stageId);
+    html += `<div class="category-header">${stage ? stage.name : stageId}</div>`;
+
+    staffList.forEach(staff => {
+      const qty = game.buyQuantity;
+      let cost, canBuy, displayQty;
+
+      if (qty === -1) {
+        const maxInfo = getMaxAffordable(staff, staff.costCurrency);
+        cost = maxInfo.totalCost;
+        canBuy = maxInfo.count > 0;
+        displayQty = maxInfo.count;
+      } else {
+        cost = getCostForN(staff, qty);
+        canBuy = canAfford(cost, staff.costCurrency);
+        displayQty = qty;
+      }
+
+      const away = sentCount(staff.id);
+      const working = Math.max(0, staff.owned - away);
+      const currentProduction = staff.fps * working * game.globalMultiplier;
+      const gainPerUnit = staff.fps * game.globalMultiplier;
+      const totalGain = gainPerUnit * displayQty;
+
+      html += `
+        <div class="shop-item ${canBuy ? 'affordable' : ''}" onclick="buyStaff('${staff.id}')">
+          <div class="item-info">
+            <div class="item-name">${staff.name}</div>
+            <div class="item-desc">${staff.desc}</div>
+            <div class="item-stats">
+              Owned: ${staff.owned}${away > 0 ? ` (${away} exploring)` : ''} (${formatNumber(currentProduction)}/sec)
+              ${displayQty > 0 ? ` | +${formatNumber(totalGain)}/sec` : ''}
+            </div>
+          </div>
+          <div class="item-cost ${canBuy ? 'affordable' : 'expensive'}">
+            ${qty === -1 ? `(${displayQty}) ` : ''}${formatNumber(cost)} ${staff.costCurrency}
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  els.staffList.innerHTML = html;
+}
+
+function renderUpgrades() {
+  const availableUpgrades = UPGRADES.filter(u =>
+    stageIdx(u.stage) <= game.stageIndex && u.unlocked() && !game.purchasedUpgrades.has(u.id)
+  );
+
+  if (availableUpgrades.length === 0) {
+    els.upgradesList.innerHTML = '<div class="empty-state">No upgrades available. Keep playing to unlock more.</div>';
+    return;
+  }
+
+  // Group by stage
+  const byStage = {};
+  availableUpgrades.forEach(upgrade => {
+    if (!byStage[upgrade.stage]) byStage[upgrade.stage] = [];
+    byStage[upgrade.stage].push(upgrade);
+  });
+
+  let html = '';
+  for (const [stageId, upgradeList] of Object.entries(byStage)) {
+    const stage = STAGES.find(s => s.id === stageId);
+    html += `<div class="category-header">${stage ? stage.name : stageId}</div>`;
+
+    upgradeList.forEach(upgrade => {
+      const affordable = canAfford(upgrade.cost, upgrade.costCurrency);
+      const currency = upgrade.costCurrency === 'stamps' ? 'stamps' : 'forms';
+
+      html += `
+        <div class="upgrade-item ${affordable ? 'affordable' : ''}" onclick="buyUpgrade('${upgrade.id}')">
+          <div class="upgrade-name">${upgrade.name}</div>
+          <div class="upgrade-desc">${upgrade.desc}</div>
+          <div class="upgrade-cost">${formatNumber(upgrade.cost)} ${currency}</div>
+        </div>
+      `;
+    });
+  }
+
+  els.upgradesList.innerHTML = html;
+}
+
+function renderDepartments() {
+  if (!game.unlocks.departments) {
+    els.departmentsList.innerHTML = '<div class="empty-state">Departments not unlocked yet.</div>';
+    return;
+  }
+
+  const availableDepts = DEPARTMENTS.filter(d => stageIdx(d.stage) <= game.stageIndex && d.unlocked());
+
+  if (availableDepts.length === 0) {
+    els.departmentsList.innerHTML = '<div class="empty-state">No departments available yet.</div>';
+    return;
+  }
+
+  // Group by stage
+  const byStage = {};
+  availableDepts.forEach(dept => {
+    if (!byStage[dept.stage]) byStage[dept.stage] = [];
+    byStage[dept.stage].push(dept);
+  });
+
+  let html = '';
+  for (const [stageId, deptList] of Object.entries(byStage)) {
+    const stage = STAGES.find(s => s.id === stageId);
+    html += `<div class="category-header">${stage ? stage.name : stageId}</div>`;
+
+    deptList.forEach(dept => {
+      const affordable = canAfford(dept.cost, dept.costCurrency);
+
+      html += `
+        <div class="shop-item ${dept.owned ? 'owned' : (affordable ? 'affordable' : '')}"
+             onclick="${dept.owned ? '' : `buyDepartment('${dept.id}')`}">
+          <div class="item-info">
+            <div class="item-name">${dept.name}${dept.owned ? ' [OWNED]' : ''}</div>
+            <div class="item-desc">${dept.desc}</div>
+          </div>
+          <div class="item-cost ${dept.owned ? '' : (affordable ? 'affordable' : 'expensive')}">
+            ${dept.owned ? '' : formatNumber(dept.cost)}
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  els.departmentsList.innerHTML = html;
+}
+
+function renderPolicies() {
+  if (!game.unlocks.policies) {
+    els.policiesList.innerHTML = '<div class="empty-state">Policies not unlocked yet.</div>';
+    return;
+  }
+
+  const availablePolicies = POLICIES.filter(p =>
+    stageIdx(p.stage) <= game.stageIndex && p.unlocked() && !game.activePolicies.has(p.id)
+  );
+  const activePolicies = POLICIES.filter(p => game.activePolicies.has(p.id));
+
+  if (availablePolicies.length === 0 && activePolicies.length === 0) {
+    els.policiesList.innerHTML = '<div class="empty-state">No policies available yet.</div>';
+    return;
+  }
+
+  let html = '';
+
+  if (activePolicies.length > 0) {
+    html += '<div class="category-header">Active Policies</div>';
+    activePolicies.forEach(policy => {
+      html += `
+        <div class="shop-item owned">
+          <div class="item-info">
+            <div class="item-name">${policy.name} [ACTIVE]</div>
+            <div class="item-desc">${policy.desc}</div>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  if (availablePolicies.length > 0) {
+    html += '<div class="category-header">Available Policies</div>';
+    availablePolicies.forEach(policy => {
+      const affordable = canAfford(policy.cost, policy.costCurrency);
+      html += `
+        <div class="shop-item ${affordable ? 'affordable' : ''}" onclick="buyPolicy('${policy.id}')">
+          <div class="item-info">
+            <div class="item-name">${policy.name}</div>
+            <div class="item-desc">${policy.desc}</div>
+          </div>
+          <div class="item-cost ${affordable ? 'affordable' : 'expensive'}">${formatNumber(policy.cost)}</div>
+        </div>
+      `;
+    });
+  }
+
+  els.policiesList.innerHTML = html;
+}
+
+function renderInvestments() {
+  const available = INVESTMENTS.filter(inv => inv.unlocked());
+
+  if (available.length === 0) {
+    els.investmentsList.innerHTML = '<div class="empty-state">No investments available yet. Earn more stamps!</div>';
+    return;
+  }
+
+  let html = '';
+  available.forEach(inv => {
+    const cost = Math.floor(inv.baseCost * Math.pow(inv.costMultiplier, inv.level));
+    const affordable = game.stamps >= cost;
+    const maxed = inv.level >= inv.maxLevel;
+
+    html += `
+      <div class="shop-item ${maxed ? 'owned' : (affordable ? 'affordable' : '')}"
+           onclick="${maxed ? '' : `buyInvestment('${inv.id}')`}">
+        <div class="item-info">
+          <div class="item-name">${inv.name} ${maxed ? '[MAX]' : `[Lv.${inv.level}/${inv.maxLevel}]`}</div>
+          <div class="item-desc">${inv.desc}</div>
+        </div>
+        <div class="item-cost ${maxed ? '' : (affordable ? 'affordable' : 'expensive')}">
+          ${maxed ? '' : formatNumber(cost) + ' stamps'}
+        </div>
+      </div>
+    `;
+  });
+
+  els.investmentsList.innerHTML = html;
+}
+
+// --------------------------------------------
+// Expeditions
+// --------------------------------------------
+function renderExpeditions() {
+  if (!els.expeditionsList) return;
+
+  if (!game.unlocks.expeditions) {
+    els.expeditionsList.innerHTML = '<div class="empty-state">The Deep Archives are sealed. Reach The Administration to unlock expeditions.</div>';
+    return;
+  }
+
+  const now = Date.now();
+  let html = '';
+
+  if (game.expedition.active) {
+    const monster = MONSTERS.find(m => m.id === game.expedition.monsterId);
+    const teamDesc = game.expedition.sent.map(entry => {
+      const s = STAFF.find(x => x.id === entry.id);
+      return `${entry.count}× ${s ? s.name : entry.id}`;
+    }).join(', ');
+    const chance = monster ? Math.round(expeditionChance(monster, game.expedition.sent) * 100) : 0;
+
+    html += `
+      <div class="expedition-active">
+        <div class="category-header">Expedition in progress</div>
+        <div class="monster-card active">
+          <div class="monster-name">${monster ? monster.name : '?'}</div>
+          <div class="monster-desc">${monster ? monster.desc : ''}</div>
+          <div class="monster-stats">
+            Squad: ${teamDesc}<br>
+            Success odds: ${chance}%<br>
+            Returns in: <strong>${formatDuration(game.expedition.endTime - now)}</strong>
+          </div>
+        </div>
+        <div class="expedition-hint">Your squad is away from their desks — their production is paused.</div>
+      </div>
+    `;
+    els.expeditionsList.innerHTML = html;
+    return;
+  }
+
+  // Team builder
+  const eligible = STAFF.filter(s => isStaffUnlocked(s) && s.owned >= 2);
+  html += '<div class="category-header">Assemble a squad (max 3 staff types — half of each type is sent)</div>';
+  if (eligible.length === 0) {
+    html += '<div class="empty-state">You need at least 2 of a staff type to send an expedition.</div>';
+  } else {
+    html += '<div class="team-builder">';
+    eligible.forEach(s => {
+      const selected = game.expedition.team.includes(s.id);
+      const count = Math.floor(s.owned / 2);
+      html += `
+        <button class="team-chip ${selected ? 'selected' : ''}" onclick="toggleExpeditionStaff('${s.id}')">
+          ${s.name} (${count})
+        </button>
+      `;
+    });
+    html += '</div>';
+
+    const squad = buildSquad();
+    const power = squadPower(squad);
+    html += `<div class="squad-power">Squad power: <strong>${formatNumber(power)}</strong> (raw output, no multipliers)</div>`;
+  }
+
+  // Monster list
+  html += '<div class="category-header">Monsters of the Deep Archives</div>';
+  const squad = buildSquad();
+  MONSTERS.forEach(monster => {
+    const kills = game.monsterKills[monster.id] || 0;
+    const relic = RELICS.find(r => r.id === monster.relic);
+    const hasRelic = game.relics.has(monster.relic);
+    const chance = squad.length ? Math.round(expeditionChance(monster, squad) * 100) : 0;
+    const canLaunch = squad.length > 0;
+
+    html += `
+      <div class="monster-card ${kills > 0 ? 'defeated' : ''}">
+        <div class="monster-name">${monster.name} ${kills > 0 ? `[defeated ×${kills}]` : ''}</div>
+        <div class="monster-desc">${monster.desc}</div>
+        <div class="monster-stats">
+          Power: ${formatNumber(monster.power)} | Duration: ${formatDuration(monster.duration)} | Reward: +${monster.absurdity} Absurdity${relic && !hasRelic ? ` + ${relic.name}` : ''}
+          ${squad.length ? `<br>Success odds with current squad: <strong>${chance}%</strong>` : ''}
+        </div>
+        <button class="launch-btn" ${canLaunch ? '' : 'disabled'} onclick="launchExpedition('${monster.id}')">LAUNCH EXPEDITION</button>
+      </div>
+    `;
+  });
+
+  html += '<div class="expedition-hint">Failure means 10% of the squad resigns. Victory grants Absurdity (+2% production each) and, the first time, a permanent relic.</div>';
+
+  // Relics collection
+  if (game.relics.size > 0) {
+    html += '<div class="category-header">Relics collected</div>';
+    RELICS.forEach(r => {
+      if (!game.relics.has(r.id)) return;
+      html += `
+        <div class="shop-item owned">
+          <div class="item-info">
+            <div class="item-name">${r.name}</div>
+            <div class="item-desc">${r.desc}</div>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  els.expeditionsList.innerHTML = html;
+}
+
+// --------------------------------------------
+// Reform (prestige)
+// --------------------------------------------
+function renderReform() {
+  if (!els.reformPanel) return;
+
+  if (!game.unlocks.reforms) {
+    els.reformPanel.innerHTML = '<div class="empty-state">Reach The Ministry to unlock Administrative Reform.</div>';
+    return;
+  }
+
+  const gain = reformGain();
+  const currentBonus = Math.round(game.absurdity * 2);
+  const ready = canReform();
+
+  els.reformPanel.innerHTML = `
+    <div class="reform-panel">
+      <div class="reform-title">ADMINISTRATIVE REFORM</div>
+      <p class="reform-desc">
+        Dissolve the entire administration and start over from a small office.
+        The sheer absurdity of it all makes you permanently stronger.
+      </p>
+      <div class="reform-stats">
+        <div>Current Absurdity: <strong>${formatNumber(game.absurdity)}</strong> (+${currentBonus}% production)</div>
+        <div>Reform now for: <strong>+${formatNumber(gain)} Absurdity</strong> (+${gain * 2}% production)</div>
+        <div>Reforms completed: ${game.reformCount}</div>
+      </div>
+      <div class="reform-keeps">
+        <div><strong>You keep:</strong> achievements, relics, monster kills, Absurdity</div>
+        <div><strong>You lose:</strong> forms, stamps, staff, upgrades, departments, policies, investments, stage</div>
+      </div>
+      <button class="reform-btn" ${ready ? '' : 'disabled'} onclick="doReform()">
+        ${ready ? `REFORM (+${formatNumber(gain)} Absurdity)` : 'Requires The Ministry and at least 1 Absurdity of progress (1B forms)'}
+      </button>
+    </div>
+  `;
+}
+
+// --------------------------------------------
+// Stats tab (values only — save tools are static HTML)
+// --------------------------------------------
+function updateStats() {
+  if (!els.statsValues) return;
+  const relicNames = [...game.relics]
+    .map(id => (RELICS.find(r => r.id === id) || {}).name)
+    .filter(Boolean);
+
+  els.statsValues.innerHTML = `
+    <div class="category-header">Statistics</div>
+    <div class="stats-grid">
+      <div>Forms processed (all time)</div><div>${formatNumber(game.totalFormsAllTime)}</div>
+      <div>Forms processed (this run)</div><div>${formatNumber(game.totalForms)}</div>
+      <div>Stamps earned (all time)</div><div>${formatNumber(game.totalStampsEarned)}</div>
+      <div>Total clicks</div><div>${formatNumber(game.totalClicks)}</div>
+      <div>Current production</div><div>${formatNumber(game.formsPerSec)}/sec</div>
+      <div>Absurdity</div><div>${formatNumber(game.absurdity)} (+${Math.round(game.absurdity * 2)}%)</div>
+      <div>Administrative reforms</div><div>${game.reformCount}</div>
+      <div>Inspectors General defeated</div><div>${game.bossesDefeated}</div>
+      <div>Expeditions won / failed</div><div>${game.expeditionsWon} / ${game.expeditionsFailed}</div>
+      <div>Relics</div><div>${relicNames.length ? relicNames.join(', ') : 'none'}</div>
+      <div>Achievements</div><div>${game.unlockedAchievements.size} / ${ACHIEVEMENTS.length} (+${game.unlockedAchievements.size}%)</div>
+      <div>Time played</div><div>${formatTime(Date.now() - game.startTime)}</div>
+    </div>
+  `;
+}
+
+function renderAchievements() {
+  const categories = [
+    { name: 'Forms', key: 'forms' },
+    { name: 'Staff', key: 'staff' },
+    { name: 'Progress', key: 'progress' },
+    { name: 'Endgame', key: 'endgame' },
+    { name: 'Other', key: 'other' }
+  ];
+
+  let html = '<div class="investments-header">Each achievement grants +1% global production.</div>';
+  categories.forEach(cat => {
+    const items = ACHIEVEMENTS.filter(a => a.cat === cat.key);
+    if (items.length === 0) return;
+
+    const unlocked = items.filter(a => game.unlockedAchievements.has(a.id)).length;
+    html += `<div class="category-header">${cat.name} (${unlocked}/${items.length})</div>`;
+
+    items.forEach(ach => {
+      const isUnlocked = game.unlockedAchievements.has(ach.id);
+      html += `
+        <div class="achievement ${isUnlocked ? 'unlocked' : 'locked'}">
+          <div class="achievement-name">${isUnlocked ? '[X]' : '[ ]'} ${ach.name}</div>
+          <div class="achievement-desc">${isUnlocked ? ach.desc : '???'}</div>
+        </div>
+      `;
+    });
+  });
+
+  els.achievementsList.innerHTML = html;
+}
+
+function renderAll() {
+  render();
+  renderStaff();
+  renderUpgrades();
+  renderDepartments();
+  renderPolicies();
+  renderInvestments();
+  renderExpeditions();
+  renderReform();
+  renderAchievements();
+  updateStats();
+}
+
+// Re-render only what the player is looking at (called once per second)
+function renderActiveTab() {
+  if (activeTab === 'staff') renderStaff();
+  else if (activeTab === 'upgrades') renderUpgrades();
+  else if (activeTab === 'departments') renderDepartments();
+  else if (activeTab === 'policies') renderPolicies();
+  else if (activeTab === 'investments') renderInvestments();
+  else if (activeTab === 'expeditions') renderExpeditions();
+  else if (activeTab === 'reform') renderReform();
+  else if (activeTab === 'stats') updateStats();
+  else if (activeTab === 'achievements') renderAchievements();
+}
+
+// ============================================
+// TABS
+// ============================================
+
+function updateTabLocks() {
+  const locks = [
+    [els.tabDepartments, game.unlocks.departments],
+    [els.tabPolicies, game.unlocks.policies],
+    [els.tabExpeditions, game.unlocks.expeditions],
+    [els.tabReform, game.unlocks.reforms]
+  ];
+  locks.forEach(([el, unlocked]) => {
+    if (!el) return;
+    el.classList.toggle('locked', !unlocked);
+  });
+}
+
+function switchTab(tabName) {
+  const btn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
+  if (!btn || btn.classList.contains('locked')) return;
+
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+  btn.classList.add('active');
+  const content = document.getElementById('tab-content-' + tabName);
+  if (content) content.classList.add('active');
+
+  activeTab = tabName;
+  renderActiveTab();
+}
+
+function initTabs() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+}
