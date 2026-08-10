@@ -110,6 +110,15 @@ function render() {
   renderInbox();
   renderBoss(now);
   renderStage();
+
+  // Shop lists are signature-guarded (rebuilt only on structural change), so
+  // refreshing the visible one at tick rate is cheap — affordability borders
+  // and costs react instantly instead of once per second
+  if (activeTab === 'staff') renderStaff();
+  else if (activeTab === 'upgrades') renderUpgrades();
+  else if (activeTab === 'departments') renderDepartments();
+  else if (activeTab === 'policies') renderPolicies();
+  else if (activeTab === 'investments') renderInvestments();
 }
 
 // Small status lines in the left panel (frenzy timer, expedition countdown)
@@ -232,67 +241,103 @@ function renderStage() {
   }
 }
 
+// --------------------------------------------
+// Shop lists: incremental rendering.
+// The DOM is only rebuilt when the list's STRUCTURE changes (signature:
+// new unlocks, one-shot purchases, buy-quantity switch). Otherwise only
+// texts and classes are updated in place — so hover/:active states survive
+// rapid clicking, no click ever lands on a destroyed node, and refreshing
+// at tick rate (10/s) is cheap enough to make affordability feedback instant.
+// --------------------------------------------
+let staffUiSignature = null;
+let staffNodes = {};
+
 function renderStaff() {
   const unlockedStaff = STAFF.filter(s => isStaffUnlocked(s));
 
   if (unlockedStaff.length === 0) {
-    els.staffList.innerHTML = '<div class="empty-state">No staff available yet.</div>';
+    if (staffUiSignature !== 'empty') {
+      staffUiSignature = 'empty';
+      els.staffList.innerHTML = '<div class="empty-state">No staff available yet.</div>';
+    }
     return;
   }
 
-  // Group by stage
-  const byStage = {};
-  unlockedStaff.forEach(staff => {
-    if (!byStage[staff.stage]) byStage[staff.stage] = [];
-    byStage[staff.stage].push(staff);
-  });
+  const signature = game.buyQuantity + '|' + unlockedStaff.map(s => s.id).join(',');
+  if (signature !== staffUiSignature) {
+    staffUiSignature = signature;
+    staffNodes = {};
 
-  let html = '';
-  for (const [stageId, staffList] of Object.entries(byStage)) {
-    const stage = STAGES.find(s => s.id === stageId);
-    html += `<div class="category-header">${stage ? stage.name : stageId}</div>`;
+    // Group by stage
+    const byStage = {};
+    unlockedStaff.forEach(staff => {
+      if (!byStage[staff.stage]) byStage[staff.stage] = [];
+      byStage[staff.stage].push(staff);
+    });
 
-    staffList.forEach(staff => {
-      const qty = game.buyQuantity;
-      let cost, canBuy, displayQty;
-
-      if (qty === -1) {
-        const maxInfo = getMaxAffordable(staff, staff.costCurrency);
-        cost = maxInfo.totalCost;
-        canBuy = maxInfo.count > 0;
-        displayQty = maxInfo.count;
-      } else {
-        cost = getCostForN(staff, qty);
-        canBuy = canAfford(cost, staff.costCurrency);
-        displayQty = qty;
-      }
-
-      const away = sentCount(staff.id);
-      const working = Math.max(0, staff.owned - away);
-      const currentProduction = staff.fps * working * game.globalMultiplier;
-      const gainPerUnit = staff.fps * game.globalMultiplier;
-      const totalGain = gainPerUnit * displayQty;
-
-      html += `
-        <div class="shop-item ${canBuy ? 'affordable' : ''}" onclick="buyStaff('${staff.id}')">
-          <div class="item-info">
-            <div class="item-name">${staff.name}</div>
-            <div class="item-desc">${staff.desc}</div>
-            <div class="item-stats">
-              Owned: ${staff.owned}${away > 0 ? ` (${away} exploring)` : ''} (${formatNumber(currentProduction)}/sec)
-              ${displayQty > 0 ? ` | +${formatNumber(totalGain)}/sec` : ''}
+    let html = '';
+    for (const [stageId, staffList] of Object.entries(byStage)) {
+      const stage = STAGES.find(s => s.id === stageId);
+      html += `<div class="category-header">${stage ? stage.name : stageId}</div>`;
+      staffList.forEach(staff => {
+        html += `
+          <div class="shop-item" data-id="${staff.id}" onclick="buyStaff('${staff.id}')">
+            <div class="item-info">
+              <div class="item-name">${staff.name}</div>
+              <div class="item-desc">${staff.desc}</div>
+              <div class="item-stats"></div>
             </div>
+            <div class="item-cost"></div>
           </div>
-          <div class="item-cost ${canBuy ? 'affordable' : 'expensive'}">
-            ${qty === -1 ? `(${displayQty}) ` : ''}${formatNumber(cost)} ${staff.costCurrency}
-          </div>
-        </div>
-      `;
+        `;
+      });
+    }
+    els.staffList.innerHTML = html;
+
+    els.staffList.querySelectorAll('.shop-item[data-id]').forEach(node => {
+      staffNodes[node.dataset.id] = {
+        root: node,
+        stats: node.querySelector('.item-stats'),
+        cost: node.querySelector('.item-cost')
+      };
     });
   }
 
-  els.staffList.innerHTML = html;
+  // In-place update of the dynamic bits
+  unlockedStaff.forEach(staff => {
+    const n = staffNodes[staff.id];
+    if (!n) return;
+
+    const qty = game.buyQuantity;
+    let cost, canBuy, displayQty;
+    if (qty === -1) {
+      const maxInfo = getMaxAffordable(staff, staff.costCurrency);
+      cost = maxInfo.totalCost;
+      canBuy = maxInfo.count > 0;
+      displayQty = maxInfo.count;
+    } else {
+      cost = getCostForN(staff, qty);
+      canBuy = canAfford(cost, staff.costCurrency);
+      displayQty = qty;
+    }
+
+    const away = sentCount(staff.id);
+    const working = Math.max(0, staff.owned - away);
+    const currentProduction = staff.fps * working * game.globalMultiplier;
+    const totalGain = staff.fps * game.globalMultiplier * displayQty;
+
+    n.root.classList.toggle('affordable', canBuy);
+    n.stats.textContent =
+      `Owned: ${staff.owned}${away > 0 ? ` (${away} exploring)` : ''} (${formatNumber(currentProduction)}/sec)` +
+      (displayQty > 0 ? ` | +${formatNumber(totalGain)}/sec` : '');
+    n.cost.textContent = `${qty === -1 ? `(${displayQty}) ` : ''}${formatNumber(cost)} ${staff.costCurrency}`;
+    n.cost.classList.toggle('affordable', canBuy);
+    n.cost.classList.toggle('expensive', !canBuy);
+  });
 }
+
+let upgradesUiSignature = null;
+let upgradeNodes = {};
 
 function renderUpgrades() {
   const availableUpgrades = UPGRADES.filter(u =>
@@ -300,88 +345,132 @@ function renderUpgrades() {
   );
 
   if (availableUpgrades.length === 0) {
-    els.upgradesList.innerHTML = '<div class="empty-state">No upgrades available. Keep playing to unlock more.</div>';
+    if (upgradesUiSignature !== 'empty') {
+      upgradesUiSignature = 'empty';
+      els.upgradesList.innerHTML = '<div class="empty-state">No upgrades available. Keep playing to unlock more.</div>';
+    }
     return;
   }
 
-  // Group by stage
-  const byStage = {};
-  availableUpgrades.forEach(upgrade => {
-    if (!byStage[upgrade.stage]) byStage[upgrade.stage] = [];
-    byStage[upgrade.stage].push(upgrade);
-  });
+  const signature = availableUpgrades.map(u => u.id).join(',');
+  if (signature !== upgradesUiSignature) {
+    upgradesUiSignature = signature;
+    upgradeNodes = {};
 
-  let html = '';
-  for (const [stageId, upgradeList] of Object.entries(byStage)) {
-    const stage = STAGES.find(s => s.id === stageId);
-    html += `<div class="category-header">${stage ? stage.name : stageId}</div>`;
+    const byStage = {};
+    availableUpgrades.forEach(upgrade => {
+      if (!byStage[upgrade.stage]) byStage[upgrade.stage] = [];
+      byStage[upgrade.stage].push(upgrade);
+    });
 
-    upgradeList.forEach(upgrade => {
-      const affordable = canAfford(upgrade.cost, upgrade.costCurrency);
-      const currency = upgrade.costCurrency === 'stamps' ? 'stamps' : 'forms';
+    let html = '';
+    for (const [stageId, upgradeList] of Object.entries(byStage)) {
+      const stage = STAGES.find(s => s.id === stageId);
+      html += `<div class="category-header">${stage ? stage.name : stageId}</div>`;
+      upgradeList.forEach(upgrade => {
+        const currency = upgrade.costCurrency === 'stamps' ? 'stamps' : 'forms';
+        html += `
+          <div class="upgrade-item" data-id="${upgrade.id}" onclick="buyUpgrade('${upgrade.id}')">
+            <div class="upgrade-name">${upgrade.name}</div>
+            <div class="upgrade-desc">${upgrade.desc}</div>
+            <div class="upgrade-cost">${formatNumber(upgrade.cost)} ${currency}</div>
+          </div>
+        `;
+      });
+    }
+    els.upgradesList.innerHTML = html;
 
-      html += `
-        <div class="upgrade-item ${affordable ? 'affordable' : ''}" onclick="buyUpgrade('${upgrade.id}')">
-          <div class="upgrade-name">${upgrade.name}</div>
-          <div class="upgrade-desc">${upgrade.desc}</div>
-          <div class="upgrade-cost">${formatNumber(upgrade.cost)} ${currency}</div>
-        </div>
-      `;
+    els.upgradesList.querySelectorAll('.upgrade-item[data-id]').forEach(node => {
+      upgradeNodes[node.dataset.id] = node;
     });
   }
 
-  els.upgradesList.innerHTML = html;
+  availableUpgrades.forEach(upgrade => {
+    const node = upgradeNodes[upgrade.id];
+    if (node) node.classList.toggle('affordable', canAfford(upgrade.cost, upgrade.costCurrency));
+  });
 }
+
+let deptsUiSignature = null;
+let deptNodes = {};
 
 function renderDepartments() {
   if (!game.unlocks.departments) {
-    els.departmentsList.innerHTML = '<div class="empty-state">Departments not unlocked yet.</div>';
+    if (deptsUiSignature !== 'locked') {
+      deptsUiSignature = 'locked';
+      els.departmentsList.innerHTML = '<div class="empty-state">Departments not unlocked yet.</div>';
+    }
     return;
   }
 
   const availableDepts = DEPARTMENTS.filter(d => stageIdx(d.stage) <= game.stageIndex && d.unlocked());
 
   if (availableDepts.length === 0) {
-    els.departmentsList.innerHTML = '<div class="empty-state">No departments available yet.</div>';
+    if (deptsUiSignature !== 'empty') {
+      deptsUiSignature = 'empty';
+      els.departmentsList.innerHTML = '<div class="empty-state">No departments available yet.</div>';
+    }
     return;
   }
 
-  // Group by stage
-  const byStage = {};
-  availableDepts.forEach(dept => {
-    if (!byStage[dept.stage]) byStage[dept.stage] = [];
-    byStage[dept.stage].push(dept);
-  });
+  // owned state is part of the structure: buying rebuilds once (name, onclick)
+  const signature = availableDepts.map(d => d.id + (d.owned ? '*' : '')).join(',');
+  if (signature !== deptsUiSignature) {
+    deptsUiSignature = signature;
+    deptNodes = {};
 
-  let html = '';
-  for (const [stageId, deptList] of Object.entries(byStage)) {
-    const stage = STAGES.find(s => s.id === stageId);
-    html += `<div class="category-header">${stage ? stage.name : stageId}</div>`;
+    const byStage = {};
+    availableDepts.forEach(dept => {
+      if (!byStage[dept.stage]) byStage[dept.stage] = [];
+      byStage[dept.stage].push(dept);
+    });
 
-    deptList.forEach(dept => {
-      const affordable = canAfford(dept.cost, dept.costCurrency);
-
-      html += `
-        <div class="shop-item ${dept.owned ? 'owned' : (affordable ? 'affordable' : '')}"
-             onclick="${dept.owned ? '' : `buyDepartment('${dept.id}')`}">
-          <div class="item-info">
-            <div class="item-name">${dept.name}${dept.owned ? ' [OWNED]' : ''}</div>
-            <div class="item-desc">${dept.desc}</div>
+    let html = '';
+    for (const [stageId, deptList] of Object.entries(byStage)) {
+      const stage = STAGES.find(s => s.id === stageId);
+      html += `<div class="category-header">${stage ? stage.name : stageId}</div>`;
+      deptList.forEach(dept => {
+        html += `
+          <div class="shop-item ${dept.owned ? 'owned' : ''}" data-id="${dept.id}"
+               onclick="${dept.owned ? '' : `buyDepartment('${dept.id}')`}">
+            <div class="item-info">
+              <div class="item-name">${dept.name}${dept.owned ? ' [OWNED]' : ''}</div>
+              <div class="item-desc">${dept.desc}</div>
+            </div>
+            <div class="item-cost">${dept.owned ? '' : formatNumber(dept.cost) + ' ' + dept.costCurrency}</div>
           </div>
-          <div class="item-cost ${dept.owned ? '' : (affordable ? 'affordable' : 'expensive')}">
-            ${dept.owned ? '' : formatNumber(dept.cost)}
-          </div>
-        </div>
-      `;
+        `;
+      });
+    }
+    els.departmentsList.innerHTML = html;
+
+    els.departmentsList.querySelectorAll('.shop-item[data-id]').forEach(node => {
+      deptNodes[node.dataset.id] = {
+        root: node,
+        cost: node.querySelector('.item-cost')
+      };
     });
   }
 
-  els.departmentsList.innerHTML = html;
+  availableDepts.forEach(dept => {
+    const n = deptNodes[dept.id];
+    if (!n || dept.owned) return;
+    const affordable = canAfford(dept.cost, dept.costCurrency);
+    n.root.classList.toggle('affordable', affordable);
+    n.cost.classList.toggle('affordable', affordable);
+    n.cost.classList.toggle('expensive', !affordable);
+  });
 }
+
+let policiesUiSignature = null;
+let policyNodes = {};
 
 function renderPolicies() {
   if (!game.unlocks.policies) {
-    els.policiesList.innerHTML = '<div class="empty-state">Policies not unlocked yet.</div>';
+    if (policiesUiSignature !== 'locked') {
+      policiesUiSignature = 'locked';
+      els.policiesList.innerHTML = '<div class="empty-state">Policies not unlocked yet.</div>';
+    }
     return;
   }
 
@@ -391,74 +480,124 @@ function renderPolicies() {
   const activePolicies = POLICIES.filter(p => game.activePolicies.has(p.id));
 
   if (availablePolicies.length === 0 && activePolicies.length === 0) {
-    els.policiesList.innerHTML = '<div class="empty-state">No policies available yet.</div>';
+    if (policiesUiSignature !== 'empty') {
+      policiesUiSignature = 'empty';
+      els.policiesList.innerHTML = '<div class="empty-state">No policies available yet.</div>';
+    }
     return;
   }
 
-  let html = '';
+  const signature = activePolicies.map(p => p.id + '*').join(',') + '|' + availablePolicies.map(p => p.id).join(',');
+  if (signature !== policiesUiSignature) {
+    policiesUiSignature = signature;
+    policyNodes = {};
 
-  if (activePolicies.length > 0) {
-    html += '<div class="category-header">Active Policies</div>';
-    activePolicies.forEach(policy => {
-      html += `
-        <div class="shop-item owned">
-          <div class="item-info">
-            <div class="item-name">${policy.name} [ACTIVE]</div>
-            <div class="item-desc">${policy.desc}</div>
+    let html = '';
+    if (activePolicies.length > 0) {
+      html += '<div class="category-header">Active Policies</div>';
+      activePolicies.forEach(policy => {
+        html += `
+          <div class="shop-item owned">
+            <div class="item-info">
+              <div class="item-name">${policy.name} [ACTIVE]</div>
+              <div class="item-desc">${policy.desc}</div>
+            </div>
           </div>
-        </div>
-      `;
+        `;
+      });
+    }
+    if (availablePolicies.length > 0) {
+      html += '<div class="category-header">Available Policies</div>';
+      availablePolicies.forEach(policy => {
+        html += `
+          <div class="shop-item" data-id="${policy.id}" onclick="buyPolicy('${policy.id}')">
+            <div class="item-info">
+              <div class="item-name">${policy.name}</div>
+              <div class="item-desc">${policy.desc}</div>
+            </div>
+            <div class="item-cost">${formatNumber(policy.cost)} ${policy.costCurrency}</div>
+          </div>
+        `;
+      });
+    }
+    els.policiesList.innerHTML = html;
+
+    els.policiesList.querySelectorAll('.shop-item[data-id]').forEach(node => {
+      policyNodes[node.dataset.id] = {
+        root: node,
+        cost: node.querySelector('.item-cost')
+      };
     });
   }
 
-  if (availablePolicies.length > 0) {
-    html += '<div class="category-header">Available Policies</div>';
-    availablePolicies.forEach(policy => {
-      const affordable = canAfford(policy.cost, policy.costCurrency);
-      html += `
-        <div class="shop-item ${affordable ? 'affordable' : ''}" onclick="buyPolicy('${policy.id}')">
-          <div class="item-info">
-            <div class="item-name">${policy.name}</div>
-            <div class="item-desc">${policy.desc}</div>
-          </div>
-          <div class="item-cost ${affordable ? 'affordable' : 'expensive'}">${formatNumber(policy.cost)}</div>
-        </div>
-      `;
-    });
-  }
-
-  els.policiesList.innerHTML = html;
+  availablePolicies.forEach(policy => {
+    const n = policyNodes[policy.id];
+    if (!n) return;
+    const affordable = canAfford(policy.cost, policy.costCurrency);
+    n.root.classList.toggle('affordable', affordable);
+    n.cost.classList.toggle('affordable', affordable);
+    n.cost.classList.toggle('expensive', !affordable);
+  });
 }
+
+let investmentsUiSignature = null;
+let investmentNodes = {};
 
 function renderInvestments() {
   const available = INVESTMENTS.filter(inv => inv.unlocked());
 
   if (available.length === 0) {
-    els.investmentsList.innerHTML = '<div class="empty-state">No investments available yet. Earn more stamps!</div>';
+    if (investmentsUiSignature !== 'empty') {
+      investmentsUiSignature = 'empty';
+      els.investmentsList.innerHTML = '<div class="empty-state">No investments available yet. Earn more stamps!</div>';
+    }
     return;
   }
 
-  let html = '';
+  // maxed state changes the structure (onclick removed); levels update in place
+  const signature = available.map(inv => inv.id + (inv.level >= inv.maxLevel ? '*' : '')).join(',');
+  if (signature !== investmentsUiSignature) {
+    investmentsUiSignature = signature;
+    investmentNodes = {};
+
+    let html = '';
+    available.forEach(inv => {
+      const maxed = inv.level >= inv.maxLevel;
+      html += `
+        <div class="shop-item ${maxed ? 'owned' : ''}" data-id="${inv.id}"
+             onclick="${maxed ? '' : `buyInvestment('${inv.id}')`}">
+          <div class="item-info">
+            <div class="item-name"></div>
+            <div class="item-desc">${inv.desc}</div>
+          </div>
+          <div class="item-cost"></div>
+        </div>
+      `;
+    });
+    els.investmentsList.innerHTML = html;
+
+    els.investmentsList.querySelectorAll('.shop-item[data-id]').forEach(node => {
+      investmentNodes[node.dataset.id] = {
+        root: node,
+        name: node.querySelector('.item-name'),
+        cost: node.querySelector('.item-cost')
+      };
+    });
+  }
+
   available.forEach(inv => {
+    const n = investmentNodes[inv.id];
+    if (!n) return;
+    const maxed = inv.level >= inv.maxLevel;
     const cost = Math.floor(inv.baseCost * Math.pow(inv.costMultiplier, inv.level));
     const affordable = game.stamps >= cost;
-    const maxed = inv.level >= inv.maxLevel;
 
-    html += `
-      <div class="shop-item ${maxed ? 'owned' : (affordable ? 'affordable' : '')}"
-           onclick="${maxed ? '' : `buyInvestment('${inv.id}')`}">
-        <div class="item-info">
-          <div class="item-name">${inv.name} ${maxed ? '[MAX]' : `[Lv.${inv.level}/${inv.maxLevel}]`}</div>
-          <div class="item-desc">${inv.desc}</div>
-        </div>
-        <div class="item-cost ${maxed ? '' : (affordable ? 'affordable' : 'expensive')}">
-          ${maxed ? '' : formatNumber(cost) + ' stamps'}
-        </div>
-      </div>
-    `;
+    n.name.textContent = `${inv.name} ${maxed ? '[MAX]' : `[Lv.${inv.level}/${inv.maxLevel}]`}`;
+    n.cost.textContent = maxed ? '' : `${formatNumber(cost)} stamps`;
+    n.root.classList.toggle('affordable', !maxed && affordable);
+    n.cost.classList.toggle('affordable', !maxed && affordable);
+    n.cost.classList.toggle('expensive', !maxed && !affordable);
   });
-
-  els.investmentsList.innerHTML = html;
 }
 
 // --------------------------------------------
