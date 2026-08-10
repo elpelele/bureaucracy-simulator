@@ -489,10 +489,16 @@ function buildSquad() {
     .filter(entry => entry.count > 0);
 }
 
+// Monsters grow ×2.5 stronger with each kill — repeat farming self-limits
+function monsterPower(monster) {
+  const kills = game.monsterKills[monster.id] || 0;
+  return monster.power * Math.pow(2.5, kills);
+}
+
 function expeditionChance(monster, sent) {
   const power = squadPower(sent);
   if (power <= 0) return 0;
-  return Math.max(0.05, Math.min(0.95, 0.6 * power / monster.power));
+  return Math.max(0.05, Math.min(0.95, 0.6 * power / monsterPower(monster)));
 }
 
 function launchExpedition(monsterId) {
@@ -687,7 +693,7 @@ function clickGolden(e) {
     game.forms += bonus;
     log(`PRIORITY FORM: expedited processing! +${formatNumber(bonus)} forms!`, 'success');
   } else {
-    const bonus = Math.floor(game.stamps * 0.1) + 5;
+    const bonus = Math.floor(game.stampsPerSec * 120) + 5;
     gainStamps(bonus);
     log(`PRIORITY FORM: certified urgent! +${formatNumber(bonus)} stamps!`, 'success');
   }

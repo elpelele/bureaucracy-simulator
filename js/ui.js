@@ -707,6 +707,7 @@ function renderExpeditions() {
     const kills = game.monsterKills[monster.id] || 0;
     const relic = RELICS.find(r => r.id === monster.relic);
     const hasRelic = game.relics.has(monster.relic);
+    const effPower = monsterPower(monster);
     const chance = squad.length ? Math.round(expeditionChance(monster, squad) * 100) : 0;
     const canLaunch = squad.length > 0;
 
@@ -715,7 +716,7 @@ function renderExpeditions() {
         <div class="monster-name">${monster.name} ${kills > 0 ? `[defeated ×${kills}]` : ''}</div>
         <div class="monster-desc">${monster.desc}</div>
         <div class="monster-stats">
-          Power: ${formatNumber(monster.power)} | Duration: ${formatDuration(monster.duration)} | Reward: +${monster.absurdity} Absurdity${relic && !hasRelic ? ` + ${relic.name}` : ''}
+          Power: ${formatNumber(effPower)}${kills > 0 ? ' (it adapted to your tactics)' : ''} | Duration: ${formatDuration(monster.duration)} | Reward: +${monster.absurdity} Absurdity${relic && !hasRelic ? ` + ${relic.name}` : ''}
           ${squad.length ? `<br>Success odds with current squad: <strong>${chance}%</strong>` : ''}
         </div>
         <button class="launch-btn" ${canLaunch ? '' : 'disabled'} onclick="launchExpedition('${monster.id}')">LAUNCH EXPEDITION</button>
@@ -723,7 +724,7 @@ function renderExpeditions() {
     `;
   });
 
-  html += '<div class="expedition-hint">Failure means 10% of the squad resigns. Victory grants Absurdity (+2% production each) and, the first time, a permanent relic.</div>';
+  html += '<div class="expedition-hint">Failure means 10% of the squad resigns. Victory grants Absurdity (+2% production each) and, the first time, a permanent relic. Beware: each defeated monster returns ×2.5 stronger — the bureaucracy adapts.</div>';
 
   // Relics collection
   if (game.relics.size > 0) {

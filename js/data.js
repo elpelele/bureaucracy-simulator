@@ -1205,7 +1205,8 @@ const EVENTS = [
     stage: 'office',
     effect: () => {
       const lost = eventLoss(0.1);
-      const gained = Math.floor(game.stamps * 0.05) + 10;
+      // income-based, never a % of the balance — % gains compound out of control
+      const gained = Math.floor(game.stampsPerSec * 60) + 10;
       gainStamps(gained);
       return `Lost ${formatNumber(lost)} forms but gained ${formatNumber(gained)} stamps for compliance!`;
     }
@@ -1305,7 +1306,7 @@ const EVENTS = [
     stage: 'administration',
     effect: () => {
       const lost = eventLoss(0.2);
-      const gained = Math.floor(game.stamps * 0.1);
+      const gained = Math.floor(game.stampsPerSec * 120) + 25;
       gainStamps(gained);
       return `Lost ${formatNumber(lost)} forms but gained ${formatNumber(gained)} hush stamps!`;
     }
@@ -1363,9 +1364,10 @@ const EVENTS = [
     stage: 'ministry',
     effect: () => {
       const bonus = Math.floor(game.formsPerSec * 300);
+      const stampBonus = Math.floor(game.stampsPerSec * 180) + 50;
       game.forms += bonus;
-      gainStamps(Math.floor(game.stamps * 0.1));
-      return `Celebrations added ${formatNumber(bonus)} forms and 10% stamps!`;
+      gainStamps(stampBonus);
+      return `Celebrations added ${formatNumber(bonus)} forms and ${formatNumber(stampBonus)} stamps!`;
     }
   },
 
@@ -1509,9 +1511,10 @@ const EVENTS = [
     stage: 'existential',
     effect: () => {
       const bonus = Math.floor(game.formsPerSec * 1200);
+      const stampBonus = Math.floor(game.stampsPerSec * 300) + 100;
       game.forms += bonus;
-      gainStamps(Math.floor(game.stamps * 0.25));
-      return `Entropy reversal recovered ${formatNumber(bonus)} forms and 25% more stamps!`;
+      gainStamps(stampBonus);
+      return `Entropy reversal recovered ${formatNumber(bonus)} forms and ${formatNumber(stampBonus)} bonus stamps!`;
     }
   }
 ];
@@ -1665,8 +1668,10 @@ const INVESTMENTS = [
     id: 'inbox_capacity',
     name: 'Bigger Inbox',
     desc: '+10 min of approval inbox capacity per level.',
-    baseCost: 30,
-    costMultiplier: 1.5,
+    // deliberately steep: permanently relaxing the anti-AFK cap should be a
+    // long-term sink (~1M stamps for all 12 levels), not an early splurge
+    baseCost: 100,
+    costMultiplier: 2.2,
     level: 0,
     maxLevel: 12,
     unlocked: () => game.formsPerSec > 0,
@@ -1721,14 +1726,16 @@ const INVESTMENTS = [
 // ============================================
 // MONSTERS OF THE DEEP ARCHIVES (Expeditions)
 // ============================================
-// power is compared to raw staff fps (no multipliers) of the squad you send.
+// power is compared to raw staff fps (no multipliers) of the squad you send,
+// and grows x2.5 with each kill of that monster (the bureaucracy adapts) —
+// farming self-limits while the reward stays flat.
 // Each monster guarantees its relic on first kill; every kill grants Absurdity.
 const MONSTERS = [
   {
     id: 'unstable_pile',
     name: 'The Unstable Pile',
     desc: 'A tower of unfiled paperwork. It sways. It hungers.',
-    power: 50,
+    power: 8e3,
     duration: 10 * 60 * 1000,
     absurdity: 1,
     relic: 'ancient_stamp'
@@ -1737,7 +1744,7 @@ const MONSTERS = [
     id: 'duplicate_hydra',
     name: 'The Duplicate Hydra',
     desc: 'Destroy one form, two copies grow back. In triplicate.',
-    power: 1500,
+    power: 250e3,
     duration: 30 * 60 * 1000,
     absurdity: 3,
     relic: 'red_stapler'
@@ -1746,7 +1753,7 @@ const MONSTERS = [
     id: 'eternal_paperclip',
     name: 'The Eternal Paperclip',
     desc: '"It looks like you\'re trying to escape. Would you like help?"',
-    power: 40e3,
+    power: 6e6,
     duration: 60 * 60 * 1000,
     absurdity: 8,
     relic: 'coffee_pot'
@@ -1755,7 +1762,7 @@ const MONSTERS = [
     id: 'possessed_printer',
     name: 'The Possessed Printer of Sub-Level 3',
     desc: 'PC LOAD LETTER. Forever. For everyone.',
-    power: 1e6,
+    power: 150e6,
     duration: 2 * 3600 * 1000,
     absurdity: 20,
     relic: 'org_chart'
@@ -1764,7 +1771,7 @@ const MONSTERS = [
     id: 'ghost_file',
     name: 'The Ghost of the Lost File (1974)',
     desc: 'Nobody ever found it. Nobody ever will. It found YOU.',
-    power: 25e6,
+    power: 5e9,
     duration: 4 * 3600 * 1000,
     absurdity: 50,
     relic: 'self_inking_seal'
@@ -1773,7 +1780,7 @@ const MONSTERS = [
     id: 'emeritus_director',
     name: 'The Emeritus Director',
     desc: 'Retired 12 years ago. Still signs decrees. Still attends meetings.',
-    power: 600e6,
+    power: 200e9,
     duration: 6 * 3600 * 1000,
     absurdity: 120,
     relic: 'golden_paperclip'
@@ -1782,7 +1789,7 @@ const MONSTERS = [
     id: 'form_a0',
     name: 'FORM A-0',
     desc: 'The form you must fill to be allowed to fill forms. The final boss of paperwork.',
-    power: 15e9,
+    power: 20e12,
     duration: 8 * 3600 * 1000,
     absurdity: 300,
     relic: 'form_a0_trophy'
