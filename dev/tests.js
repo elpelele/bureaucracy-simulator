@@ -360,5 +360,24 @@ const absBeforeInc = game.absurdity;
 chooseDirective('a');
 assert(game.absurdity === absBeforeInc + 1, 'reconstructing folder B-12 grants +1 absurdity');
 
+console.log('--- 20. Panel spawn path ---');
+game.directive.active = false;
+game.stageIndex = 0;
+game.lastActiveAt = Date.now();
+game.nextDirectiveAt = Date.now() - 1;
+directiveTick(Date.now());
+assert(!game.directive.active, 'no panels at The Office');
+game.stageIndex = 1;
+game.lastActiveAt = Date.now() - 600000; // AFK player
+game.nextDirectiveAt = Date.now() - 1;
+directiveTick(Date.now());
+assert(!game.directive.active, 'no panels while the player is away');
+game.lastActiveAt = Date.now(); // present player
+directiveTick(Date.now());
+assert(game.directive.active, 'panel spawns at Administration for an active player');
+const spawned = DIRECTIVES.find(d => d.id === game.directive.id);
+assert(spawned && (spawned.minStage !== undefined ? spawned.minStage : 3) <= 1, 'only stage-appropriate panels are drawn');
+game.directive.active = false;
+
 console.log(`\n===== ${__pass} passed, ${__fail} failed =====`);
 process.exit(__fail > 0 ? 1 : 0);
