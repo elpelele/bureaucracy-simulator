@@ -118,6 +118,7 @@ function playSound(type, pitch = 1) {
 function recalcAll() {
   game.formsPerClick = 1;
   game.clickMultiplier = 1;
+  game.clickFpsPercent = 0;
   game.globalMultiplier = 1;
   game.stampsPerSec = 0;
   game.stampsMultiplier = 1;
@@ -125,6 +126,7 @@ function recalcAll() {
   game.negativeEventMultiplier = 1;
   game.goldenFrequencyMultiplier = 1;
   game.inboxCapacityBonus = 0;
+  game.inboxCapacityMultiplier = 1;
   STAFF.forEach(s => { s.fps = s.baseFps; });
 
   UPGRADES.forEach(u => { if (game.purchasedUpgrades.has(u.id)) u.effect(); });
@@ -185,13 +187,14 @@ function processClick(e) {
   if (!clickAllowed()) return;
   game.lastActiveAt = Date.now();
 
-  let clickGain = game.formsPerClick * game.clickMultiplier * rampageFactor() * clickBuffFactor();
+  let clickGain = effectiveClickBase() * game.clickMultiplier * rampageFactor() * clickBuffFactor();
 
   // Existential Office: reality flickers — some clicks echo across timelines
   let dejaVu = false;
   if (game.stageIndex >= 5 && Math.random() < 0.02) {
     dejaVu = true;
     clickGain *= 100;
+    game.dejaVuCount++;
   }
 
   const collected = collectInbox();
@@ -293,14 +296,32 @@ function buyPolicy(id) {
   const policy = POLICIES.find(p => p.id === id);
   if (!policy) return;
 
-  if (game.activePolicies.has(id)) return;
+  if (game.purchasedPolicies.has(id)) return;
   if (!canAfford(policy.cost, policy.costCurrency)) return;
 
   spend(policy.cost, policy.costCurrency);
+  game.purchasedPolicies.add(id);
   game.activePolicies.add(id);
   recalcAll();
   log(`Policy enacted: ${policy.name}!`, 'special');
   checkAchievements();
+}
+
+// Enacted policies can be suspended and reactivated freely
+function togglePolicy(id) {
+  if (!game.purchasedPolicies.has(id)) return;
+  const policy = POLICIES.find(p => p.id === id);
+  if (!policy) return;
+
+  if (game.activePolicies.has(id)) {
+    game.activePolicies.delete(id);
+    log(`Policy suspended: ${policy.name}.`, 'info');
+  } else {
+    game.activePolicies.add(id);
+    log(`Policy reactivated: ${policy.name}!`, 'success');
+  }
+  recalcAll();
+  renderPolicies();
 }
 
 function buyInvestment(id) {
@@ -425,7 +446,7 @@ function bossPending() {
 }
 
 function bossClickDamage() {
-  return game.formsPerClick * game.clickMultiplier + game.formsPerSec * 0.05;
+  return effectiveClickBase() * game.clickMultiplier + game.formsPerSec * 0.05;
 }
 
 function startBossFight() {
@@ -655,6 +676,7 @@ function doReform() {
   game.stageIndex = 0;
   game.runStartTime = Date.now();
   game.purchasedUpgrades.clear();
+  game.purchasedPolicies.clear();
   game.activePolicies.clear();
   STAFF.forEach(s => { s.owned = 0; });
   DEPARTMENTS.forEach(d => { d.owned = false; });
@@ -714,6 +736,7 @@ function directiveTick(now) {
   if (game.directive.active) {
     if (now > game.directive.expiresAt) {
       game.directive.active = false;
+      game.directivesExpired++;
       log('The directive expired unanswered. The Council sighs and files it away.', 'warning');
       scheduleDirective(now);
     }
@@ -778,6 +801,7 @@ function chooseDirective(option) {
   if (!directive) return;
   const choice = option === 'a' ? directive.a : directive.b;
   const result = applyDirectiveEffect(choice.effect);
+  game.directivesAnswered++;
   playSound('stamp', 1.2);
   log(`DIRECTIVE ${directive.name}: "${choice.label}" — ${result}`, 'success');
   checkAchievements();
@@ -866,12 +890,14 @@ function clickGolden(e) {
     log(`${kind}: certified urgent! +${formatNumber(bonus)} stamps!`, 'success');
   } else {
     game.rampageUntil = Date.now() + RAMPAGE_DURATION * magnitude;
+    game.rampagesTriggered++;
     log(`${kind}: STAMP RAMPAGE! Your clicks are worth ×${RAMPAGE_MULTIPLIER} for ${15 * magnitude} seconds!`, 'special');
   }
 
   if (quantum && Math.random() < 0.15) {
     const lost = Math.floor(game.forms * 0.05);
     game.forms -= lost;
+    game.quantumCollapses++;
     log(`The quantum form collapsed on observation! Superposition tax: -${formatNumber(lost)} forms.`, 'warning');
   }
   if (e) showFloatText(e.clientX, e.clientY, 'PRIORITY!');
@@ -936,8 +962,16 @@ function saveGame() {
 
     // Purchases (facts only — multipliers are recomputed on load)
     purchasedUpgrades: [...game.purchasedUpgrades],
+    purchasedPolicies: [...game.purchasedPolicies],
     activePolicies: [...game.activePolicies],
     unlockedAchievements: [...game.unlockedAchievements],
+
+    // Lifetime mechanic counters
+    directivesAnswered: game.directivesAnswered,
+    directivesExpired: game.directivesExpired,
+    dejaVuCount: game.dejaVuCount,
+    quantumCollapses: game.quantumCollapses,
+    rampagesTriggered: game.rampagesTriggered,
     staff: STAFF.map(s => ({ id: s.id, owned: s.owned })),
     departments: DEPARTMENTS.map(d => ({ id: d.id, owned: d.owned })),
     investments: INVESTMENTS.map(i => ({ id: i.id, level: i.level }))
@@ -1012,7 +1046,15 @@ function loadGame() {
     // Purchases
     game.purchasedUpgrades = new Set(data.purchasedUpgrades || []);
     game.activePolicies = new Set(data.activePolicies || []);
+    // Older saves had no purchased/active distinction: active = purchased
+    game.purchasedPolicies = new Set(data.purchasedPolicies || data.activePolicies || []);
     game.unlockedAchievements = new Set(data.unlockedAchievements || []);
+
+    game.directivesAnswered = data.directivesAnswered || 0;
+    game.directivesExpired = data.directivesExpired || 0;
+    game.dejaVuCount = data.dejaVuCount || 0;
+    game.quantumCollapses = data.quantumCollapses || 0;
+    game.rampagesTriggered = data.rampagesTriggered || 0;
 
     if (data.staff) {
       data.staff.forEach(savedStaff => {

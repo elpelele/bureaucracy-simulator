@@ -148,7 +148,7 @@ function render() {
 
   const prodBuff = prodBuffFactor(now);
   const clickBuff = clickBuffFactor(now);
-  const effectiveClickPower = game.formsPerClick * game.clickMultiplier * rampage * clickBuff;
+  const effectiveClickPower = effectiveClickBase() * game.clickMultiplier * rampage * clickBuff;
   let rateText = `+${formatNumber(game.formsPerSec * frenzy * prodBuff)}/sec`;
   if (frenzy > 1) rateText += ` [FRENZY ×${frenzy}]`;
   els.formsRate.textContent = rateText;
@@ -419,7 +419,7 @@ function updateTabBadges() {
     stageIdx(d.stage) <= game.stageIndex && !d.owned && d.unlocked() && canAfford(d.cost, d.costCurrency)
   ).length);
   badge(els.tabPolicies, 'Policies', POLICIES.filter(p =>
-    stageIdx(p.stage) <= game.stageIndex && !game.activePolicies.has(p.id) && p.unlocked() && canAfford(p.cost, p.costCurrency)
+    stageIdx(p.stage) <= game.stageIndex && !game.purchasedPolicies.has(p.id) && p.unlocked() && canAfford(p.cost, p.costCurrency)
   ).length);
   badge(els.tabInvestments, 'Investments', INVESTMENTS.filter(inv =>
     inv.unlocked() && inv.level < inv.maxLevel && game.stamps >= getInvestmentCost(inv, inv.level)
@@ -680,11 +680,11 @@ function renderPolicies() {
   }
 
   const availablePolicies = POLICIES.filter(p =>
-    stageIdx(p.stage) <= game.stageIndex && p.unlocked() && !game.activePolicies.has(p.id)
+    stageIdx(p.stage) <= game.stageIndex && p.unlocked() && !game.purchasedPolicies.has(p.id)
   );
-  const activePolicies = POLICIES.filter(p => game.activePolicies.has(p.id));
+  const enactedPolicies = POLICIES.filter(p => game.purchasedPolicies.has(p.id));
 
-  if (availablePolicies.length === 0 && activePolicies.length === 0) {
+  if (availablePolicies.length === 0 && enactedPolicies.length === 0) {
     if (policiesUiSignature !== 'empty') {
       policiesUiSignature = 'empty';
       els.policiesList.innerHTML = '<div class="empty-state">No policies available yet.</div>';
@@ -692,20 +692,25 @@ function renderPolicies() {
     return;
   }
 
-  const signature = activePolicies.map(p => p.id + '*').join(',') + '|' + availablePolicies.map(p => p.id).join(',');
+  const signature = enactedPolicies.map(p => p.id + (game.activePolicies.has(p.id) ? '*' : 'o')).join(',')
+    + '|' + availablePolicies.map(p => p.id).join(',');
   if (signature !== policiesUiSignature) {
     policiesUiSignature = signature;
     policyNodes = {};
 
     let html = '';
-    if (activePolicies.length > 0) {
-      html += '<div class="category-header">Active Policies</div>';
-      activePolicies.forEach(policy => {
+    if (enactedPolicies.length > 0) {
+      html += '<div class="category-header">Enacted Policies (click to suspend / reactivate)</div>';
+      enactedPolicies.forEach(policy => {
+        const isActive = game.activePolicies.has(policy.id);
         html += `
-          <div class="shop-item owned">
+          <div class="shop-item ${isActive ? 'owned' : 'suspended'}" onclick="togglePolicy('${policy.id}')">
             <div class="item-info">
-              <div class="item-name">${policy.name} [ACTIVE]</div>
+              <div class="item-name">${policy.name} ${isActive ? '[ACTIVE]' : '[SUSPENDED]'}</div>
               <div class="item-desc">${policy.desc}</div>
+            </div>
+            <div class="item-cost">
+              <button class="policy-toggle-btn">${isActive ? 'SUSPEND' : 'REACTIVATE'}</button>
             </div>
           </div>
         `;
@@ -990,6 +995,8 @@ function updateStats() {
       <div>Administrative reforms</div><div>${game.reformCount}</div>
       <div>Inspectors General defeated</div><div>${game.bossesDefeated}</div>
       <div>Expeditions won / failed</div><div>${game.expeditionsWon} / ${game.expeditionsFailed}</div>
+      <div>Directives answered / ignored</div><div>${game.directivesAnswered} / ${game.directivesExpired}</div>
+      <div>Déjà vus / quantum collapses / rampages</div><div>${game.dejaVuCount} / ${game.quantumCollapses} / ${game.rampagesTriggered}</div>
       <div>Relics</div><div>${relicNames.length ? relicNames.join(', ') : 'none'}</div>
       <div>Achievements</div><div>${game.unlockedAchievements.size} / ${ACHIEVEMENTS.length} (+${game.unlockedAchievements.size}%)</div>
       <div>Time played</div><div>${formatTime(Date.now() - game.startTime)}</div>

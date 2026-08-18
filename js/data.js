@@ -287,7 +287,7 @@ const STAFF = [
     id: 'secretary_general',
     name: 'Secretary General',
     desc: 'The world\'s chief bureaucrat.',
-    baseCost: 4e15,
+    baseCost: 1e15,
     costCurrency: 'forms',
     fps: 11.4e6,
     owned: 0,
@@ -298,7 +298,7 @@ const STAFF = [
     id: 'world_council',
     name: 'World Council',
     desc: 'A council of councils. Bureaucracy squared.',
-    baseCost: 1e15,
+    baseCost: 4e15,
     costCurrency: 'forms',
     fps: 35.7e6,
     owned: 0,
@@ -482,7 +482,7 @@ const UPGRADES = [
     id: 'filing_system',
     name: 'Filing System',
     desc: 'All staff 10% more efficient.',
-    cost: 5000,
+    cost: 12500,
     costCurrency: 'forms',
     effect: () => { game.globalMultiplier *= 1.1; },
     unlocked: () => game.totalForms >= 5000,
@@ -510,8 +510,8 @@ const UPGRADES = [
   },
   {
     id: 'overtime_policy',
-    name: 'Mandatory Overtime',
-    desc: 'Nobody goes home. +50% production.',
+    name: 'Evening Shifts',
+    desc: 'Nobody goes home before dark. +50% production.',
     cost: 100000,
     costCurrency: 'forms',
     effect: () => { game.globalMultiplier *= 1.5; },
@@ -738,10 +738,10 @@ const UPGRADES = [
   {
     id: 'click_nuke',
     name: 'Nuclear Stamp',
-    desc: 'One click, million forms. +100000 forms/click.',
+    desc: 'One click, a nation\'s output. Clicks also gain +1% of your production.',
     cost: 1.5e15,
     costCurrency: 'forms',
-    effect: () => { game.formsPerClick += 100000; },
+    effect: () => { game.clickFpsPercent += 0.01; },
     unlocked: () => game.totalForms >= 600e12,
     stage: 'global'
   },
@@ -759,7 +759,7 @@ const UPGRADES = [
   },
   {
     id: 'quantum_forms',
-    name: 'Quantum Forms',
+    name: 'Schr\u00f6dinger Archives',
     desc: 'Forms exist in superposition. +50% production.',
     cost: 19.2e18,
     costCurrency: 'forms',
@@ -780,10 +780,10 @@ const UPGRADES = [
   {
     id: 'galaxy_brain',
     name: 'Galaxy Brain Bureaucracy',
-    desc: 'Think at galactic scale. +1M forms/click.',
+    desc: 'Think at galactic scale. Clicks gain +2% of your production.',
     cost: 15e18,
     costCurrency: 'forms',
-    effect: () => { game.formsPerClick += 1e6; },
+    effect: () => { game.clickFpsPercent += 0.02; },
     unlocked: () => game.totalForms >= 6e18,
     stage: 'cosmic'
   },
@@ -822,10 +822,10 @@ const UPGRADES = [
   {
     id: 'omniscient_click',
     name: 'Omniscient Click',
-    desc: 'One click processes all forms ever. +1B forms/click.',
+    desc: 'One click processes all forms ever. Clicks gain +3% of your production.',
     cost: 500e21,
     costCurrency: 'forms',
-    effect: () => { game.formsPerClick += 1e9; },
+    effect: () => { game.clickFpsPercent += 0.03; },
     unlocked: () => game.totalForms >= 200e21,
     stage: 'existential'
   },
@@ -837,6 +837,58 @@ const UPGRADES = [
     costCurrency: 'forms',
     effect: () => { game.globalMultiplier *= 3; },
     unlocked: () => game.totalForms >= 800e21,
+    stage: 'existential'
+  },
+
+  // === PER-STAGE STAFF TRAINING (one per stage, +50% to that tier) ===
+  {
+    id: 'civil_exam',
+    name: 'Civil Service Exam',
+    desc: 'Certified paper pushers. Administration staff +40%.',
+    cost: 1.6e9,
+    costCurrency: 'forms',
+    effect: () => { STAFF.forEach(st => { if (st.stage === 'administration') st.fps *= 1.4; }); },
+    unlocked: () => game.totalForms >= 200e6,
+    stage: 'administration'
+  },
+  {
+    id: 'ministerial_briefcases',
+    name: 'Ministerial Briefcases',
+    desc: 'Very important leather. Ministry staff +40%.',
+    cost: 1.6e12,
+    costCurrency: 'forms',
+    effect: () => { STAFF.forEach(st => { if (st.stage === 'ministry') st.fps *= 1.4; }); },
+    unlocked: () => game.totalForms >= 200e9,
+    stage: 'ministry'
+  },
+  {
+    id: 'diplomatic_immunity',
+    name: 'Diplomatic Immunity',
+    desc: 'Cannot be stopped, not even by traffic. Global staff +40%.',
+    cost: 7.2e15,
+    costCurrency: 'forms',
+    effect: () => { STAFF.forEach(st => { if (st.stage === 'global') st.fps *= 1.4; }); },
+    unlocked: () => game.totalForms >= 900e12,
+    stage: 'global'
+  },
+  {
+    id: 'zero_g_cabinets',
+    name: 'Zero-G Filing Cabinets',
+    desc: 'Files float directly into place. Cosmic staff +40%.',
+    cost: 1.2e20,
+    costCurrency: 'forms',
+    effect: () => { STAFF.forEach(st => { if (st.stage === 'cosmic') st.fps *= 1.4; }); },
+    unlocked: () => game.totalForms >= 15e18,
+    stage: 'cosmic'
+  },
+  {
+    id: 'ontological_tenure',
+    name: 'Ontological Tenure',
+    desc: 'They exist, therefore they file. Existential staff +40%.',
+    cost: 800e21,
+    costCurrency: 'forms',
+    effect: () => { STAFF.forEach(st => { if (st.stage === 'existential') st.fps *= 1.4; }); },
+    unlocked: () => game.totalForms >= 100e21,
     stage: 'existential'
   }
 ];
@@ -1167,7 +1219,14 @@ const ACHIEVEMENTS = [
   // Special
   { id: 'speedrun', cat: 'other', name: 'Speed Runner', desc: 'Reach 1M forms in under 10 minutes.', check: () => game.totalForms >= 1e6 && (Date.now() - game.runStartTime) < 600000 },
   { id: 'no_click', cat: 'other', name: 'Hands Off', desc: 'Have 1M forms with under 100 clicks.', check: () => game.totalForms >= 1e6 && game.totalClicks < 100 },
-  { id: 'click_only', cat: 'other', name: 'Manual Labor', desc: 'Have 100K clicks before hiring anyone.', check: () => game.totalClicks >= 100000 && getTotalStaff() === 0 }
+  { id: 'click_only', cat: 'other', name: 'Manual Labor', desc: 'Have 100K clicks before hiring anyone.', check: () => game.totalClicks >= 100000 && getTotalStaff() === 0 },
+
+  // Stage-signature mechanics
+  { id: 'decisive', cat: 'endgame', name: 'Decisive', desc: 'Answer 10 Council directives.', check: () => game.directivesAnswered >= 10 },
+  { id: 'committee_ghost', cat: 'other', name: 'Committee Ghost', desc: 'Let 5 directives expire unanswered.', check: () => game.directivesExpired >= 5 },
+  { id: 'deja_vu_again', cat: 'endgame', name: 'Haven\'t We Met?', desc: 'Trigger 10 d\u00e9j\u00e0 vu clicks.', check: () => game.dejaVuCount >= 10 },
+  { id: 'observer_effect', cat: 'endgame', name: 'Observer Effect', desc: 'Suffer 3 quantum form collapses.', check: () => game.quantumCollapses >= 3 },
+  { id: 'rampager', cat: 'other', name: 'Rubber Stamp Berserker', desc: 'Trigger 5 stamp rampages.', check: () => game.rampagesTriggered >= 5 }
 ];
 
 // ============================================
@@ -1367,8 +1426,8 @@ const EVENTS = [
   },
   {
     id: 'national_holiday',
-    name: 'National Form Day',
-    desc: 'The nation celebrates bureaucracy!',
+    name: 'Form Day Parade',
+    desc: 'The nation parades for its beloved forms!',
     type: 'special',
     chance: 0.2,
     minForms: 100e9,
@@ -1624,6 +1683,34 @@ const POLICIES = [
     unlocked: () => game.totalForms >= 2e21,
     stage: 'existential',
     effect: () => { game.globalMultiplier *= 1.5; }
+  },
+  {
+    id: 'expedited_stamps',
+    name: 'Expedited Stamp Lane',
+    desc: 'Skip the queue for a fee. Stamp income +50%, but negative events hit 25% harder.',
+    cost: 300e9,
+    costCurrency: 'forms',
+    active: false,
+    unlocked: () => game.totalForms >= 40e9,
+    stage: 'ministry',
+    effect: () => {
+      game.stampsMultiplier *= 1.5;
+      game.negativeEventMultiplier *= 1.25;
+    }
+  },
+  {
+    id: 'paper_rationing',
+    name: 'Paper Rationing',
+    desc: 'Less paper wasted, less patience for backlogs. +25% production, approval inbox capacity halved.',
+    cost: 320e12,
+    costCurrency: 'forms',
+    active: false,
+    unlocked: () => game.totalForms >= 40e12,
+    stage: 'global',
+    effect: () => {
+      game.globalMultiplier *= 1.25;
+      game.inboxCapacityMultiplier *= 0.5;
+    }
   }
 ];
 

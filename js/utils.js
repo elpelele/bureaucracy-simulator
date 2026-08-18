@@ -112,7 +112,13 @@ function eventLoss(fraction) {
 // The approval inbox holds this many forms (scales with production)
 const INBOX_BASE_SECONDS = 1800; // 30 minutes of production
 function getInboxCapacity() {
-  return game.formsPerSec * (INBOX_BASE_SECONDS + game.inboxCapacityBonus);
+  return game.formsPerSec * (INBOX_BASE_SECONDS + game.inboxCapacityBonus) * game.inboxCapacityMultiplier;
+}
+
+// Base click value: flat forms/click plus a share of production (late-game
+// click upgrades feed clickFpsPercent so clicking stays relevant forever)
+function effectiveClickBase() {
+  return game.formsPerClick + game.formsPerSec * game.clickFpsPercent;
 }
 
 // Staff units currently away on an expedition

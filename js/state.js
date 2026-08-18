@@ -39,11 +39,13 @@ const game = {
   stampsPerSec: 0,
   globalMultiplier: 1,
   clickMultiplier: 1,
+  clickFpsPercent: 0,     // clicks also gain this fraction of production
   stampsMultiplier: 1,
   staffCostMultiplier: 1,
   negativeEventMultiplier: 1,
   goldenFrequencyMultiplier: 1,
   inboxCapacityBonus: 0,  // extra seconds of inbox capacity
+  inboxCapacityMultiplier: 1,
 
   // Stage progression — advancing requires defeating the stage boss
   stageIndex: 0,
@@ -94,8 +96,16 @@ const game = {
 
   // Purchases
   purchasedUpgrades: new Set(),
-  activePolicies: new Set(),
+  purchasedPolicies: new Set(),  // enacted once (paid)
+  activePolicies: new Set(),     // currently in effect (toggleable subset)
   unlockedAchievements: new Set(),
+
+  // Lifetime mechanic counters (achievements & stats)
+  directivesAnswered: 0,
+  directivesExpired: 0,
+  dejaVuCount: 0,
+  quantumCollapses: 0,
+  rampagesTriggered: 0,
 
   // Event cooldowns
   lastEvent: 0,

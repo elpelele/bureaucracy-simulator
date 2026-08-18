@@ -291,5 +291,38 @@ const absBeforeDir = game.absurdity;
 chooseDirective('a');
 assert(game.absurdity === absBeforeDir + 2, 'audit committee grants +2 absurdity');
 
+console.log('--- 18. Toggleable policies, click %, staff training ---');
+game.stageIndex = 1;
+game.totalForms = 2e6;
+game.forms = 20e6;
+buyPolicy('mandatory_overtime');
+assert(game.purchasedPolicies.has('mandatory_overtime') && game.activePolicies.has('mandatory_overtime'), 'policy enacted (paid once)');
+const multWith = game.globalMultiplier;
+togglePolicy('mandatory_overtime');
+assert(!game.activePolicies.has('mandatory_overtime') && game.purchasedPolicies.has('mandatory_overtime'), 'policy suspended, still owned');
+assert(game.globalMultiplier < multWith, 'suspension removed the bonus');
+assert(game.negativeEventMultiplier === 1, 'suspension removed the malus too');
+togglePolicy('mandatory_overtime');
+assert(game.activePolicies.has('mandatory_overtime'), 'policy reactivated for free');
+togglePolicy('mandatory_overtime'); // suspend again
+saveGame();
+game.purchasedPolicies.clear();
+game.activePolicies.clear();
+loadGame();
+assert(game.purchasedPolicies.has('mandatory_overtime') && !game.activePolicies.has('mandatory_overtime'), 'suspended state survives save/load');
+
+game.purchasedUpgrades.add('click_nuke');
+STAFF.find(st => st.id === 'intern').owned = 100;
+recalcAll();
+const expectedClick = game.formsPerClick + game.formsPerSec * 0.01;
+assert(Math.abs(effectiveClickBase() - expectedClick) < 1e-9, `click gains +1% of production (${formatNumber(effectiveClickBase())})`);
+game.purchasedUpgrades.delete('click_nuke');
+
+game.purchasedUpgrades.add('civil_exam');
+recalcAll();
+assert(Math.abs(STAFF.find(st => st.id === 'civil_servant').fps - 140) < 1e-9, 'Civil Service Exam: administration staff +40%');
+game.purchasedUpgrades.delete('civil_exam');
+recalcAll();
+
 console.log(`\n===== ${__pass} passed, ${__fail} failed =====`);
 process.exit(__fail > 0 ? 1 : 0);

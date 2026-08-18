@@ -35,7 +35,7 @@ function tryBuyEverything() {
     if (stageIdx(d.stage) <= game.stageIndex && !d.owned && d.unlocked() && canAfford(d.cost, d.costCurrency)) buyDepartment(d.id);
   });
   POLICIES.forEach(pl => {
-    if (stageIdx(pl.stage) <= game.stageIndex && !game.activePolicies.has(pl.id) && pl.unlocked() && canAfford(pl.cost, pl.costCurrency)) buyPolicy(pl.id);
+    if (stageIdx(pl.stage) <= game.stageIndex && !game.purchasedPolicies.has(pl.id) && pl.unlocked() && canAfford(pl.cost, pl.costCurrency)) buyPolicy(pl.id);
   });
   INVESTMENTS.forEach(i => {
     let cost = getInvestmentCost(i, i.level);

@@ -1073,6 +1073,25 @@ body.stage-existential .game-title { border-bottom-color: #00bcd4; }
   color: #bbb;
 }
 
+/* === Policies: suspend / reactivate === */
+.shop-item.suspended {
+  opacity: 0.75;
+  border-style: dashed;
+}
+
+.policy-toggle-btn {
+  padding: 5px 12px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: bold;
+  background: #eee;
+  border: 1px solid #999;
+  cursor: pointer;
+  pointer-events: none; /* the whole row is clickable */
+}
+
+body.dark .policy-toggle-btn { background: #333; border-color: #666; color: #ddd; }
+
 /* === QoL: next staff unlock teaser === */
 .shop-item.locked-teaser {
   opacity: 0.55;

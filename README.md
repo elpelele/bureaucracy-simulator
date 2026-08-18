@@ -8,7 +8,7 @@ Un idle/clicker en JavaScript pur (aucune dépendance, aucun build) où l'on gra
 
 ## La boucle de jeu
 
-- **PROCESS FORM** : chaque clic produit des forms (limité à 15 clics/s comptabilisés — anti-autoclicker).
+- **PROCESS FORM** : chaque clic produit des forms (limité à 15 clics/s comptabilisés — anti-autoclicker). Les upgrades de clic tardifs donnent **+1 à +3 % de la production par clic** : cliquer reste pertinent toute la partie.
 - **Staff** : produit des forms par seconde, coût ×1,15 par unité possédée.
 - **Stamps** : la seconde monnaie. Gagnée par jalons (1 stamp / 1000 forms traités), par taux (stamps/s via upgrades) et par événements. Se dépense dans les **Investments** (bonus permanents à niveaux).
 - **Absurdity** : monnaie de prestige. Bonus permanent de production = `(1+A)^0.19` — ×1,6 à 10 points, ×2,4 à 100, ×5 vers 5 000, et un plafond naturel vers ×50 : une réforme profonde accélère le run suivant ×2-3 sans jamais le plier.
@@ -57,11 +57,11 @@ Au seuil de stage, il apparaît. **Seuls les clics font des dégâts** (dégât 
 | Type | Nombre | Détail |
 |------|--------|--------|
 | Staff | **32** | 7 (Office) + 5 par stage suivant ; de l'Intern (0,1/s) à The Absolute (40M/s de base — les multiplicateurs font le reste) |
-| Upgrades | **39** | uniques ; production, clic, stamps/s |
+| Upgrades | **44** | uniques ; production, clic (dont % de production), stamps/s, formations de staff par stage (+40 %) |
 | Departments | **22** | achats uniques ; multiplicateurs et stamps/s ; HR : staff −10 % |
-| Policies | **8** | uniques ; *Mandatory Overtime* : +50 % production mais événements négatifs +50 % |
+| Policies | **10** | payées une fois, puis **suspendables/réactivables librement** ; trois à contrepartie (*Mandatory Overtime*, *Expedited Stamp Lane*, *Paper Rationing*) |
 | Investments | **9** (232 niveaux) | répétables, payés en stamps ; ~5e14 stamps pour tout maxer |
-| Achievements | **45** | chacun donne **+1 % de production** |
+| Achievements | **50** | chacun donne **+1 % de production** |
 | Événements aléatoires | **24** | toutes les ~30-60 s ; bonus basés sur la production/s, malus en % des forms en caisse |
 | Monstres d'expédition | **7** | + 7 reliques permanentes |
 | Directives du Conseil | **6** | choix binaires périodiques (Global+) |
@@ -121,5 +121,5 @@ Principes :
 
 - **Rien de dérivé n'est sauvegardé.** `recalcAll()` recalcule tous les multiplicateurs depuis les faits (possédé/acheté/niveaux) — on peut rééquilibrer `data.js` sans casser les sauvegardes. Les sauvegardes v2 migrent automatiquement.
 - **Jamais de gain en % du solde de stamps** dans les événements : à ~90 événements/h, ça compose exponentiellement même AFK (mesuré ×2867 en une nuit avant correctif). Tous les gains d'événements sont basés sur le revenu (`stampsPerSec × durée`).
-- **Courbe de progression** : les seuils de stage sont **super-exponentiels** (×1000, ×3000, ×10⁴, ×3×10⁴) parce que la croissance intra-stage compose (~×3000/stage) ; les fps du staff sont dérivés de `coût / (multiplicateur cumulé attendu × temps de rentabilisation)`, ce dernier croissant par stage ; le contenu est étalé sur toute la largeur de chaque stage et chaque investment de production se finance un stage plus tard que le précédent (les jalons de stamps étant linéaires en forms). Rythme mesuré au bot optimal (humain ≈ ×1,5-2) : Office 23 min, Administration 20, Ministry 28, Global 20, Cosmic ~1 h 40, Existential ~2 h 20 — ~5 h 30 pour un premier clear complet. Après une réforme à l'entrée du Cosmic (~5,5K Absurdity, ×5,1), le second run complet prend ~1 h 40 : la réforme accélère ×3, elle ne plie pas le jeu (courbe validée par `SIM_ABSURDITY=5477 ./dev/sim.sh`).
-- Tests : harnais headless Node (stubs DOM + fichiers concaténés + assertions), 71 tests, plus des simulations de rythme (bot glouton) et d'économie.
+- **Courbe de progression** : les seuils de stage sont **super-exponentiels** (×1000, ×3000, ×10⁴, ×3×10⁴) parce que la croissance intra-stage compose (~×3000/stage) ; les fps du staff sont dérivés de `coût / (multiplicateur cumulé attendu × temps de rentabilisation)`, ce dernier croissant par stage ; le contenu est étalé sur toute la largeur de chaque stage et chaque investment de production se finance un stage plus tard que le précédent (les jalons de stamps étant linéaires en forms). Rythme mesuré au bot optimal (humain ≈ ×1,5-2) : Office 24 min, Administration 20, Ministry 28, Global 17, Cosmic ~1 h 30, Existential ~1 h — ~4 h pour un premier clear complet. Après une réforme à l'entrée du Cosmic (~5,5K Absurdity, ×5,1), le run suivant va ~×3 plus vite : la réforme accélère, elle ne plie pas le jeu (courbe validée par `SIM_ABSURDITY=5477 ./dev/sim.sh`).
+- Outils : `./dev/test.sh` (90 tests headless), `./dev/sim.sh` (bot de rythme sur le jeu complet, `SIM_ABSURDITY=N` pour un run post-réforme) et `./dev/audit.sh` (audit statique du contenu : doublons, ratios coût/seuil, références croisées).
