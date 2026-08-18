@@ -981,6 +981,15 @@ body.stage-existential { --accent: #00838f; --accent-dark: #005662; --accent-dee
   50% { border-color: var(--accent-dark); }
 }
 
+.directive-panel.incident {
+  background: #fff6ee;
+  border-style: solid;
+}
+
+body.dark .directive-panel.incident {
+  background: #2a221c;
+}
+
 .directive-title {
   font-size: 14px;
   font-weight: bold;

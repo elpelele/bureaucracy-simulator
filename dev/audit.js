@@ -16,6 +16,7 @@ RELICS.forEach(x => catalog.push(['relic', x.id, x.name]));
 MONSTERS.forEach(x => catalog.push(['monster', x.id, x.name]));
 EVENTS.forEach(x => catalog.push(['event', x.id, x.name]));
 DIRECTIVES.forEach(x => catalog.push(['directive', x.id, x.name]));
+PERKS.forEach(x => catalog.push(['perk', x.id, x.name]));
 const idSeen = new Map(), nameSeen = new Map();
 catalog.forEach(([kind, id, name]) => {
   const idKey = kind === 'event' || kind === 'directive' ? kind + ':' + id : id;
@@ -84,12 +85,20 @@ for (let i = 1; i < MONSTERS.length; i++) {
   if (MONSTERS[i].power <= MONSTERS[i - 1].power) flag(`monster power not increasing: ${MONSTERS[i].id}`);
   if (MONSTERS[i].absurdity <= MONSTERS[i - 1].absurdity) flag(`monster absurdity not increasing: ${MONSTERS[i].id}`);
 }
-const knownEffects = ['prod', 'click', 'stamp', 'forms', 'forms_big', 'stamps_burst', 'absurdity'];
+const knownEffects = ['prod', 'click', 'stamp', 'forms', 'forms_big', 'stamps_burst', 'absurdity',
+  'pay_prod_buff', 'prod_debuff', 'pay_absurdity', 'pay_click_buff', 'pay_nothing', 'stamps_and_debuff'];
 DIRECTIVES.forEach(d => {
   [d.a, d.b].forEach(opt => {
     if (!knownEffects.includes(opt.effect)) flag(`directive ${d.id}: unknown effect "${opt.effect}"`);
+    if (!opt.hint) flag(`directive ${d.id}: option missing hint`);
   });
+  if (d.onExpire && !knownEffects.includes(d.onExpire)) flag(`directive ${d.id}: unknown onExpire "${d.onExpire}"`);
+  if (d.kind === 'incident' && !d.onExpire) flag(`incident ${d.id}: missing onExpire (ignoring must have a consequence)`);
+  if (d.kind === 'incident' && d.minStage === undefined) flag(`incident ${d.id}: missing minStage`);
 });
+for (let i = 1; i < PERKS.length; i++) {
+  if (PERKS[i].cost <= PERKS[i - 1].cost) flag(`perk costs not increasing: ${PERKS[i].id}`);
+}
 INVESTMENTS.forEach(inv => {
   if (inv.costMultiplier <= 1) flag(`investment ${inv.id}: costMultiplier ${inv.costMultiplier} <= 1`);
 });

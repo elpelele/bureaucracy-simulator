@@ -9,7 +9,7 @@ const evt = { clientX: 0, clientY: 0 };
 
 // SIM_ABSURDITY=5477 ./dev/sim.sh -> simulates a post-reform run
 if (typeof process !== 'undefined' && process.env.SIM_ABSURDITY) {
-  game.absurdity = parseFloat(process.env.SIM_ABSURDITY);
+  gainAbsurdity(parseFloat(process.env.SIM_ABSURDITY));
   recalcAll();
   console.log(`(post-reform run: absurdity=${formatNumber(game.absurdity)}, production x${absurdityFactor().toFixed(1)})`);
 }
@@ -56,6 +56,8 @@ while (game.stageIndex < 5 && simSeconds < MAX) {
   }
   simSeconds++;
   if (simSeconds % 5 === 0) tryBuyEverything();
+  // an attentive player answers incidents/directives instead of eating debuffs
+  if (game.directive.active) chooseDirective(Math.random() < 0.5 ? 'a' : 'b');
   if (bossPending() && Date.now() >= game.boss.cooldownUntil) {
     startBossFight();
     let g = 0;

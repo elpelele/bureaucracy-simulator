@@ -203,6 +203,9 @@ function renderSideStatus(now) {
   if (now < game.buffs.stampUntil) {
     lines.push(`Directive: stamps ×${BUFF_STAMP} — ${formatDuration(game.buffs.stampUntil - now)}`);
   }
+  if (now < game.buffs.prodDebuffUntil) {
+    lines.push(`Incident fallout: production ×0.7 — ${formatDuration(game.buffs.prodDebuffUntil - now)}`);
+  }
   if (game.expedition.active) {
     const monster = MONSTERS.find(m => m.id === game.expedition.monsterId);
     lines.push(`Expedition: ${monster ? monster.name : '?'} — ${formatDuration(game.expedition.endTime - now)}`);
@@ -337,9 +340,10 @@ function renderDirective(now) {
     } else {
       const d = DIRECTIVES.find(x => x.id === game.directive.id);
       if (!d) return;
+      const kindLabel = d.kind === 'incident' ? 'OFFICE INCIDENT' : 'COUNCIL DIRECTIVE';
       els.directiveContainer.innerHTML = `
-        <div class="directive-panel">
-          <div class="directive-title">COUNCIL DIRECTIVE — ${d.name} <span class="directive-timer">(<span id="directive-timer">60</span>s)</span></div>
+        <div class="directive-panel ${d.kind === 'incident' ? 'incident' : ''}">
+          <div class="directive-title">${kindLabel} — ${d.name} <span class="directive-timer">(<span id="directive-timer">60</span>s)</span></div>
           <div class="directive-desc">${d.desc}</div>
           <div class="directive-choices">
             <button class="directive-btn" title="${d.a.hint}" onclick="chooseDirective('a')">${d.a.label}</button>
@@ -971,7 +975,33 @@ function renderReform() {
         ${ready ? `REFORM (+${formatNumber(gain)} Absurdity)` : 'Requires The Ministry and at least 1 Absurdity of progress (1B forms)'}
       </button>
     </div>
+    ${renderPerkShopHtml()}
   `;
+}
+
+// The Absurdity perk tree (inside the Reform tab)
+function renderPerkShopHtml() {
+  let html = '<div class="category-header">Absurdity Perks</div>';
+  html += `<div class="investments-header">Spend your Absurdity <strong>balance</strong> (${formatNumber(game.absurdity)}) on permanent perks.
+    The production bonus (×${absurdityFactor().toFixed(2)}) is based on <strong>lifetime</strong> Absurdity (${formatNumber(game.totalAbsurdityEarned)}) — spending here never lowers it. Perks survive reforms.</div>`;
+
+  PERKS.forEach(perk => {
+    const owned = game.purchasedPerks.has(perk.id);
+    const affordable = game.absurdity >= perk.cost;
+    html += `
+      <div class="shop-item ${owned ? 'owned' : (affordable ? 'affordable' : '')}"
+           onclick="${owned ? '' : `buyPerk('${perk.id}')`}">
+        <div class="item-info">
+          <div class="item-name">${perk.name}${owned ? ' [OWNED]' : ''}</div>
+          <div class="item-desc">${perk.desc}</div>
+        </div>
+        <div class="item-cost ${owned ? '' : (affordable ? 'affordable' : 'expensive')}">
+          ${owned ? '' : formatNumber(perk.cost) + ' absurdity'}
+        </div>
+      </div>
+    `;
+  });
+  return html;
 }
 
 // --------------------------------------------
@@ -991,7 +1021,8 @@ function updateStats() {
       <div>Stamps earned (all time)</div><div>${formatNumber(game.totalStampsEarned)}</div>
       <div>Total clicks</div><div>${formatNumber(game.totalClicks)}</div>
       <div>Current production</div><div>${formatNumber(game.formsPerSec)}/sec</div>
-      <div>Absurdity</div><div>${formatNumber(game.absurdity)} (×${absurdityFactor().toFixed(2)} production)</div>
+      <div>Absurdity (balance / lifetime)</div><div>${formatNumber(game.absurdity)} / ${formatNumber(game.totalAbsurdityEarned)} (×${absurdityFactor().toFixed(2)} production)</div>
+      <div>Perks owned</div><div>${game.purchasedPerks.size} / ${PERKS.length}</div>
       <div>Administrative reforms</div><div>${game.reformCount}</div>
       <div>Inspectors General defeated</div><div>${game.bossesDefeated}</div>
       <div>Expeditions won / failed</div><div>${game.expeditionsWon} / ${game.expeditionsFailed}</div>

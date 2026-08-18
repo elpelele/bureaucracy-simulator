@@ -268,13 +268,13 @@ assert(rampageGain >= game.formsPerClick * game.clickMultiplier * 77, `rampage m
 game.rampageUntil = 0;
 
 console.log('--- 17. Absurdity curve & Council directives ---');
-game.absurdity = 100;
+game.totalAbsurdityEarned = 100;
 recalcAll();
-assert(absurdityFactor() > 2 && absurdityFactor() < 3, `absurdity 100 -> x${absurdityFactor().toFixed(2)} (gentle curve)`);
-game.absurdity = 5477; // cosmic-entry reform scale
+assert(absurdityFactor() > 2 && absurdityFactor() < 3, `lifetime absurdity 100 -> x${absurdityFactor().toFixed(2)} (gentle curve)`);
+game.totalAbsurdityEarned = 5477; // cosmic-entry reform scale
 recalcAll();
 assert(absurdityFactor() > 4 && absurdityFactor() < 7, `cosmic-scale reform -> x${absurdityFactor().toFixed(1)}, no longer x110`);
-game.absurdity = 0;
+game.totalAbsurdityEarned = 0;
 recalcAll();
 
 game.stageIndex = 3;
@@ -323,6 +323,42 @@ recalcAll();
 assert(Math.abs(STAFF.find(st => st.id === 'civil_servant').fps - 140) < 1e-9, 'Civil Service Exam: administration staff +40%');
 game.purchasedUpgrades.delete('civil_exam');
 recalcAll();
+
+console.log('--- 19. Absurdity perks & office incidents ---');
+gainAbsurdity(500);
+const lifetimeBefore = game.totalAbsurdityEarned;
+const factorBefore = absurdityFactor();
+const balanceBefore = game.absurdity;
+buyPerk('muscle_memory');
+assert(game.purchasedPerks.has('muscle_memory'), 'perk purchased');
+assert(game.absurdity === balanceBefore - 15, `balance debited by the perk cost (${game.absurdity})`);
+assert(game.totalAbsurdityEarned === lifetimeBefore, 'lifetime untouched by spending');
+assert(Math.abs(absurdityFactor() - factorBefore) < 1e-12, 'production bonus unchanged after spending');
+assert(game.clickMultiplier >= 1.5, 'muscle memory applied via recalc');
+buyPerk('severance_package');
+buyPerk('inspectors_weak_spot');
+game.totalForms = 4e9;
+game.stageIndex = 2;
+doReform();
+assert(STAFF.find(st => st.id === 'intern').owned === 5 && game.forms === 1000, 'Severance Package: head start after reform');
+assert(game.purchasedPerks.has('muscle_memory'), 'perks survive reform');
+game.forms = 1e6;
+const hpNormal = Math.floor(bossClickDamage() * 40);
+game.totalForms = 1.2e6;
+startBossFight();
+assert(game.boss.maxHp <= hpNormal * 0.76, `Inspector's Weak Spot: boss HP reduced (${formatNumber(game.boss.maxHp)} vs ${formatNumber(hpNormal)})`);
+game.boss.active = false;
+
+game.stageIndex = 1;
+game.directive = { active: true, id: 'coffee_crisis', expiresAt: Date.now() - 1 };
+directiveTick(Date.now());
+assert(!game.directive.active, 'ignored incident resolves itself');
+assert(prodBuffFactor(Date.now()) < 1, `...badly: production debuff active (x${prodBuffFactor(Date.now())})`);
+game.buffs.prodDebuffUntil = 0;
+game.directive = { active: true, id: 'lost_folder', expiresAt: Date.now() + 60000 };
+const absBeforeInc = game.absurdity;
+chooseDirective('a');
+assert(game.absurdity === absBeforeInc + 1, 'reconstructing folder B-12 grants +1 absurdity');
 
 console.log(`\n===== ${__pass} passed, ${__fail} failed =====`);
 process.exit(__fail > 0 ? 1 : 0);

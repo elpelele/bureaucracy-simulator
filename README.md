@@ -11,7 +11,7 @@ Un idle/clicker en JavaScript pur (aucune dépendance, aucun build) où l'on gra
 - **PROCESS FORM** : chaque clic produit des forms (limité à 15 clics/s comptabilisés — anti-autoclicker). Les upgrades de clic tardifs donnent **+1 à +3 % de la production par clic** : cliquer reste pertinent toute la partie.
 - **Staff** : produit des forms par seconde, coût ×1,15 par unité possédée.
 - **Stamps** : la seconde monnaie. Gagnée par jalons (1 stamp / 1000 forms traités), par taux (stamps/s via upgrades) et par événements. Se dépense dans les **Investments** (bonus permanents à niveaux).
-- **Absurdity** : monnaie de prestige. Bonus permanent de production = `(1+A)^0.19` — ×1,6 à 10 points, ×2,4 à 100, ×5 vers 5 000, et un plafond naturel vers ×50 : une réforme profonde accélère le run suivant ×2-3 sans jamais le plier.
+- **Absurdity** : monnaie de prestige, en deux compteurs. Le bonus permanent de production = `(1+A)^0.19` est basé sur l'Absurdity **gagnée à vie** (×1,6 à 10 points, ×2,4 à 100, ×5 vers 5 000, plafond naturel vers ×50) ; le **solde** se dépense dans les **Perks** (onglet Reform) sans jamais réduire le bonus.
 
 ### L'anti-AFK : la bannette d'approbation
 
@@ -25,9 +25,12 @@ Toutes les 2 à 5 minutes, un bouton doré **PRIORITY FORM** apparaît 8 seconde
 
 Au **Cosmic Bureau**, ils deviennent des **QUANTUM FORMS** : récompenses ×2, mais 15 % de chance de s'effondrer à l'observation (−5 % des forms en caisse).
 
-### Les Directives du Conseil (Global Council+)
+### Directives & incidents (panneaux à deux choix, jamais bloquants)
 
-Toutes les 3 à 6 minutes de jeu actif, le Conseil exige une décision : un panneau propose **deux options** et 60 secondes pour trancher. Effets possibles : production ×1,5, clics ×3 ou stamps ×2 pendant 10 min, bursts instantanés de forms/stamps, ou +2 Absurdity. Ignorer une directive est sans pénalité — le Conseil soupire et la classe.
+Toutes les 4 à 8 minutes de jeu actif, un panneau propose **deux options** et 60 secondes pour trancher — le jeu continue pendant ce temps, rien n'est bloqué.
+
+- **Incidents de bureau** (dès l'Administration) : la machine à café meurt, le dossier B-12 disparaît, la file de la photocopieuse devient consciente… Payer un petit coût règle le problème (parfois avec bonus, dont +1 Absurdity) ; **ignorer** laisse l'incident se résoudre tout seul, mal : production ×0,7 pendant 3-5 min.
+- **Directives du Conseil** (Global+) : pures opportunités — production ×1,5, clics ×3 ou stamps ×2 pendant 5 min, bursts, +2 Absurdity. Les ignorer est sans pénalité.
 
 ---
 
@@ -64,7 +67,8 @@ Au seuil de stage, il apparaît. **Seuls les clics font des dégâts** (dégât 
 | Achievements | **50** | chacun donne **+1 % de production** |
 | Événements aléatoires | **24** | toutes les ~30-60 s ; bonus basés sur la production/s, malus en % des forms en caisse |
 | Monstres d'expédition | **7** | + 7 reliques permanentes |
-| Directives du Conseil | **6** | choix binaires périodiques (Global+) |
+| Directives & incidents | **10** | panneaux non bloquants à deux choix (incidents dès l'Administration) |
+| Perks d'Absurdity | **11** | permanents, survivent aux réformes (~5 550 Absurdity pour tout) |
 | Boss | **5** | un par transition de stage |
 
 ---
@@ -94,7 +98,11 @@ Débloquées à **The Administration**. On compose une escouade de **3 types de 
 Débloquée à **The Ministry**. Gain : `⌊√(forms traités du run / 1e9)⌋` points d'Absurdity ; le bonus de production `(1+A)^0.19` est permanent (voir plus haut).
 
 - **Perdu** : forms, stamps, staff, upgrades, departments, policies, investments, stage.
-- **Conservé** : achievements, reliques, kills de monstres, Absurdity, statistiques lifetime.
+- **Conservé** : achievements, reliques, kills de monstres, Absurdity, **perks**, statistiques lifetime.
+
+### Les Perks d'Absurdity
+
+Onze améliorations permanentes achetées avec le solde d'Absurdity (10 → 3 000 pièce), du démarrage avec 5 interns après réforme (*Severance Package*) au boss affaibli (*Inspector's Weak Spot* : HP −25 %, confiscation 90 % → 75 %), expéditions plus sûres (*Archive Maps*), production hors-ligne à 75 % (*Dream Bureaucracy*), jusqu'au *Deep State* (3 000) : les réformes redémarrent directement à l'Administration.
 
 ---
 
@@ -122,4 +130,4 @@ Principes :
 - **Rien de dérivé n'est sauvegardé.** `recalcAll()` recalcule tous les multiplicateurs depuis les faits (possédé/acheté/niveaux) — on peut rééquilibrer `data.js` sans casser les sauvegardes. Les sauvegardes v2 migrent automatiquement.
 - **Jamais de gain en % du solde de stamps** dans les événements : à ~90 événements/h, ça compose exponentiellement même AFK (mesuré ×2867 en une nuit avant correctif). Tous les gains d'événements sont basés sur le revenu (`stampsPerSec × durée`).
 - **Courbe de progression** : les seuils de stage sont **super-exponentiels** (×1000, ×3000, ×10⁴, ×3×10⁴) parce que la croissance intra-stage compose (~×3000/stage) ; les fps du staff sont dérivés de `coût / (multiplicateur cumulé attendu × temps de rentabilisation)`, ce dernier croissant par stage ; le contenu est étalé sur toute la largeur de chaque stage et chaque investment de production se finance un stage plus tard que le précédent (les jalons de stamps étant linéaires en forms). Rythme mesuré au bot optimal (humain ≈ ×1,5-2) : Office 24 min, Administration 20, Ministry 28, Global 17, Cosmic ~1 h 30, Existential ~1 h — ~4 h pour un premier clear complet. Après une réforme à l'entrée du Cosmic (~5,5K Absurdity, ×5,1), le run suivant va ~×3 plus vite : la réforme accélère, elle ne plie pas le jeu (courbe validée par `SIM_ABSURDITY=5477 ./dev/sim.sh`).
-- Outils : `./dev/test.sh` (90 tests headless), `./dev/sim.sh` (bot de rythme sur le jeu complet, `SIM_ABSURDITY=N` pour un run post-réforme) et `./dev/audit.sh` (audit statique du contenu : doublons, ratios coût/seuil, références croisées).
+- Outils : `./dev/test.sh` (101 tests headless), `./dev/sim.sh` (bot de rythme sur le jeu complet, `SIM_ABSURDITY=N` pour un run post-réforme) et `./dev/audit.sh` (audit statique du contenu : doublons, ratios coût/seuil, références croisées).

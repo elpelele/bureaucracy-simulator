@@ -751,7 +751,7 @@ function doReform() {
 // --------------------------------------------
 const DIRECTIVE_STAGE = 1;          // incidents from The Administration; council directives gate on minStage (default 3)
 const DIRECTIVE_LIFETIME = 60000;   // 60s to decide
-const BUFF_DURATION = 600000;       // timed buffs last 10 minutes
+const BUFF_DURATION = 300000;       // timed buffs last 5 minutes
 const BUFF_PROD = 1.5;
 const BUFF_CLICK = 3;
 const BUFF_STAMP = 2;
@@ -770,7 +770,7 @@ function stampBuffFactor(now) {
 }
 
 function scheduleDirective(now) {
-  game.nextDirectiveAt = now + 180000 + Math.random() * 180000; // 3-6 min
+  game.nextDirectiveAt = now + 240000 + Math.random() * 240000; // 4-8 min
 }
 
 function directiveTick(now) {
@@ -813,13 +813,13 @@ function applyDirectiveEffect(effect) {
   switch (effect) {
     case 'prod':
       game.buffs.prodUntil = now + BUFF_DURATION;
-      return `Production ×${BUFF_PROD} for 10 minutes.`;
+      return `Production ×${BUFF_PROD} for 5 minutes.`;
     case 'click':
       game.buffs.clickUntil = now + BUFF_DURATION;
-      return `Clicks ×${BUFF_CLICK} for 10 minutes.`;
+      return `Clicks ×${BUFF_CLICK} for 5 minutes.`;
     case 'stamp':
       game.buffs.stampUntil = now + BUFF_DURATION;
-      return `Stamp income ×${BUFF_STAMP} for 10 minutes.`;
+      return `Stamp income ×${BUFF_STAMP} for 5 minutes.`;
     case 'forms': {
       const bonus = Math.floor(game.formsPerSec * 240);
       game.forms += bonus;

@@ -1995,14 +1995,14 @@ const DIRECTIVES = [
     id: 'budget_hearing',
     name: 'BUDGET HEARING',
     desc: 'The annual budget must be allocated. The committee awaits your signature.',
-    a: { label: 'Fund overtime', effect: 'prod', hint: 'Production ×1.5 for 10 min' },
-    b: { label: 'Fund the Stamp Bureau', effect: 'stamp', hint: 'Stamp income ×2 for 10 min' }
+    a: { label: 'Fund overtime', effect: 'prod', hint: 'Production ×1.5 for 5 min' },
+    b: { label: 'Fund the Stamp Bureau', effect: 'stamp', hint: 'Stamp income ×2 for 5 min' }
   },
   {
     id: 'union_negotiation',
     name: 'UNION NEGOTIATION',
     desc: 'The Paper Pushers Union demands concessions.',
-    a: { label: 'Promise pizza fridays', effect: 'click', hint: 'Clicks ×3 for 10 min' },
+    a: { label: 'Promise pizza fridays', effect: 'click', hint: 'Clicks ×3 for 5 min' },
     b: { label: 'Promise nothing, concede forms', effect: 'forms', hint: 'Instant forms (4 min of production)' }
   },
   {
@@ -2010,7 +2010,7 @@ const DIRECTIVES = [
     name: 'INTERNATIONAL SUMMIT',
     desc: 'Every nation sends a delegate. And a folder.',
     a: { label: 'Host the summit', effect: 'stamps_burst', hint: 'Instant stamps (10 min of income)' },
-    b: { label: 'Attend remotely', effect: 'prod', hint: 'Production ×1.5 for 10 min' }
+    b: { label: 'Attend remotely', effect: 'prod', hint: 'Production ×1.5 for 5 min' }
   },
   {
     id: 'audit_committee',
@@ -2023,8 +2023,8 @@ const DIRECTIVES = [
     id: 'paper_standard',
     name: 'FILING STANDARDS VOTE',
     desc: 'A4 or Letter? Empires have fallen for less.',
-    a: { label: 'Vote A4', effect: 'prod', hint: 'Production ×1.5 for 10 min' },
-    b: { label: 'Vote Letter', effect: 'click', hint: 'Clicks ×3 for 10 min' }
+    a: { label: 'Vote A4', effect: 'prod', hint: 'Production ×1.5 for 5 min' },
+    b: { label: 'Vote Letter', effect: 'click', hint: 'Clicks ×3 for 5 min' }
   },
   {
     id: 'lobbyist',
