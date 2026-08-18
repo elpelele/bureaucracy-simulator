@@ -389,13 +389,14 @@ assert(window.dev.panel('nope').startsWith('unknown id'), 'dev.panel rejects unk
 
 console.log('--- 22. Monster adaptation is per-run ---');
 game.monsterKillsRun = { unstable_pile: 3 };
+game.monsterKills.unstable_pile = (game.monsterKills.unstable_pile || 0) + 3;
 const pileM = MONSTERS.find(x => x.id === 'unstable_pile');
 assert(Math.abs(monsterPower(pileM) - pileM.power * Math.pow(2.5, 3)) < 1e-9, 'adaptation follows THIS run\'s kills');
 game.totalForms = 4e9;
 game.stageIndex = 2;
 doReform();
 assert(monsterPower(pileM) === pileM.power, 'archives reshuffle: adaptation resets on reform');
-assert((game.monsterKills.unstable_pile || 0) >= 1, 'lifetime kill count preserved for achievements');
+assert((game.monsterKills.unstable_pile || 0) >= 3, 'lifetime kill count preserved for achievements');
 
 console.log(`\n===== ${__pass} passed, ${__fail} failed =====`);
 process.exit(__fail > 0 ? 1 : 0);
