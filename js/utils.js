@@ -130,6 +130,29 @@ function getCostForN(item, n) {
   return total;
 }
 
+// Investment level costs (stamps)
+function getInvestmentCost(inv, level) {
+  return Math.floor(inv.baseCost * Math.pow(inv.costMultiplier, level));
+}
+
+function getInvestmentCostForN(inv, n) {
+  let total = 0;
+  for (let i = 0; i < n; i++) total += getInvestmentCost(inv, inv.level + i);
+  return total;
+}
+
+function getMaxAffordableInvestment(inv) {
+  let count = 0;
+  let totalCost = 0;
+  while (inv.level + count < inv.maxLevel) {
+    const next = getInvestmentCost(inv, inv.level + count);
+    if (totalCost + next > game.stamps) break;
+    totalCost += next;
+    count++;
+  }
+  return { count, totalCost };
+}
+
 // Calculate max affordable
 function getMaxAffordable(item, currency) {
   const available = currency === 'forms' ? game.forms : game.stamps;

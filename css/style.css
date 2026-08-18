@@ -919,6 +919,72 @@ body.stage-existential .game-title { border-bottom-color: #00bcd4; }
   flex-wrap: wrap;
 }
 
+/* === QoL: sticky left panel on desktop === */
+@media (min-width: 901px) {
+  .stats-panel {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    max-height: 100vh;
+    overflow-y: auto;
+    padding-top: 20px;
+    margin-top: -20px;
+  }
+}
+
+/* === QoL: collapsible stage sections === */
+.category-header.collapsible {
+  cursor: pointer;
+  user-select: none;
+}
+
+.category-header.collapsible:hover {
+  color: #555;
+}
+
+.collapsed-count {
+  font-weight: normal;
+  text-transform: none;
+  color: #bbb;
+}
+
+/* === QoL: next staff unlock teaser === */
+.shop-item.locked-teaser {
+  opacity: 0.55;
+  cursor: default;
+  border-style: dashed;
+}
+
+/* === TOASTS === */
+.toast {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  z-index: 1000;
+  padding: 8px 16px;
+  background: #fffdf5;
+  border: 1px solid #b8a860;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: bold;
+  color: #6a5a10;
+  opacity: 0;
+  transition: opacity 0.25s, transform 0.25s;
+  pointer-events: none;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast.special {
+  background: #f7f5ff;
+  border-color: #64a;
+  color: #64a;
+}
+
 /* === SETTINGS === */
 .setting-row {
   display: flex;
@@ -1051,6 +1117,10 @@ body.dark .save-btn.danger { background: #2a1a1a; border-color: #b22; color: #e5
 body.dark .save-btn.danger:hover { background: #3a2020; }
 body.dark .setting-row { background: #262626; border-color: #3a3a3a; }
 body.dark .float-text { color: #f66; }
+body.dark .category-header.collapsible:hover { color: #ccc; }
+body.dark .collapsed-count { color: #555; }
+body.dark .toast { background: #2a2820; border-color: #8a7a30; color: #d4c060; }
+body.dark .toast.special { background: #231f2e; border-color: #64a; color: #a78bda; }
 
 /* Responsive */
 @media (max-width: 900px) {

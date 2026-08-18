@@ -158,7 +158,7 @@ function setBuyQty(qty) {
   if (buttons[qtyMap[qty]]) {
     buttons[qtyMap[qty]].classList.add('active');
   }
-  renderStaff();
+  renderActiveTab();
 }
 
 // --------------------------------------------
@@ -179,7 +179,7 @@ function processClick(e) {
   if (!clickAllowed()) return;
   game.lastActiveAt = Date.now();
 
-  const clickGain = game.formsPerClick * game.clickMultiplier;
+  const clickGain = game.formsPerClick * game.clickMultiplier * rampageFactor();
   const collected = collectInbox();
   gainForms(clickGain, true);
   game.totalClicks++;
@@ -291,11 +291,22 @@ function buyInvestment(id) {
 
   if (inv.level >= inv.maxLevel) return;
 
-  const cost = Math.floor(inv.baseCost * Math.pow(inv.costMultiplier, inv.level));
-  if (game.stamps < cost) return;
+  // Respects the x1/x10/x100/Max buy-quantity selector
+  const qty = game.buyQuantity;
+  let toBuy, totalCost;
+  if (qty === -1) {
+    const maxInfo = getMaxAffordableInvestment(inv);
+    toBuy = maxInfo.count;
+    totalCost = maxInfo.totalCost;
+  } else {
+    toBuy = Math.min(qty, inv.maxLevel - inv.level);
+    totalCost = getInvestmentCostForN(inv, toBuy);
+  }
 
-  game.stamps -= cost;
-  inv.level++;
+  if (toBuy <= 0 || game.stamps < totalCost) return;
+
+  game.stamps -= totalCost;
+  inv.level += toBuy;
   recalcAll();
   log(`Investment: ${inv.name} upgraded to Lv.${inv.level}!`, 'success');
   renderInvestments();
@@ -343,6 +354,7 @@ function checkAchievements() {
     if (!game.unlockedAchievements.has(ach.id) && ach.check()) {
       game.unlockedAchievements.add(ach.id);
       log(`Achievement: ${ach.name} (+1% production)`, 'special');
+      toast(`Achievement: ${ach.name} (+1%)`);
       newUnlocks++;
     }
   });
@@ -443,6 +455,13 @@ function bossDefeated() {
   playSound('ding', 0.8);
   log(`INSPECTOR DEFEATED! Welcome to ${stage.name}. (+5% permanent production)`, 'special');
   log(`He confiscated ${formatNumber(confiscated)} forms on his way out. "Evidence", he said.`, 'warning');
+  toast(`Promotion: ${stage.name}!`, 'special');
+
+  // Tidy the shop lists: previous stages fold away (still expandable by hand)
+  for (let i = 0; i < game.stageIndex; i++) {
+    const sid = STAGES[i].id;
+    ['staff', 'upgrades', 'departments'].forEach(list => game.collapsedStages.add(list + ':' + sid));
+  }
   log(stage.desc, 'info');
 
   recalcAll();
@@ -547,7 +566,10 @@ function resolveExpedition() {
     if (monster.relic && !game.relics.has(monster.relic)) {
       game.relics.add(monster.relic);
       const relic = RELICS.find(r => r.id === monster.relic);
-      if (relic) msg += ` Relic recovered: ${relic.name}!`;
+      if (relic) {
+        msg += ` Relic recovered: ${relic.name}!`;
+        toast(`Relic: ${relic.name}`, 'special');
+      }
     }
     log(msg, 'special');
   } else {
@@ -620,6 +642,8 @@ function doReform() {
   game.expedition.sent = [];
   game.expedition.team = [];
   game.frenzyUntil = 0;
+  game.rampageUntil = 0;
+  game.collapsedStages.clear();
   game.unlocks.departments = false;
   game.unlocks.policies = false;
   // absurdity / expeditions / reforms stay unlocked
@@ -640,9 +664,16 @@ function doReform() {
 const GOLDEN_LIFETIME = 8000;
 const FRENZY_DURATION = 30000;
 const FRENZY_MULTIPLIER = 7;
+const RAMPAGE_DURATION = 15000;
+const RAMPAGE_MULTIPLIER = 77;
 
 function frenzyFactor(now) {
   return (now || Date.now()) < game.frenzyUntil ? FRENZY_MULTIPLIER : 1;
+}
+
+// Rampage boosts manual clicks only (not boss damage, not production)
+function rampageFactor(now) {
+  return (now || Date.now()) < game.rampageUntil ? RAMPAGE_MULTIPLIER : 1;
 }
 
 function scheduleGolden(now) {
@@ -691,17 +722,20 @@ function clickGolden(e) {
 
   playSound('ding');
   const roll = Math.random();
-  if (roll < 0.5) {
+  if (roll < 0.45) {
     game.frenzyUntil = Date.now() + FRENZY_DURATION;
     log(`PRIORITY FORM: Frenzy! Production ×${FRENZY_MULTIPLIER} for 30 seconds!`, 'special');
-  } else if (roll < 0.85) {
+  } else if (roll < 0.75) {
     const bonus = Math.floor(game.formsPerSec * 120 + game.formsPerClick * game.clickMultiplier * 15 + 10);
     game.forms += bonus;
     log(`PRIORITY FORM: expedited processing! +${formatNumber(bonus)} forms!`, 'success');
-  } else {
+  } else if (roll < 0.9) {
     const bonus = Math.floor(game.stampsPerSec * 120) + 5;
     gainStamps(bonus);
     log(`PRIORITY FORM: certified urgent! +${formatNumber(bonus)} stamps!`, 'success');
+  } else {
+    game.rampageUntil = Date.now() + RAMPAGE_DURATION;
+    log(`PRIORITY FORM: STAMP RAMPAGE! Your clicks are worth ×${RAMPAGE_MULTIPLIER} for 15 seconds!`, 'special');
   }
   if (e) showFloatText(e.clientX, e.clientY, 'PRIORITY!');
 }
@@ -756,6 +790,8 @@ function saveGame() {
     monsterKills: game.monsterKills,
     relics: [...game.relics],
     frenzyUntil: game.frenzyUntil,
+    rampageUntil: game.rampageUntil,
+    collapsedStages: [...game.collapsedStages],
 
     // Unlocks
     unlocks: game.unlocks,
@@ -828,6 +864,8 @@ function loadGame() {
     game.monsterKills = data.monsterKills || {};
     game.relics = new Set(data.relics || []);
     game.frenzyUntil = data.frenzyUntil || 0;
+    game.rampageUntil = data.rampageUntil || 0;
+    game.collapsedStages = new Set(data.collapsedStages || []);
 
     // Unlocks
     game.unlocks = Object.assign(game.unlocks, data.unlocks || {});

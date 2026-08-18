@@ -68,11 +68,15 @@ const game = {
   monsterKills: {},       // monsterId -> times defeated
   relics: new Set(),
 
-  // Priority form (golden clickable) & frenzy
+  // Priority form (golden clickable), frenzy & rampage
   frenzyUntil: 0,
+  rampageUntil: 0,
   nextGoldenAt: 0,
   goldenActive: false,
   goldenExpires: 0,
+
+  // Collapsed stage sections in the shop lists ("staff:office", ...)
+  collapsedStages: new Set(),
 
   // Unlocks
   unlocks: {

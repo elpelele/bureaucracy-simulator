@@ -35,6 +35,7 @@ const els = {
   statsValues: document.getElementById('stats-values'),
   achievementsList: document.getElementById('achievements-list'),
   logContent: document.getElementById('log-content'),
+  tabUpgrades: document.getElementById('tab-upgrades'),
   tabDepartments: document.getElementById('tab-departments'),
   tabPolicies: document.getElementById('tab-policies'),
   tabExpeditions: document.getElementById('tab-expeditions'),
@@ -68,6 +69,25 @@ function showFloatText(x, y, text) {
 }
 
 // ============================================
+// TOASTS (small transient notifications)
+// ============================================
+
+function toast(message, type = '') {
+  const existing = document.querySelectorAll('.toast').length;
+  if (existing >= 3) return; // don't flood the screen
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = message;
+  el.style.top = (16 + existing * 52) + 'px';
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 300);
+  }, 3200);
+}
+
+// ============================================
 // LOGGING (limited to 20 entries)
 // ============================================
 
@@ -90,21 +110,32 @@ function log(message, type = 'info') {
 // RENDERING
 // ============================================
 
+let lastTitle = '';
+
 function render() {
   const now = Date.now();
   const frenzy = frenzyFactor(now);
+  const rampage = rampageFactor(now);
 
   els.formsDisplay.textContent = formatNumber(game.forms);
   els.stampsDisplay.textContent = formatNumber(game.stamps);
   els.absurdityDisplay.textContent = formatNumber(game.absurdity);
 
-  const effectiveClickPower = game.formsPerClick * game.clickMultiplier;
+  const effectiveClickPower = game.formsPerClick * game.clickMultiplier * rampage;
   let rateText = `+${formatNumber(game.formsPerSec * frenzy)}/sec`;
   if (frenzy > 1) rateText += ` [FRENZY ×${frenzy}]`;
   els.formsRate.textContent = rateText;
   els.formsRate.classList.toggle('frenzy', frenzy > 1);
   els.stampsRate.textContent = `+${formatNumber(game.stampsPerSec)}/sec`;
-  els.clickInfo.textContent = `${formatNumber(effectiveClickPower)} ${effectiveClickPower < 2 ? 'form' : 'forms'} per click`;
+  els.clickInfo.textContent = `${formatNumber(effectiveClickPower)} ${effectiveClickPower < 2 ? 'form' : 'forms'} per click`
+    + (rampage > 1 ? ' [RAMPAGE!]' : '');
+
+  // Tab title signals: boss waiting / priority form on screen
+  const title = (game.boss.active || bossPending() ? '⚠ ' : '') + (game.goldenActive ? '★ ' : '') + 'Bureaucracy Simulator';
+  if (title !== lastTitle) {
+    lastTitle = title;
+    document.title = title;
+  }
 
   els.totalForms.textContent = formatNumber(game.totalForms);
   els.totalClicks.textContent = formatNumber(game.totalClicks);
@@ -131,6 +162,9 @@ function renderSideStatus(now) {
   const lines = [];
   if (now < game.frenzyUntil) {
     lines.push(`FRENZY ×${FRENZY_MULTIPLIER} — ${Math.ceil((game.frenzyUntil - now) / 1000)}s`);
+  }
+  if (now < game.rampageUntil) {
+    lines.push(`STAMP RAMPAGE ×${RAMPAGE_MULTIPLIER} — ${Math.ceil((game.rampageUntil - now) / 1000)}s`);
   }
   if (game.expedition.active) {
     const monster = MONSTERS.find(m => m.id === game.expedition.monsterId);
@@ -270,11 +304,51 @@ function renderStage() {
     if (bossPending() || game.boss.active) {
       els.stageProgressLabel.textContent = 'Defeat the Inspector General to advance!';
     } else if (nextStage) {
-      els.stageProgressLabel.textContent = `${formatNumber(game.totalForms)} / ${formatNumber(nextStage.threshold)} forms`;
+      let text = `${formatNumber(game.totalForms)} / ${formatNumber(nextStage.threshold)} forms`;
+      if (game.formsPerSec > 0) {
+        const eta = (nextStage.threshold - game.totalForms) / game.formsPerSec;
+        text += ` (~${formatDuration(eta * 1000)} at current rate)`;
+      }
+      els.stageProgressLabel.textContent = text;
     } else {
       els.stageProgressLabel.textContent = 'Final stage — reality is fully documented';
     }
   }
+}
+
+// Toggle a stage group open/closed in one of the shop lists
+function toggleStageCollapse(listName, stageId) {
+  const key = listName + ':' + stageId;
+  if (game.collapsedStages.has(key)) game.collapsedStages.delete(key);
+  else game.collapsedStages.add(key);
+  renderActiveTab();
+}
+
+function collapseHeader(listName, stageId, stageName, itemCount) {
+  const collapsed = game.collapsedStages.has(listName + ':' + stageId);
+  return `<div class="category-header collapsible" onclick="toggleStageCollapse('${listName}','${stageId}')">` +
+    `${collapsed ? '▸' : '▾'} ${stageName}${collapsed ? ` <span class="collapsed-count">(${itemCount} hidden)</span>` : ''}</div>`;
+}
+
+// "(N) affordable" badges on the shop tab buttons
+function updateTabBadges() {
+  const badge = (el, base, count) => {
+    if (!el || el.classList.contains('locked')) return;
+    const text = count > 0 ? `${base} (${count})` : base;
+    if (el.textContent !== text) el.textContent = text;
+  };
+  badge(els.tabUpgrades, 'Upgrades', UPGRADES.filter(u =>
+    stageIdx(u.stage) <= game.stageIndex && u.unlocked() && !game.purchasedUpgrades.has(u.id) && canAfford(u.cost, u.costCurrency)
+  ).length);
+  badge(els.tabDepartments, 'Departments', DEPARTMENTS.filter(d =>
+    stageIdx(d.stage) <= game.stageIndex && !d.owned && d.unlocked() && canAfford(d.cost, d.costCurrency)
+  ).length);
+  badge(els.tabPolicies, 'Policies', POLICIES.filter(p =>
+    stageIdx(p.stage) <= game.stageIndex && !game.activePolicies.has(p.id) && p.unlocked() && canAfford(p.cost, p.costCurrency)
+  ).length);
+  badge(els.tabInvestments, 'Investments', INVESTMENTS.filter(inv =>
+    inv.unlocked() && inv.level < inv.maxLevel && game.stamps >= getInvestmentCost(inv, inv.level)
+  ).length);
 }
 
 // --------------------------------------------
@@ -299,7 +373,13 @@ function renderStaff() {
     return;
   }
 
-  const signature = game.buyQuantity + '|' + unlockedStaff.map(s => s.id).join(',');
+  // Next staff to unlock (teaser row)
+  const nextLocked = STAFF
+    .filter(s => stageIdx(s.stage) <= game.stageIndex && game.totalForms < (s.unlockAt || 0))
+    .sort((a, b) => a.unlockAt - b.unlockAt)[0];
+
+  const signature = game.buyQuantity + '|' + unlockedStaff.map(s => s.id).join(',') +
+    '|' + [...game.collapsedStages].sort().join(',') + '|' + (nextLocked ? nextLocked.id : '');
   if (signature !== staffUiSignature) {
     staffUiSignature = signature;
     staffNodes = {};
@@ -314,7 +394,8 @@ function renderStaff() {
     let html = '';
     for (const [stageId, staffList] of Object.entries(byStage)) {
       const stage = STAGES.find(s => s.id === stageId);
-      html += `<div class="category-header">${stage ? stage.name : stageId}</div>`;
+      html += collapseHeader('staff', stageId, stage ? stage.name : stageId, staffList.length);
+      if (game.collapsedStages.has('staff:' + stageId)) continue;
       staffList.forEach(staff => {
         html += `
           <div class="shop-item" data-id="${staff.id}" onclick="buyStaff('${staff.id}')">
@@ -327,6 +408,16 @@ function renderStaff() {
           </div>
         `;
       });
+    }
+    if (nextLocked) {
+      html += `
+        <div class="shop-item locked-teaser">
+          <div class="item-info">
+            <div class="item-name">???</div>
+            <div class="item-desc">Unlocks at ${formatNumber(nextLocked.unlockAt)} forms processed.</div>
+          </div>
+        </div>
+      `;
     }
     els.staffList.innerHTML = html;
 
@@ -351,6 +442,7 @@ function renderStaff() {
       cost = maxInfo.totalCost;
       canBuy = maxInfo.count > 0;
       displayQty = maxInfo.count;
+      if (displayQty === 0) cost = getCostForN(staff, 1); // show what the next one would cost
     } else {
       cost = getCostForN(staff, qty);
       canBuy = canAfford(cost, staff.costCurrency);
@@ -366,7 +458,7 @@ function renderStaff() {
     n.stats.textContent =
       `Owned: ${staff.owned}${away > 0 ? ` (${away} exploring)` : ''} (${formatNumber(currentProduction)}/sec)` +
       (displayQty > 0 ? ` | +${formatNumber(totalGain)}/sec` : '');
-    n.cost.textContent = `${qty === -1 ? `(${displayQty}) ` : ''}${formatNumber(cost)} ${staff.costCurrency}`;
+    n.cost.textContent = `${qty === -1 && displayQty > 0 ? `(${displayQty}) ` : ''}${formatNumber(cost)} ${staff.costCurrency}`;
     n.cost.classList.toggle('affordable', canBuy);
     n.cost.classList.toggle('expensive', !canBuy);
   });
@@ -388,7 +480,7 @@ function renderUpgrades() {
     return;
   }
 
-  const signature = availableUpgrades.map(u => u.id).join(',');
+  const signature = availableUpgrades.map(u => u.id).join(',') + '|' + [...game.collapsedStages].sort().join(',');
   if (signature !== upgradesUiSignature) {
     upgradesUiSignature = signature;
     upgradeNodes = {};
@@ -402,7 +494,8 @@ function renderUpgrades() {
     let html = '';
     for (const [stageId, upgradeList] of Object.entries(byStage)) {
       const stage = STAGES.find(s => s.id === stageId);
-      html += `<div class="category-header">${stage ? stage.name : stageId}</div>`;
+      html += collapseHeader('upgrades', stageId, stage ? stage.name : stageId, upgradeList.length);
+      if (game.collapsedStages.has('upgrades:' + stageId)) continue;
       upgradeList.forEach(upgrade => {
         const currency = upgrade.costCurrency === 'stamps' ? 'stamps' : 'forms';
         html += `
@@ -450,7 +543,7 @@ function renderDepartments() {
   }
 
   // owned state is part of the structure: buying rebuilds once (name, onclick)
-  const signature = availableDepts.map(d => d.id + (d.owned ? '*' : '')).join(',');
+  const signature = availableDepts.map(d => d.id + (d.owned ? '*' : '')).join(',') + '|' + [...game.collapsedStages].sort().join(',');
   if (signature !== deptsUiSignature) {
     deptsUiSignature = signature;
     deptNodes = {};
@@ -464,7 +557,8 @@ function renderDepartments() {
     let html = '';
     for (const [stageId, deptList] of Object.entries(byStage)) {
       const stage = STAGES.find(s => s.id === stageId);
-      html += `<div class="category-header">${stage ? stage.name : stageId}</div>`;
+      html += collapseHeader('departments', stageId, stage ? stage.name : stageId, deptList.length);
+      if (game.collapsedStages.has('departments:' + stageId)) continue;
       deptList.forEach(dept => {
         html += `
           <div class="shop-item ${dept.owned ? 'owned' : ''}" data-id="${dept.id}"
@@ -625,13 +719,29 @@ function renderInvestments() {
     const n = investmentNodes[inv.id];
     if (!n) return;
     const maxed = inv.level >= inv.maxLevel;
-    const cost = Math.floor(inv.baseCost * Math.pow(inv.costMultiplier, inv.level));
-    const affordable = game.stamps >= cost;
+
+    // Respects the x1/x10/x100/Max buy-quantity selector
+    const qty = game.buyQuantity;
+    let toBuy = 0, cost = 0;
+    if (!maxed) {
+      if (qty === -1) {
+        const maxInfo = getMaxAffordableInvestment(inv);
+        toBuy = maxInfo.count;
+        cost = maxInfo.count > 0 ? maxInfo.totalCost : getInvestmentCost(inv, inv.level);
+      } else {
+        toBuy = Math.min(qty, inv.maxLevel - inv.level);
+        cost = getInvestmentCostForN(inv, toBuy);
+      }
+    }
+    const affordable = !maxed && toBuy > 0 && game.stamps >= cost;
+    const qtyPrefix = qty === -1
+      ? (toBuy > 0 ? `(${toBuy}) ` : '')
+      : (toBuy > 1 ? `x${toBuy} ` : '');
 
     n.name.textContent = `${inv.name} ${maxed ? '[MAX]' : `[Lv.${inv.level}/${inv.maxLevel}]`}`;
-    n.cost.textContent = maxed ? '' : `${formatNumber(cost)} stamps`;
-    n.root.classList.toggle('affordable', !maxed && affordable);
-    n.cost.classList.toggle('affordable', !maxed && affordable);
+    n.cost.textContent = maxed ? '' : `${qtyPrefix}${formatNumber(cost)} stamps`;
+    n.root.classList.toggle('affordable', affordable);
+    n.cost.classList.toggle('affordable', affordable);
     n.cost.classList.toggle('expensive', !maxed && !affordable);
   });
 }

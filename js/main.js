@@ -92,8 +92,11 @@ function init() {
   // Game loop (10 ticks per second)
   setInterval(tick, 100);
 
-  // Refresh the visible shop/list once per second
-  setInterval(renderActiveTab, 1000);
+  // Refresh the visible shop/list and tab badges once per second
+  setInterval(() => {
+    renderActiveTab();
+    updateTabBadges();
+  }, 1000);
 
   // Auto-save every 30 seconds, plus when leaving the page
   setInterval(saveGame, 30000);

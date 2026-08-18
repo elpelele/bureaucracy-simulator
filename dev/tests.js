@@ -1,0 +1,270 @@
+// ===== SMOKE TESTS (appended after game scripts — run via dev/test.sh) =====
+let __pass = 0, __fail = 0;
+function assert(cond, label) {
+  if (cond) { __pass++; console.log('  ✓ ' + label); }
+  else { __fail++; console.log('  ✗ FAIL: ' + label); }
+}
+function resetClickLimiter() { clickTimes.length = 0; }
+const fakeEvt = { clientX: 0, clientY: 0 };
+
+console.log('--- 1. Initial state ---');
+assert(game.formsPerSec === 0, 'no production at start');
+assert(game.formsPerClick === 1 && game.clickMultiplier === 1, 'click power = 1');
+assert(game.stageIndex === 0, 'starts at The Office');
+
+console.log('--- 2. Click rate cap ---');
+for (let i = 0; i < 30; i++) processClick(fakeEvt);
+assert(game.totalClicks === 15, `30 rapid clicks -> only 15 counted (got ${game.totalClicks})`);
+assert(game.forms === 15, 'forms match counted clicks');
+resetClickLimiter();
+
+console.log('--- 3. Staff purchase, active vs idle production ---');
+game.forms = 1000;
+game.buyQuantity = 1;
+buyStaff('intern');
+assert(STAFF.find(s => s.id === 'intern').owned === 1, 'intern hired');
+assert(Math.abs(game.formsPerSec - 0.1 * game.globalMultiplier) < 1e-9, 'fps reflects intern');
+// ACTIVE player: production flows straight into forms, inbox untouched
+game.lastActiveAt = Date.now();
+game.inbox = 0;
+const formsBeforeActive = game.forms;
+lastTick = Date.now() - 10000; // simulate 10s elapsed
+tick();
+assert(game.forms - formsBeforeActive > 0.9, `active: 10s of production went straight to forms (+${(game.forms - formsBeforeActive).toFixed(2)})`);
+assert(game.inbox < 0.01, 'active: inbox stays empty');
+// IDLE player (no input for 2 min): production piles up in the inbox
+game.lastActiveAt = Date.now() - 120000;
+const formsBeforeIdle = game.forms;
+lastTick = Date.now() - 10000;
+tick();
+assert(game.inbox > 0.9 && game.inbox < 1.2, `idle: 10s of production landed in inbox (${game.inbox.toFixed(2)})`);
+assert(Math.abs(game.forms - formsBeforeIdle) < 0.01, 'idle: forms counter did not move');
+const beforeCollect = game.forms;
+resetClickLimiter();
+processClick(fakeEvt);
+assert(game.inbox < 1, 'click collected the inbox');
+assert(game.forms > beforeCollect, 'forms went up on collect');
+resetClickLimiter();
+
+console.log('--- 4. Inbox cap (overnight simulation) ---');
+game.inbox = 0;
+game.lastActiveAt = Date.now() - 8 * 3600 * 1000; // walked away 8h ago
+const cap = getInboxCapacity();
+lastTick = Date.now() - 8 * 3600 * 1000; // 8h "overnight"
+tick();
+assert(Math.abs(game.inbox - cap) < 1e-6, `8h idle -> inbox capped at ${cap.toFixed(0)} (30 min of prod), got ${game.inbox.toFixed(0)}`);
+game.lastActiveAt = Date.now(); // back at the desk for the rest of the tests
+
+console.log('--- 5. Stamp economy: NO refund exploit ---');
+game.totalForms = 5000;
+game.stampMilestones = 0;
+game.stamps = 0;
+lastTick = Date.now();
+tick();
+assert(Math.floor(game.stamps) === 5, `milestones granted 5 stamps (got ${game.stamps})`);
+game.stamps -= 3; // spend 3
+resetClickLimiter();
+processClick(fakeEvt);
+lastTick = Date.now();
+tick();
+assert(game.stamps < 3, `spent stamps NOT refunded by clicking/ticking (got ${game.stamps.toFixed(2)})`);
+
+console.log('--- 6. Investments & upgrades via recalc ---');
+game.stamps = 100;
+const multBefore = game.globalMultiplier;
+buyInvestment('efficiency_training');
+assert(INVESTMENTS.find(i => i.id === 'efficiency_training').level === 1, 'investment level 1');
+assert(game.globalMultiplier > multBefore, 'global multiplier increased');
+assert(game.stamps < 100, 'stamps were spent');
+const stampsAfterInvest = game.stamps;
+resetClickLimiter();
+processClick(fakeEvt);
+assert(Math.abs(game.stamps - stampsAfterInvest) < 1, 'still no refund after investment');
+game.forms = 500;
+buyUpgrade('better_stamp');
+assert(game.formsPerClick === 2, 'better_stamp applied via recalcAll');
+
+console.log('--- 7. Boss fight gates the stage ---');
+game.totalForms = 1.2e6;
+assert(bossPending(), 'boss pending at 1.2M forms');
+assert(getCurrentStage().id === 'office', 'stage does NOT advance without boss kill');
+startBossFight();
+assert(game.boss.active && game.boss.hp > 0, 'boss fight started');
+let guard = 0;
+while (game.boss.active && guard < 200) {
+  resetClickLimiter();
+  attackBoss(fakeEvt);
+  guard++;
+}
+assert(game.stageIndex === 1, `boss defeated -> Administration (took ${guard} attacks)`);
+// ~40 base hits, minus random crits (10% chance, x5 dmg) -> wide but real range
+assert(guard >= 10 && guard <= 60, `fight required real clicking: ${guard} attacks`);
+assert(game.bossesDefeated === 1, 'boss counter incremented');
+assert(game.unlocks.expeditions, 'expeditions unlocked at Administration');
+
+console.log('--- 8. Expedition ---');
+STAFF.find(s => s.id === 'intern').owned = 10;
+recalcAll();
+toggleExpeditionStaff('intern');
+assert(game.expedition.team.includes('intern'), 'intern squad selected');
+const fpsBeforeExp = game.formsPerSec;
+launchExpedition('unstable_pile');
+assert(game.expedition.active, 'expedition launched');
+assert(game.formsPerSec < fpsBeforeExp, 'production drops while squad is away');
+const realRandom = Math.random;
+Math.random = () => 0.01; // force success
+game.expedition.endTime = Date.now() - 1;
+expeditionTick(Date.now());
+Math.random = realRandom;
+assert(!game.expedition.active, 'expedition resolved');
+assert(game.expeditionsWon === 1, 'expedition won');
+assert(game.absurdity >= 1, `absurdity gained (${game.absurdity})`);
+assert(game.relics.has('ancient_stamp'), 'relic granted on first kill');
+assert(game.clickMultiplier > 1, 'relic effect active after recalc (+25% click)');
+
+console.log('--- 9. Reform (prestige) ---');
+game.totalForms = 4e9;
+game.stageIndex = 2;
+const absBefore = game.absurdity;
+const expectedGain = Math.floor(Math.sqrt(4));
+assert(canReform(), 'reform available');
+doReform();
+assert(game.absurdity === absBefore + expectedGain, `absurdity +${expectedGain}`);
+assert(game.forms === 0 && game.totalForms === 0 && game.stageIndex === 0, 'run reset');
+assert(STAFF.every(s => s.owned === 0), 'staff reset');
+assert(game.purchasedUpgrades.size === 0, 'upgrades reset');
+assert(game.relics.has('ancient_stamp'), 'relics kept');
+assert(game.reformCount === 1, 'reform counted');
+assert(game.globalMultiplier > 1, 'permanent bonuses (absurdity+achievements) survive reform');
+assert(game.totalFormsAllTime > 0, 'lifetime forms kept');
+
+console.log('--- 10. Save / load round-trip ---');
+game.forms = 12345;
+game.stamps = 67;
+STAFF.find(s => s.id === 'intern').owned = 3;
+recalcAll();
+saveGame();
+const fpsSaved = game.formsPerSec;
+game.forms = 0; game.stamps = 0;
+STAFF.find(s => s.id === 'intern').owned = 999;
+loadGame();
+assert(game.forms === 12345 && game.stamps === 67, 'resources restored');
+assert(STAFF.find(s => s.id === 'intern').owned === 3, 'staff restored');
+assert(Math.abs(game.formsPerSec - fpsSaved) < 1e-9, 'derived stats identical after reload');
+
+console.log('--- 11. v2 save migration ---');
+localStorage.setItem('bureaucracy_save', JSON.stringify({
+  version: 2,
+  forms: 5e6, stamps: 100, stampMilestones: 4000, absurdity: 0,
+  totalForms: 5e6, totalClicks: 500, startTime: Date.now() - 1000,
+  formsPerClick: 999, globalMultiplier: 999, clickMultiplier: 999, // stale derived junk
+  stampsPerSec: 999, staffCostMultiplier: 0.1, negativeEventMultiplier: 9,
+  currentStage: 'administration', highestStage: 'administration',
+  unlocks: { departments: true, policies: true, absurdity: true, reforms: false },
+  purchasedUpgrades: ['better_stamp'],
+  activePolicies: [], unlockedAchievements: ['first_form'],
+  staff: [{ id: 'intern', owned: 5, fps: 0.15 }],
+  departments: [{ id: 'hr', owned: true }],
+  investments: [{ id: 'efficiency_training', level: 3 }]
+}));
+// wipe current run state so load fills it
+game.relics.clear(); game.absurdity = 0; game.reformCount = 0; game.bossesDefeated = 0;
+loadGame();
+assert(game.stageIndex === 1, 'v2: stage derived from totalForms (Administration)');
+assert(game.bossesDefeated === 1, 'v2: past stages grandfathered as boss kills');
+assert(game.formsPerClick === 2, 'v2: stale formsPerClick=999 discarded, recomputed from upgrades');
+assert(STAFF.find(s => s.id === 'intern').fps === 0.1, 'v2: stale staff fps discarded');
+assert(game.totalStampsEarned === 5000, 'v2: lifetime stamps estimated from totalForms');
+assert(game.stampMilestones === 5000, 'v2: milestones synced to totalForms (no refund burst)');
+assert(DEPARTMENTS.find(d => d.id === 'hr').owned, 'v2: departments restored');
+assert(INVESTMENTS.find(i => i.id === 'efficiency_training').level === 3, 'v2: investments restored');
+
+console.log('--- 12. Offline progress ---');
+STAFF.find(s => s.id === 'intern').owned = 10;
+recalcAll();
+game.inbox = 0;
+saveGame();
+const raw = JSON.parse(localStorage.getItem('bureaucracy_save'));
+raw.savedAt = Date.now() - 3600 * 1000; // saved 1h ago
+localStorage.setItem('bureaucracy_save', JSON.stringify(raw));
+loadGame();
+assert(game.inbox > 0, `offline production landed in inbox (${game.inbox.toFixed(0)})`);
+assert(game.inbox <= getInboxCapacity() + 1e-6, 'offline gains respect inbox cap');
+
+console.log('--- 13. Misc ---');
+assert(formatNumber(1.23e37) === '1.23e+37', 'huge numbers -> scientific notation');
+assert(formatNumber(1500) === '1.50K', 'K formatting intact');
+game.negativeEventMultiplier = 1;
+game.forms = 1000;
+const lost = eventLoss(0.1);
+assert(lost === 100 && game.forms === 900, 'eventLoss basic');
+game.relics.add('red_stapler');
+game.forms = 1000;
+const lost2 = eventLoss(0.1);
+assert(lost2 === 69 || lost2 === 70, `red stapler softens losses (lost ${lost2})`);
+// weighted event pick never crashes
+game.forms = 1e6; game.lastEvent = 0;
+const realRandom2 = Math.random;
+Math.random = () => 0.001;
+triggerRandomEvent();
+Math.random = realRandom2;
+assert(true, 'triggerRandomEvent runs without error');
+
+console.log('--- 14. Hard reset survives the beforeunload save ---');
+saveGame();
+assert(localStorage.getItem('bureaucracy_save') !== null, 'save exists before reset');
+hardReset(); // confirm() stubbed to true, location.reload() is a noop
+assert(localStorage.getItem('bureaucracy_save') === null, 'hard reset wiped the save');
+saveGame(); // simulates the beforeunload handler firing during reload
+assert(localStorage.getItem('bureaucracy_save') === null, 'auto-save suppressed during reset (save stays wiped)');
+suppressSaving = false;
+
+console.log('--- 15. Settings ---');
+settings.darkMode = true;
+saveSettings();
+settings.darkMode = false;
+loadSettings();
+assert(settings.darkMode === true, 'settings persist through save/load');
+assert(document.body.classList.contains('dark'), 'dark class applied to body');
+setStageClass('ministry');
+assert(document.body.className.includes('dark'), 'stage change preserves dark mode');
+toggleDarkMode(false);
+assert(!document.body.classList.contains('dark'), 'dark mode toggles off');
+playSound('stamp'); // no AudioContext in the stub: must not throw
+assert(true, 'playSound safe without AudioContext');
+
+console.log('--- 16. QoL: bulk investments, collapse persistence, rampage ---');
+game.buyQuantity = 10;
+game.stamps = 1e6;
+const sp = INVESTMENTS.find(i => i.id === 'stamp_press');
+const lvlBefore = sp.level;
+buyInvestment('stamp_press');
+assert(sp.level === lvlBefore + 10, `x10 bought 10 levels (${lvlBefore} -> ${sp.level})`);
+game.buyQuantity = -1;
+game.stamps = getInvestmentCostForN(sp, 3); // enough for exactly 3
+buyInvestment('stamp_press');
+assert(sp.level === lvlBefore + 13, `Max bought exactly what was affordable (${sp.level})`);
+game.buyQuantity = 100;
+game.stamps = 1e15;
+buyInvestment('stamp_press');
+assert(sp.level === sp.maxLevel, 'x100 capped at maxLevel');
+game.buyQuantity = 1;
+
+game.collapsedStages.add('staff:office');
+saveGame();
+game.collapsedStages.clear();
+loadGame();
+assert(game.collapsedStages.has('staff:office'), 'collapsed sections persist through save/load');
+game.collapsedStages.clear();
+
+game.inbox = 0;
+game.rampageUntil = Date.now() + 5000;
+resetClickLimiter();
+const beforeRampage = game.forms;
+processClick(fakeEvt);
+const rampageGain = game.forms - beforeRampage;
+assert(rampageGain >= game.formsPerClick * game.clickMultiplier * 77, `rampage multiplies clicks x77 (gained ${formatNumber(rampageGain)})`);
+game.rampageUntil = 0;
+
+console.log(`\n===== ${__pass} passed, ${__fail} failed =====`);
+process.exit(__fail > 0 ? 1 : 0);
