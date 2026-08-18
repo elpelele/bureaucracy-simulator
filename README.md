@@ -38,7 +38,7 @@ Toutes les 4 à 8 minutes de jeu actif, un panneau propose **deux options** et 6
 
 Atteindre le seuil ne suffit pas : **l'Inspecteur Général** bloque chaque promotion.
 
-Chaque stage a sa palette de couleurs, son bouton et sa nouveauté de gameplay :
+Chaque stage a sa palette de couleurs, son bouton, son texte de tampon (APPROVED → PERMITTED → DECREED → RATIFIED → OBSERVED → REAL), sa décoration de bureau et sa nouveauté de gameplay :
 
 | # | Stage | Seuil | Bouton | Nouveauté |
 |---|-------|-------|--------|-----------|

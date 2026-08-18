@@ -115,6 +115,14 @@ ACHIEVEMENTS.forEach(a => {
   if (!['forms', 'staff', 'progress', 'endgame', 'other'].includes(a.cat)) flag(`achievement ${a.id}: unknown cat "${a.cat}"`);
 });
 
+console.log('--- Visual fields present (icons, stamp texts, labels) ---');
+STAFF.forEach(st => { if (!st.icon) flag(`staff ${st.id}: missing icon`); });
+MONSTERS.forEach(m => { if (!m.icon) flag(`monster ${m.id}: missing icon`); });
+STAGES.forEach(st => {
+  if (!st.clickLabel) flag(`stage ${st.id}: missing clickLabel`);
+  if (!st.stampText) flag(`stage ${st.id}: missing stampText`);
+});
+
 console.log('--- Upgrade effects reference valid staff ids ---');
 UPGRADES.forEach(u => {
   const src = u.effect.toString();

@@ -215,10 +215,12 @@ function processClick(e) {
   }
   let text = '+' + formatNumber(clickGain);
   if (collected > 0) text += ` (+${formatNumber(collected)} approved)`;
-  showFloatText(e.clientX, e.clientY, text);
+  stampImprint(e.clientX, e.clientY, getCurrentStage().stampText || 'APPROVED');
+  showFloatText(e.clientX, e.clientY - 26, text);
   playSound('stamp');
 
   checkUnlocks();
+  render(); // instant counter feedback instead of waiting for the next tick
 }
 
 // --------------------------------------------
@@ -270,6 +272,7 @@ function buyStaff(id) {
   checkAchievements();
   checkUnlocks();
   renderStaff();
+  render();
 }
 
 function buyUpgrade(id) {
@@ -284,6 +287,7 @@ function buyUpgrade(id) {
   recalcAll();
   log(`Purchased: ${upgrade.name}`, 'success');
   checkAchievements();
+  render();
 }
 
 function buyDepartment(id) {
@@ -298,6 +302,7 @@ function buyDepartment(id) {
   recalcAll();
   log(`Created: ${dept.name}!`, 'special');
   checkAchievements();
+  render();
 }
 
 function buyPolicy(id) {
@@ -313,6 +318,7 @@ function buyPolicy(id) {
   recalcAll();
   log(`Policy enacted: ${policy.name}!`, 'special');
   checkAchievements();
+  render();
 }
 
 // Absurdity perks: paid from the balance, kept forever (survive reforms).
@@ -376,6 +382,7 @@ function buyInvestment(id) {
   log(`Investment: ${inv.name} upgraded to Lv.${inv.level}!`, 'success');
   renderInvestments();
   checkAchievements();
+  render();
 }
 
 // --------------------------------------------
@@ -498,7 +505,11 @@ function attackBoss(e) {
   if (crit) dmg *= 5;
   game.boss.hp -= dmg;
 
-  if (e) showFloatText(e.clientX, e.clientY, (crit ? 'REJECTED! -' : '-') + formatNumber(dmg));
+  bossFigureHit();
+  if (e) {
+    if (crit) stampImprint(e.clientX, e.clientY, 'REJECTED', 'rejected');
+    showFloatText(e.clientX, e.clientY - 26, (crit ? 'CRIT -' : '-') + formatNumber(dmg));
+  }
   playSound('stamp', crit ? 1.5 : 1.1);
 
   if (game.boss.hp <= 0) bossDefeated();

@@ -43,6 +43,9 @@ function tick() {
     game.stampMilestones = stampMilestone;
   }
 
+  // Living desk: paper flow follows production
+  spawnDeskPapers(delta);
+
   // Timed systems
   goldenTick(now);
   bossTick(now);

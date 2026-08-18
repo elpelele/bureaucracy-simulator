@@ -14,6 +14,7 @@ const SUPPORT_URL = '';
 const STAGES = [
   {
     id: 'office',
+    stampText: 'APPROVED',
     clickLabel: 'PROCESS FORM',
     name: 'The Office',
     desc: 'A small office drowning in paperwork.',
@@ -22,6 +23,7 @@ const STAGES = [
   },
   {
     id: 'administration',
+    stampText: 'PERMITTED',
     clickLabel: 'STAMP PERMIT',
     newMechanic: 'NEW: Expeditions into the Deep Archives — send staff to fight paperwork monsters (Expeditions tab).',
     name: 'The Administration',
@@ -31,6 +33,7 @@ const STAGES = [
   },
   {
     id: 'ministry',
+    stampText: 'DECREED',
     clickLabel: 'SIGN DECREE',
     newMechanic: 'NEW: Administrative Reform — burn everything for permanent Absurdity power (Reform tab).',
     name: 'The Ministry',
@@ -40,6 +43,7 @@ const STAGES = [
   },
   {
     id: 'global',
+    stampText: 'RATIFIED',
     clickLabel: 'RATIFY TREATY',
     newMechanic: 'NEW: COUNCIL DIRECTIVES — the Council will periodically demand a decision. Choose fast.',
     name: 'The Global Council',
@@ -49,6 +53,7 @@ const STAGES = [
   },
   {
     id: 'cosmic',
+    stampText: 'OBSERVED',
     clickLabel: 'APPROVE EXISTENCE',
     newMechanic: 'NEW: Priority forms are now QUANTUM FORMS — twice the reward, but they sometimes collapse.',
     name: 'The Cosmic Bureau',
@@ -58,6 +63,7 @@ const STAGES = [
   },
   {
     id: 'existential',
+    stampText: 'REAL',
     clickLabel: 'DOCUMENT REALITY',
     newMechanic: 'NEW: Reality flickers. Some of your clicks echo across timelines (×100).',
     name: 'The Existential Office',
@@ -74,6 +80,7 @@ const STAFF = [
   // === STAGE 1: THE OFFICE ===
   {
     id: 'intern',
+    icon: '☕',
     name: 'Intern',
     desc: 'Eager but untrained. Makes coffee sometimes.',
     baseCost: 10,
@@ -85,6 +92,7 @@ const STAFF = [
   },
   {
     id: 'clerk',
+    icon: '📋',
     name: 'Clerk',
     desc: 'Entry-level form processor.',
     baseCost: 50,
@@ -96,6 +104,7 @@ const STAFF = [
   },
   {
     id: 'secretary',
+    icon: '📇',
     name: 'Secretary',
     desc: 'Handles multiple forms at once.',
     baseCost: 200,
@@ -107,6 +116,7 @@ const STAFF = [
   },
   {
     id: 'bureaucrat',
+    icon: '🗃️',
     name: 'Bureaucrat',
     desc: 'A true paper-pushing professional.',
     baseCost: 1000,
@@ -118,6 +128,7 @@ const STAFF = [
   },
   {
     id: 'manager',
+    icon: '👔',
     name: 'Middle Manager',
     desc: 'Manages the managers who manage.',
     baseCost: 5000,
@@ -129,6 +140,7 @@ const STAFF = [
   },
   {
     id: 'director',
+    icon: '🕴️',
     name: 'Director',
     desc: 'Has a corner office and a parking spot.',
     baseCost: 25000,
@@ -140,6 +152,7 @@ const STAFF = [
   },
   {
     id: 'executive',
+    icon: '💼',
     name: 'Executive',
     desc: 'Nobody knows what they actually do.',
     baseCost: 100000,
@@ -153,6 +166,7 @@ const STAFF = [
   // === STAGE 2: THE ADMINISTRATION ===
   {
     id: 'civil_servant',
+    icon: '🖇️',
     name: 'Civil Servant',
     desc: 'Lifetime job security. Processes forms in their sleep.',
     baseCost: 780000,
@@ -164,6 +178,7 @@ const STAFF = [
   },
   {
     id: 'inspector',
+    icon: '🔍',
     name: 'Inspector',
     desc: 'Inspects the inspectors who inspect.',
     baseCost: 3.1e6,
@@ -175,6 +190,7 @@ const STAFF = [
   },
   {
     id: 'auditor',
+    icon: '🧮',
     name: 'Auditor',
     desc: 'Finds forms you didn\'t know existed.',
     baseCost: 12.5e6,
@@ -186,6 +202,7 @@ const STAFF = [
   },
   {
     id: 'commissioner',
+    icon: '🎖️',
     name: 'Commissioner',
     desc: 'Commands an army of paper pushers.',
     baseCost: 47e6,
@@ -197,6 +214,7 @@ const STAFF = [
   },
   {
     id: 'prefect',
+    icon: '🏛️',
     name: 'Prefect',
     desc: 'Regional authority. Forms tremble before them.',
     baseCost: 156e6,
@@ -210,6 +228,7 @@ const STAFF = [
   // === STAGE 3: THE MINISTRY ===
   {
     id: 'undersecretary',
+    icon: '📁',
     name: 'Undersecretary',
     desc: 'The power behind the throne of paperwork.',
     baseCost: 900e6,
@@ -221,6 +240,7 @@ const STAFF = [
   },
   {
     id: 'deputy_minister',
+    icon: '🖋️',
     name: 'Deputy Minister',
     desc: 'Signs documents without reading them.',
     baseCost: 3.6e9,
@@ -232,6 +252,7 @@ const STAFF = [
   },
   {
     id: 'minister',
+    icon: '🎩',
     name: 'Minister',
     desc: 'Creates new forms to process old forms.',
     baseCost: 18e9,
@@ -243,6 +264,7 @@ const STAFF = [
   },
   {
     id: 'prime_bureaucrat',
+    icon: '👑',
     name: 'Prime Bureaucrat',
     desc: 'The ultimate form-processing entity.',
     baseCost: 90e9,
@@ -254,6 +276,7 @@ const STAFF = [
   },
   {
     id: 'shadow_council',
+    icon: '🕶️',
     name: 'Shadow Council',
     desc: 'They control the bureaucracy from the shadows.',
     baseCost: 360e9,
@@ -267,6 +290,7 @@ const STAFF = [
   // === STAGE 4: THE GLOBAL COUNCIL ===
   {
     id: 'diplomat',
+    icon: '🤝',
     name: 'Diplomat',
     desc: 'Makes international paperwork possible.',
     baseCost: 40e12,
@@ -278,6 +302,7 @@ const STAFF = [
   },
   {
     id: 'ambassador',
+    icon: '🌍',
     name: 'Ambassador',
     desc: 'Every country needs their forms approved.',
     baseCost: 200e12,
@@ -289,6 +314,7 @@ const STAFF = [
   },
   {
     id: 'secretary_general',
+    icon: '🕊️',
     name: 'Secretary General',
     desc: 'The world\'s chief bureaucrat.',
     baseCost: 1e15,
@@ -300,6 +326,7 @@ const STAFF = [
   },
   {
     id: 'world_council',
+    icon: '🌐',
     name: 'World Council',
     desc: 'A council of councils. Bureaucracy squared.',
     baseCost: 4e15,
@@ -311,6 +338,7 @@ const STAFF = [
   },
   {
     id: 'global_overseer',
+    icon: '🛰️',
     name: 'Global Overseer',
     desc: 'Sees all forms. Approves none.',
     baseCost: 20e15,
@@ -324,6 +352,7 @@ const STAFF = [
   // === STAGE 5: THE COSMIC BUREAU ===
   {
     id: 'space_clerk',
+    icon: '🚀',
     name: 'Space Clerk',
     desc: 'Processes alien visa applications.',
     baseCost: 1e17,
@@ -335,6 +364,7 @@ const STAFF = [
   },
   {
     id: 'galactic_auditor',
+    icon: '☄️',
     name: 'Galactic Auditor',
     desc: 'Audits entire solar systems.',
     baseCost: 1e18,
@@ -346,6 +376,7 @@ const STAFF = [
   },
   {
     id: 'void_administrator',
+    icon: '🕳️',
     name: 'Void Administrator',
     desc: 'Manages the bureaucracy of empty space.',
     baseCost: 1e19,
@@ -357,6 +388,7 @@ const STAFF = [
   },
   {
     id: 'cosmic_emperor',
+    icon: '🪐',
     name: 'Cosmic Emperor',
     desc: 'Rules the universe through proper documentation.',
     baseCost: 5e19,
@@ -368,6 +400,7 @@ const STAFF = [
   },
   {
     id: 'dimension_lord',
+    icon: '🌀',
     name: 'Dimension Lord',
     desc: 'Controls bureaucracy across dimensions.',
     baseCost: 1e20,
@@ -381,6 +414,7 @@ const STAFF = [
   // === STAGE 6: THE EXISTENTIAL OFFICE ===
   {
     id: 'time_clerk',
+    icon: '⏳',
     name: 'Time Clerk',
     desc: 'Files forms before they\'re submitted.',
     baseCost: 5e21,
@@ -392,6 +426,7 @@ const STAFF = [
   },
   {
     id: 'reality_auditor',
+    icon: '🪞',
     name: 'Reality Auditor',
     desc: 'Ensures reality complies with regulations.',
     baseCost: 5e22,
@@ -403,6 +438,7 @@ const STAFF = [
   },
   {
     id: 'entropy_manager',
+    icon: '🌡️',
     name: 'Entropy Manager',
     desc: 'Manages the heat death of bureaucracy.',
     baseCost: 5e23,
@@ -414,6 +450,7 @@ const STAFF = [
   },
   {
     id: 'god_of_forms',
+    icon: '✨',
     name: 'God of Forms',
     desc: 'The divine entity of paperwork.',
     baseCost: 5e24,
@@ -425,6 +462,7 @@ const STAFF = [
   },
   {
     id: 'the_absolute',
+    icon: '👁️',
     name: 'The Absolute',
     desc: 'IS bureaucracy. Always was. Always will be.',
     baseCost: 5e25,
@@ -1838,6 +1876,7 @@ const INVESTMENTS = [
 const MONSTERS = [
   {
     id: 'unstable_pile',
+    icon: '📚',
     name: 'The Unstable Pile',
     desc: 'A tower of unfiled paperwork. It sways. It hungers.',
     power: 2500,
@@ -1847,6 +1886,7 @@ const MONSTERS = [
   },
   {
     id: 'duplicate_hydra',
+    icon: '🐍',
     name: 'The Duplicate Hydra',
     desc: 'Destroy one form, two copies grow back. In triplicate.',
     power: 35e3,
@@ -1856,6 +1896,7 @@ const MONSTERS = [
   },
   {
     id: 'eternal_paperclip',
+    icon: '📎',
     name: 'The Eternal Paperclip',
     desc: '"It looks like you\'re trying to escape. Would you like help?"',
     power: 1.5e6,
@@ -1865,6 +1906,7 @@ const MONSTERS = [
   },
   {
     id: 'possessed_printer',
+    icon: '🖨️',
     name: 'The Possessed Printer of Sub-Level 3',
     desc: 'PC LOAD LETTER. Forever. For everyone.',
     power: 8e6,
@@ -1874,6 +1916,7 @@ const MONSTERS = [
   },
   {
     id: 'ghost_file',
+    icon: '👻',
     name: 'The Ghost of the Lost File (1974)',
     desc: 'Nobody ever found it. Nobody ever will. It found YOU.',
     power: 450e6,
@@ -1883,6 +1926,7 @@ const MONSTERS = [
   },
   {
     id: 'emeritus_director',
+    icon: '🧓',
     name: 'The Emeritus Director',
     desc: 'Retired 12 years ago. Still signs decrees. Still attends meetings.',
     power: 600e9,
@@ -1892,6 +1936,7 @@ const MONSTERS = [
   },
   {
     id: 'form_a0',
+    icon: '📜',
     name: 'FORM A-0',
     desc: 'The form you must fill to be allowed to fill forms. The final boss of paperwork.',
     power: 40e15,

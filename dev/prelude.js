@@ -3,7 +3,7 @@ const __els = new Map();
 function makeEl(id) {
   const el = {
     id: id || '',
-    style: {},
+    style: { setProperty() {}, removeProperty() {} },
     classList: {
       _set: new Set(),
       add(c) { this._set.add(c); },

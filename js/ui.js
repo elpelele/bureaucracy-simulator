@@ -17,6 +17,7 @@ const els = {
   timePlayed: document.getElementById('time-played'),
   sideStatus: document.getElementById('side-status'),
   stampBtn: document.getElementById('stamp-btn'),
+  deskScene: document.getElementById('desk-scene'),
   directiveContainer: document.getElementById('directive-container'),
   inboxDisplay: document.getElementById('inbox-display'),
   inboxAmount: document.getElementById('inbox-amount'),
@@ -71,6 +72,78 @@ function showFloatText(x, y, text) {
 }
 
 // ============================================
+// STAMP IMPRINT (visual feedback on every click)
+// ============================================
+
+let imprintCount = 0;
+
+function stampImprint(x, y, text, extraClass = '') {
+  if (imprintCount >= 24) return; // don't flood the DOM at 15 clicks/s
+  imprintCount++;
+  const el = document.createElement('div');
+  el.className = 'stamp-imprint ' + extraClass;
+  el.textContent = text;
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.style.setProperty('--tilt', (Math.random() * 24 - 12).toFixed(1) + 'deg');
+  document.body.appendChild(el);
+  setTimeout(() => { el.remove(); imprintCount--; }, 900);
+}
+
+// Shake the Inspector figure when he takes a hit
+function bossFigureHit() {
+  const fig = document.getElementById('boss-figure');
+  if (!fig) return;
+  fig.classList.remove('hit');
+  void fig.offsetWidth; // restart the animation
+  fig.classList.add('hit');
+}
+
+// ============================================
+// LIVING DESK — papers fly IN -> OUT at a rate that follows production
+// ============================================
+
+let deskAccumulator = 0;
+
+function spawnDeskPapers(delta) {
+  if (!els.deskScene) return;
+  if (typeof document !== 'undefined' && document.hidden) return;
+  if (game.formsPerSec <= 0) return;
+  // log-scaled: 1 paper/s at ~10/s production, capped at 6/s visually
+  const rate = Math.min(6, 0.4 + Math.log10(1 + game.formsPerSec) * 0.55);
+  deskAccumulator += rate * delta;
+  let burst = 0;
+  while (deskAccumulator >= 1 && burst < 4) {
+    deskAccumulator -= 1;
+    burst++;
+    const paper = document.createElement('div');
+    paper.className = 'desk-paper';
+    paper.style.animationDuration = (650 + Math.random() * 500) + 'ms';
+    paper.style.top = (30 + Math.random() * 22) + '%';
+    els.deskScene.appendChild(paper);
+    setTimeout(() => paper.remove(), 1300);
+  }
+  if (deskAccumulator > 3) deskAccumulator = 3;
+}
+
+// ============================================
+// PAPER CONFETTI (promotions & reforms)
+// ============================================
+
+function paperConfetti(n) {
+  for (let i = 0; i < n; i++) {
+    const c = document.createElement('div');
+    c.className = 'paper-confetto' + (Math.random() < 0.4 ? ' accent' : '');
+    c.style.left = (3 + Math.random() * 94) + '%';
+    c.style.animationDelay = (Math.random() * 500) + 'ms';
+    c.style.animationDuration = (1800 + Math.random() * 1400) + 'ms';
+    c.style.setProperty('--spin', (Math.random() < 0.5 ? -1 : 1) * (360 + Math.random() * 480) + 'deg');
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 4200);
+  }
+}
+
+// ============================================
 // TOASTS (small transient notifications)
 // ============================================
 
@@ -105,6 +178,7 @@ function showPromotionOverlay(title, subtitle) {
   `;
   document.body.appendChild(el);
   requestAnimationFrame(() => el.classList.add('show'));
+  paperConfetti(36);
   setTimeout(() => {
     el.classList.remove('show');
     setTimeout(() => el.remove(), 400);
@@ -298,6 +372,7 @@ function renderBoss(now) {
     } else if (state === 'active') {
       els.bossContainer.innerHTML = `
         <div class="boss-panel active">
+          <div class="boss-figure" id="boss-figure">🕵️</div>
           <div class="boss-title">THE INSPECTOR GENERAL — <span id="boss-timer">30</span>s</div>
           <div class="boss-hp-bar"><div id="boss-hp-fill" class="boss-hp-fill" style="width:100%"></div></div>
           <div class="boss-hp-text" id="boss-hp-text"></div>
@@ -478,6 +553,7 @@ function renderStaff() {
       staffList.forEach(staff => {
         html += `
           <div class="shop-item" data-id="${staff.id}" onclick="buyStaff('${staff.id}')">
+            <div class="item-icon">${staff.icon || '🧑‍💼'}</div>
             <div class="item-info">
               <div class="item-name">${staff.name}</div>
               <div class="item-desc">${staff.desc}</div>
@@ -491,6 +567,7 @@ function renderStaff() {
     if (nextLocked) {
       html += `
         <div class="shop-item locked-teaser">
+          <div class="item-icon">❓</div>
           <div class="item-info">
             <div class="item-name">???</div>
             <div class="item-desc">Unlocks at ${formatNumber(nextLocked.unlockAt)} forms processed.</div>
@@ -913,7 +990,8 @@ function renderExpeditions() {
 
     html += `
       <div class="monster-card ${kills > 0 ? 'defeated' : ''}">
-        <div class="monster-name">${monster.name} ${kills > 0 ? `[defeated ×${kills}]` : ''}</div>
+        <div class="monster-name"><span class="monster-icon">${monster.icon || '👾'}</span> ${monster.name}
+          ${kills > 0 ? `<span class="wanted-chip captured">CAPTURED ×${kills}</span>` : '<span class="wanted-chip">WANTED</span>'}</div>
         <div class="monster-desc">${monster.desc}</div>
         <div class="monster-stats">
           Power: ${formatNumber(effPower)}${runKills > 0 ? ' (it adapted — resets on Reform)' : ''} | Duration: ${formatDuration(monster.duration)} | Reward: +${monster.absurdity} Absurdity${relic && !hasRelic ? ` + ${relic.name}` : ''}
