@@ -106,6 +106,16 @@ function init() {
     if (document.visibilityState === 'hidden') saveGame();
   });
 
+  // Support link (footer) — only shown when SUPPORT_URL is configured
+  if (typeof SUPPORT_URL !== 'undefined' && SUPPORT_URL) {
+    const wrap = document.getElementById('support-wrap');
+    const link = document.getElementById('support-link');
+    if (wrap && link) {
+      link.href = SUPPORT_URL;
+      wrap.style.display = 'inline';
+    }
+  }
+
   // Welcome message
   log('Welcome to Bureaucracy Simulator!', 'info');
   log('Click the stamp to process forms.', 'info');

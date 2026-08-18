@@ -1297,6 +1297,28 @@ body.dark .collapsed-count { color: #555; }
 body.dark .toast { background: #2a2820; border-color: #8a7a30; color: #d4c060; }
 body.dark .toast.special { background: #231f2e; border-color: #64a; color: #a78bda; }
 
+/* === FOOTER === */
+.site-footer {
+  text-align: center;
+  padding: 6px 0 24px;
+  font-size: 11px;
+  color: #999;
+}
+
+.site-footer a {
+  color: #888;
+  text-decoration: none;
+  border-bottom: 1px dotted #bbb;
+}
+
+.site-footer a:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+body.dark .site-footer { color: #666; }
+body.dark .site-footer a { color: #888; border-bottom-color: #555; }
+
 /* Responsive */
 @media (max-width: 900px) {
   .game-container {

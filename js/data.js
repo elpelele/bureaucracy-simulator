@@ -2,6 +2,10 @@
 // GAME DATA - BUREAUCRACY SIMULATOR
 // ============================================
 
+// Your Buy Me a Coffee / Ko-fi / PayPal link. Leave empty ('') to hide the
+// coffee link in the footer — only the GitHub star link will show.
+const SUPPORT_URL = '';
+
 // ============================================
 // STAGES DEFINITION
 // ============================================
