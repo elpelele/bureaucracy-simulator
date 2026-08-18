@@ -1947,7 +1947,50 @@ const RELICS = [
 // ============================================
 // Periodic two-option decisions. Timed buffs live in game.buffs; instant
 // effects are income-based (never % of a balance).
+// kind: 'council' (Global+, pure opportunities, expire harmlessly) or
+// 'incident' (Administration+, problems: ignoring applies onExpire).
+// minStage defaults to 3 (council) when omitted.
 const DIRECTIVES = [
+  {
+    id: 'coffee_crisis',
+    kind: 'incident',
+    minStage: 1,
+    name: 'THE COFFEE MACHINE DIED',
+    desc: 'Productivity hangs by a thread. The interns are looking at you.',
+    a: { label: 'Buy the deluxe espresso unit', effect: 'pay_prod_buff', hint: 'Costs 2 min of production; caffeine surge: production ×1.5 for 5 min' },
+    b: { label: 'Instant coffee. Again.', effect: 'prod_debuff', hint: 'Morale drops: production ×0.7 for 5 min' },
+    onExpire: 'prod_debuff'
+  },
+  {
+    id: 'lost_folder',
+    kind: 'incident',
+    minStage: 1,
+    name: 'FOLDER B-12 IS MISSING',
+    desc: 'Nobody remembers what was in it. Somebody definitely needs it.',
+    a: { label: 'Reconstruct it from memory', effect: 'pay_absurdity', hint: 'Costs 90s of production; +1 Absurdity' },
+    b: { label: 'Declare it never existed', effect: 'prod_debuff', hint: 'The doubt lingers: production ×0.7 for 5 min' },
+    onExpire: 'prod_debuff'
+  },
+  {
+    id: 'sentient_queue',
+    kind: 'incident',
+    minStage: 1,
+    name: 'THE PHOTOCOPIER QUEUE ACHIEVED SENTIENCE',
+    desc: 'It demands tribute. It speaks in error codes.',
+    a: { label: 'Feed it premium toner', effect: 'pay_click_buff', hint: 'Costs 10 min of stamp income; its blessing: clicks ×3 for 5 min' },
+    b: { label: 'Unplug it and run', effect: 'prod_debuff', hint: 'It remembers: production ×0.7 for 5 min' },
+    onExpire: 'prod_debuff'
+  },
+  {
+    id: 'surprise_inspection',
+    kind: 'incident',
+    minStage: 1,
+    name: 'SURPRISE HYGIENE INSPECTION',
+    desc: 'They are already in the lobby. The break room is... a crime scene.',
+    a: { label: 'Bribe them with pastries', effect: 'pay_nothing', hint: 'Costs 1 min of production; nothing happens' },
+    b: { label: 'Let them inspect', effect: 'stamps_and_debuff', hint: 'Certified! Instant stamps, but production ×0.7 for 3 min' },
+    onExpire: 'stamps_and_debuff'
+  },
   {
     id: 'budget_hearing',
     name: 'BUDGET HEARING',
@@ -1989,5 +2032,81 @@ const DIRECTIVES = [
     desc: 'A man with a suspiciously heavy briefcase smiles at you.',
     a: { label: 'Accept the briefcase', effect: 'forms_big', hint: 'Instant forms (10 min of production)' },
     b: { label: 'Report him', effect: 'absurdity', hint: '+2 Absurdity' }
+  }
+];
+
+// ============================================
+// ABSURDITY PERKS (Reform tab)
+// ============================================
+// Paid from the Absurdity BALANCE; the passive production bonus is based on
+// LIFETIME absurdity, so spending here never reduces production.
+// Multiplier-style perks are applied in recalcAll; the others are read at
+// their use-site (reform, boss, expedition, offline) via hasPerk().
+const PERKS = [
+  {
+    id: 'severance_package',
+    name: 'Severance Package',
+    desc: 'Start every run after a Reform with 5 interns and 1,000 forms.',
+    cost: 10
+  },
+  {
+    id: 'muscle_memory',
+    name: 'Muscle Memory',
+    desc: 'Your stamping hand never forgets. Click power ×1.5.',
+    cost: 15
+  },
+  {
+    id: 'executive_inbox',
+    name: 'Executive Inbox',
+    desc: 'Mahogany, spacious. Approval inbox capacity +60 min.',
+    cost: 25
+  },
+  {
+    id: 'dream_bureaucracy',
+    name: 'Dream Bureaucracy',
+    desc: 'You file forms in your sleep. Offline production 50% → 75%.',
+    cost: 40
+  },
+  {
+    id: 'priority_subscription',
+    name: 'Priority Mail Subscription',
+    desc: 'Priority forms appear 25% more often.',
+    cost: 60
+  },
+  {
+    id: 'notarized_everything',
+    name: 'Notarized Everything',
+    desc: 'Every stamp begets stamps. Stamp income ×1.5.',
+    cost: 100
+  },
+  {
+    id: 'inspectors_weak_spot',
+    name: "Inspector's Weak Spot",
+    desc: 'He fears properly filled margins. Boss HP −25%, confiscation 90% → 75%.',
+    cost: 150
+  },
+  {
+    id: 'archive_maps',
+    name: 'Archive Maps',
+    desc: 'Hand-drawn by survivors. Expedition success +10%, casualties halved.',
+    cost: 250
+  },
+  {
+    id: 'institutional_memory',
+    name: 'Institutional Memory',
+    desc: 'The building itself remembers how. Production ×1.25.',
+    cost: 400
+  },
+  {
+    id: 'bureaucratic_singularity',
+    name: 'Bureaucratic Singularity',
+    desc: 'All forms converge. Production ×1.5.',
+    cost: 1500
+  },
+  {
+    id: 'deep_state',
+    name: 'Deep State',
+    desc: 'You never really left. Reforms restart at The Administration.',
+    cost: 3000
   }
 ];

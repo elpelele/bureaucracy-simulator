@@ -137,6 +137,14 @@ function recalcAll() {
   });
   RELICS.forEach(r => { if (game.relics.has(r.id)) r.effect(); });
 
+  // Absurdity perks (multiplier-style; the others read hasPerk() at use-site)
+  if (hasPerk('muscle_memory')) game.clickMultiplier *= 1.5;
+  if (hasPerk('executive_inbox')) game.inboxCapacityBonus += 3600;
+  if (hasPerk('priority_subscription')) game.goldenFrequencyMultiplier *= 0.75;
+  if (hasPerk('notarized_everything')) game.stampsMultiplier *= 1.5;
+  if (hasPerk('institutional_memory')) game.globalMultiplier *= 1.25;
+  if (hasPerk('bureaucratic_singularity')) game.globalMultiplier *= 1.5;
+
   // Permanent bonuses: achievements +1% each, absurdity (sublinear curve),
   // bosses +5% each
   game.globalMultiplier *= 1 + 0.01 * game.unlockedAchievements.size;
@@ -307,6 +315,24 @@ function buyPolicy(id) {
   checkAchievements();
 }
 
+// Absurdity perks: paid from the balance, kept forever (survive reforms).
+// The passive production bonus uses LIFETIME absurdity, so this costs nothing.
+function buyPerk(id) {
+  const perk = PERKS.find(pk => pk.id === id);
+  if (!perk) return;
+  if (game.purchasedPerks.has(id)) return;
+  if (game.absurdity < perk.cost) return;
+
+  game.absurdity -= perk.cost;
+  game.purchasedPerks.add(id);
+  recalcAll();
+  playSound('ding', 0.9);
+  log(`Perk acquired: ${perk.name} — ${perk.desc}`, 'special');
+  toast(`Perk: ${perk.name}`, 'special');
+  renderReform();
+  checkAchievements();
+}
+
 // Enacted policies can be suspended and reactivated freely
 function togglePolicy(id) {
   if (!game.purchasedPolicies.has(id)) return;
@@ -454,7 +480,7 @@ function startBossFight() {
   const now = Date.now();
   if (now < game.boss.cooldownUntil) return;
 
-  const hp = Math.max(10, Math.floor(bossClickDamage() * 40));
+  const hp = Math.max(10, Math.floor(bossClickDamage() * 40 * (hasPerk('inspectors_weak_spot') ? 0.75 : 1)));
   game.boss.active = true;
   game.boss.hp = hp;
   game.boss.maxHp = hp;
@@ -486,7 +512,7 @@ function bossDefeated() {
 
   // The hoard built up during the previous stage's tail would let the player
   // insta-buy the new stage's staff tiers and skip it — the Inspector takes it
-  const confiscated = Math.floor(game.forms * 0.9);
+  const confiscated = Math.floor(game.forms * (hasPerk('inspectors_weak_spot') ? 0.75 : 0.9));
   game.forms -= confiscated;
 
   const stage = STAGES[game.stageIndex];
@@ -566,7 +592,8 @@ function monsterPower(monster) {
 function expeditionChance(monster, sent) {
   const power = squadPower(sent);
   if (power <= 0) return 0;
-  return Math.max(0.05, Math.min(0.95, 0.6 * power / monsterPower(monster)));
+  const perkBonus = hasPerk('archive_maps') ? 0.10 : 0;
+  return Math.max(0.05, Math.min(0.95, 0.6 * power / monsterPower(monster) + perkBonus));
 }
 
 function launchExpedition(monsterId) {
@@ -603,7 +630,7 @@ function resolveExpedition() {
   if (success) {
     game.expeditionsWon++;
     game.monsterKills[monster.id] = (game.monsterKills[monster.id] || 0) + 1;
-    game.absurdity += monster.absurdity;
+    gainAbsurdity(monster.absurdity);
 
     let msg = `EXPEDITION SUCCESS: ${monster.name} defeated! +${monster.absurdity} Absurdity.`;
     if (monster.relic && !game.relics.has(monster.relic)) {
@@ -617,9 +644,10 @@ function resolveExpedition() {
     log(msg, 'special');
   } else {
     game.expeditionsFailed++;
+    const casualtyRate = hasPerk('archive_maps') ? 0.05 : 0.1;
     exp.sent.forEach(entry => {
       const staff = STAFF.find(s => s.id === entry.id);
-      if (staff) staff.owned = Math.max(0, staff.owned - Math.ceil(entry.count * 0.1));
+      if (staff) staff.owned = Math.max(0, staff.owned - Math.ceil(entry.count * casualtyRate));
     });
     log(`EXPEDITION FAILED: the squad fled from ${monster.name}. 10% of them resigned on the spot.`, 'danger');
   }
@@ -664,7 +692,7 @@ function doReform() {
   );
   if (!ok) return;
 
-  game.absurdity += gain;
+  gainAbsurdity(gain);
   game.reformCount++;
 
   // Reset the run
@@ -696,7 +724,18 @@ function doReform() {
   game.unlocks.policies = false;
   // absurdity / expeditions / reforms stay unlocked
 
-  setStageClass('office');
+  // Perk-granted head starts
+  if (hasPerk('severance_package')) {
+    STAFF.find(s => s.id === 'intern').owned = 5;
+    game.forms = 1000;
+  }
+  if (hasPerk('deep_state')) {
+    game.stageIndex = 1;
+    game.totalForms = 1e6;
+    game.stampMilestones = 1000;
+  }
+
+  setStageClass(STAGES[game.stageIndex].id);
   recalcAll();
   updateTabLocks();
   switchTab('staff');
@@ -710,7 +749,7 @@ function doReform() {
 // --------------------------------------------
 // Council Directives (Global Council+): periodic two-option decisions
 // --------------------------------------------
-const DIRECTIVE_STAGE = 3;          // unlocks at The Global Council
+const DIRECTIVE_STAGE = 1;          // incidents from The Administration; council directives gate on minStage (default 3)
 const DIRECTIVE_LIFETIME = 60000;   // 60s to decide
 const BUFF_DURATION = 600000;       // timed buffs last 10 minutes
 const BUFF_PROD = 1.5;
@@ -718,7 +757,10 @@ const BUFF_CLICK = 3;
 const BUFF_STAMP = 2;
 
 function prodBuffFactor(now) {
-  return (now || Date.now()) < game.buffs.prodUntil ? BUFF_PROD : 1;
+  now = now || Date.now();
+  let f = now < game.buffs.prodUntil ? BUFF_PROD : 1;
+  if (now < game.buffs.prodDebuffUntil) f *= 0.7; // unresolved incidents sting
+  return f;
 }
 function clickBuffFactor(now) {
   return (now || Date.now()) < game.buffs.clickUntil ? BUFF_CLICK : 1;
@@ -735,9 +777,15 @@ function directiveTick(now) {
   if (game.stageIndex < DIRECTIVE_STAGE) return;
   if (game.directive.active) {
     if (now > game.directive.expiresAt) {
+      const expired = DIRECTIVES.find(d => d.id === game.directive.id);
       game.directive.active = false;
       game.directivesExpired++;
-      log('The directive expired unanswered. The Council sighs and files it away.', 'warning');
+      if (expired && expired.onExpire) {
+        const result = applyDirectiveEffect(expired.onExpire);
+        log(`${expired.name} was ignored. It resolved itself, badly: ${result}`, 'warning');
+      } else {
+        log('The directive expired unanswered. The Council sighs and files it away.', 'warning');
+      }
       scheduleDirective(now);
     }
     return;
@@ -748,12 +796,15 @@ function directiveTick(now) {
   }
   // Only demand decisions from a player who is actually there
   if (now >= game.nextDirectiveAt && playerIsActive(now)) {
-    const directive = DIRECTIVES[Math.floor(Math.random() * DIRECTIVES.length)];
+    const pool = DIRECTIVES.filter(d => (d.minStage !== undefined ? d.minStage : 3) <= game.stageIndex);
+    if (pool.length === 0) { scheduleDirective(now); return; }
+    const directive = pool[Math.floor(Math.random() * pool.length)];
     game.directive.active = true;
     game.directive.id = directive.id;
     game.directive.expiresAt = now + DIRECTIVE_LIFETIME;
     playSound('ding', 1.2);
-    log(`COUNCIL DIRECTIVE: ${directive.name}. They want an answer within the minute.`, 'special');
+    const label = directive.kind === 'incident' ? 'OFFICE INCIDENT' : 'COUNCIL DIRECTIVE';
+    log(`${label}: ${directive.name}. You have a minute to deal with it.`, 'special');
   }
 }
 
@@ -785,9 +836,43 @@ function applyDirectiveEffect(effect) {
       return `Gained ${formatNumber(bonus)} stamps.`;
     }
     case 'absurdity':
-      game.absurdity += 2;
+      gainAbsurdity(2);
       recalcAll();
       return '+2 Absurdity. The Council appreciates the paperwork.';
+    // Incident resolutions (shorter buffs/debuffs than council ones)
+    case 'pay_prod_buff': {
+      const spent = Math.min(game.forms, Math.floor(game.formsPerSec * 120));
+      game.forms -= spent;
+      game.buffs.prodUntil = now + 300000;
+      return `Paid ${formatNumber(spent)} forms. Caffeine surge: production ×${BUFF_PROD} for 5 minutes!`;
+    }
+    case 'prod_debuff':
+      game.buffs.prodDebuffUntil = now + 300000;
+      return 'Morale sinks. Production ×0.7 for 5 minutes.';
+    case 'pay_absurdity': {
+      const spent = Math.min(game.forms, Math.floor(game.formsPerSec * 90));
+      game.forms -= spent;
+      gainAbsurdity(1);
+      recalcAll();
+      return `Paid ${formatNumber(spent)} forms. The reconstructed folder makes no sense: +1 Absurdity.`;
+    }
+    case 'pay_click_buff': {
+      const spent = Math.min(game.stamps, Math.floor(game.stampsPerSec * 600));
+      game.stamps -= spent;
+      game.buffs.clickUntil = now + 300000;
+      return `Paid ${formatNumber(spent)} stamps. The machine blesses you: clicks ×${BUFF_CLICK} for 5 minutes.`;
+    }
+    case 'pay_nothing': {
+      const spent = Math.min(game.forms, Math.floor(game.formsPerSec * 60));
+      game.forms -= spent;
+      return `Paid ${formatNumber(spent)} forms in pastries. The inspectors saw nothing.`;
+    }
+    case 'stamps_and_debuff': {
+      const bonus = Math.floor(game.stampsPerSec * 300) + 20;
+      gainStamps(bonus);
+      game.buffs.prodDebuffUntil = now + 180000;
+      return `Certified! +${formatNumber(bonus)} stamps, but the disruption costs ×0.7 production for 3 minutes.`;
+    }
     default:
       return 'Nothing happened. Suspiciously bureaucratic.';
   }
@@ -922,6 +1007,7 @@ function saveGame() {
     stamps: game.stamps,
     inbox: game.inbox,
     absurdity: game.absurdity,
+    totalAbsurdityEarned: game.totalAbsurdityEarned,
 
     // Lifetime stats
     totalFormsAllTime: game.totalFormsAllTime,
@@ -963,6 +1049,7 @@ function saveGame() {
     // Purchases (facts only — multipliers are recomputed on load)
     purchasedUpgrades: [...game.purchasedUpgrades],
     purchasedPolicies: [...game.purchasedPolicies],
+    purchasedPerks: [...game.purchasedPerks],
     activePolicies: [...game.activePolicies],
     unlockedAchievements: [...game.unlockedAchievements],
 
@@ -1003,6 +1090,7 @@ function loadGame() {
     game.stamps = data.stamps || 0;
     game.inbox = data.inbox || 0;
     game.absurdity = data.absurdity || 0;
+    game.totalAbsurdityEarned = Math.max(data.totalAbsurdityEarned || 0, game.absurdity);
 
     // Stats
     game.totalForms = data.totalForms || 0;
@@ -1038,7 +1126,7 @@ function loadGame() {
     game.frenzyUntil = data.frenzyUntil || 0;
     game.rampageUntil = data.rampageUntil || 0;
     game.collapsedStages = new Set(data.collapsedStages || []);
-    game.buffs = Object.assign({ prodUntil: 0, clickUntil: 0, stampUntil: 0 }, data.buffs || {});
+    game.buffs = Object.assign({ prodUntil: 0, clickUntil: 0, stampUntil: 0, prodDebuffUntil: 0 }, data.buffs || {});
 
     // Unlocks
     game.unlocks = Object.assign(game.unlocks, data.unlocks || {});
@@ -1048,6 +1136,7 @@ function loadGame() {
     game.activePolicies = new Set(data.activePolicies || []);
     // Older saves had no purchased/active distinction: active = purchased
     game.purchasedPolicies = new Set(data.purchasedPolicies || data.activePolicies || []);
+    game.purchasedPerks = new Set(data.purchasedPerks || []);
     game.unlockedAchievements = new Set(data.unlockedAchievements || []);
 
     game.directivesAnswered = data.directivesAnswered || 0;
@@ -1101,7 +1190,7 @@ function applyOfflineProgress(lastSaved) {
   const dtSeconds = (now - lastSaved) / 1000;
   if (dtSeconds < 30) return;
 
-  const OFFLINE_RATE = 0.5;
+  const OFFLINE_RATE = hasPerk('dream_bureaucracy') ? 0.75 : 0.5;
 
   // Forms land in the approval inbox, which caps them naturally
   let offlineForms = 0;

@@ -17,7 +17,8 @@ const game = {
   stamps: 0,
   inbox: 0,               // passive production waiting for approval
   stampMilestones: 0,     // floor(totalForms / 1000), tracks milestone stamps
-  absurdity: 0,           // prestige currency (+2% production each)
+  absurdity: 0,             // prestige currency BALANCE (spent on perks)
+  totalAbsurdityEarned: 0,  // lifetime — drives the passive production bonus
 
   // Lifetime stats (survive reforms)
   totalFormsAllTime: 0,
@@ -80,10 +81,13 @@ const game = {
   // Collapsed stage sections in the shop lists ("staff:office", ...)
   collapsedStages: new Set(),
 
-  // Council directives (Global Council+) and their timed buffs
+  // Directives & incidents (non-blocking decision panels) and timed effects
   directive: { active: false, id: null, expiresAt: 0 },
   nextDirectiveAt: 0,
-  buffs: { prodUntil: 0, clickUntil: 0, stampUntil: 0 },
+  buffs: { prodUntil: 0, clickUntil: 0, stampUntil: 0, prodDebuffUntil: 0 },
+
+  // Absurdity perks (persist through reforms)
+  purchasedPerks: new Set(),
 
   // Unlocks
   unlocks: {
