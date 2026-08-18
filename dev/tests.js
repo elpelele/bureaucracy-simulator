@@ -379,5 +379,13 @@ const spawned = DIRECTIVES.find(d => d.id === game.directive.id);
 assert(spawned && (spawned.minStage !== undefined ? spawned.minStage : 3) <= 1, 'only stage-appropriate panels are drawn');
 game.directive.active = false;
 
+console.log('--- 21. Console dev helpers ---');
+game.directive.active = false;
+game.stageIndex = 0; // dev.panel must bypass stage gating
+const panelMsg = window.dev.panel('coffee_crisis');
+assert(game.directive.active && game.directive.id === 'coffee_crisis', `dev.panel forces a panel even at The Office (${panelMsg})`);
+game.directive.active = false;
+assert(window.dev.panel('nope').startsWith('unknown id'), 'dev.panel rejects unknown ids with the list');
+
 console.log(`\n===== ${__pass} passed, ${__fail} failed =====`);
 process.exit(__fail > 0 ? 1 : 0);

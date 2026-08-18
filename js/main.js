@@ -112,3 +112,52 @@ function init() {
 }
 
 init();
+
+// ============================================
+// CONSOLE HELPERS (testing only — type dev.help() in the browser console)
+// These bypass normal gating (stage, activity, timers) on purpose.
+// ============================================
+window.dev = {
+  help() {
+    return 'dev.panel(id?) | dev.golden() | dev.give(forms?) | dev.stamps(n?) | dev.absurdity(n?) | dev.stage(0-5) | dev.boss()';
+  },
+  panel(id) {
+    const d = id ? DIRECTIVES.find(x => x.id === id) : DIRECTIVES[Math.floor(Math.random() * DIRECTIVES.length)];
+    if (!d) return 'unknown id — try: ' + DIRECTIVES.map(x => x.id).join(', ');
+    game.directive = { active: true, id: d.id, expiresAt: Date.now() + DIRECTIVE_LIFETIME };
+    return `${d.kind === 'incident' ? 'incident' : 'directive'}: ${d.name} (60s)`;
+  },
+  golden() {
+    removeGolden();
+    spawnGolden(Date.now());
+    return 'priority form on screen for 8s';
+  },
+  give(n) {
+    gainForms(n || 1e6, true);
+    return formatNumber(game.forms) + ' forms';
+  },
+  stamps(n) {
+    gainStamps(n || 1000);
+    return formatNumber(game.stamps) + ' stamps';
+  },
+  absurdity(n) {
+    gainAbsurdity(n || 100);
+    recalcAll();
+    return `balance ${formatNumber(game.absurdity)}, lifetime ${formatNumber(game.totalAbsurdityEarned)}`;
+  },
+  stage(n) {
+    game.stageIndex = Math.max(0, Math.min(STAGES.length - 1, n));
+    setStageClass(STAGES[game.stageIndex].id);
+    recalcAll();
+    checkUnlocks();
+    updateTabLocks();
+    renderAll();
+    return STAGES[game.stageIndex].name;
+  },
+  boss() {
+    if (game.stageIndex >= STAGES.length - 1) return 'already at the final stage';
+    game.totalForms = Math.max(game.totalForms, STAGES[game.stageIndex + 1].threshold);
+    game.boss.cooldownUntil = 0;
+    return 'boss pending — click CONFRONT HIM';
+  }
+};
