@@ -11,7 +11,7 @@ Un idle/clicker en JavaScript pur (aucune dépendance, aucun build) où l'on gra
 - **PROCESS FORM** : chaque clic produit des forms (limité à 15 clics/s comptabilisés — anti-autoclicker).
 - **Staff** : produit des forms par seconde, coût ×1,15 par unité possédée.
 - **Stamps** : la seconde monnaie. Gagnée par jalons (1 stamp / 1000 forms traités), par taux (stamps/s via upgrades) et par événements. Se dépense dans les **Investments** (bonus permanents à niveaux).
-- **Absurdity** : monnaie de prestige. +2 % de production par point, pour toujours.
+- **Absurdity** : monnaie de prestige. Bonus permanent de production = `(1+A)^0.19` — ×1,6 à 10 points, ×2,4 à 100, ×5 vers 5 000, et un plafond naturel vers ×50 : une réforme profonde accélère le run suivant ×2-3 sans jamais le plier.
 
 ### L'anti-AFK : la bannette d'approbation
 
@@ -21,7 +21,13 @@ Tant que le joueur est **actif** (une entrée clavier/souris dans les 90 derniè
 
 ### Le formulaire prioritaire
 
-Toutes les 2 à 5 minutes, un bouton doré **PRIORITY FORM** apparaît 8 secondes. Le cliquer donne au hasard : **Frenzy ×7** pendant 30 s (50 %), un burst de forms (35 %) ou un burst de stamps (15 %). La relique *Golden Paperclip* le fait apparaître 30 % plus souvent.
+Toutes les 2 à 5 minutes, un bouton doré **PRIORITY FORM** apparaît 8 secondes. Le cliquer donne au hasard : **Frenzy ×7** pendant 30 s (45 %), un burst de forms (30 %), un burst de stamps (15 %) ou **STAMP RAMPAGE** — clics ×77 pendant 15 s (10 %). La relique *Golden Paperclip* le fait apparaître 30 % plus souvent.
+
+Au **Cosmic Bureau**, ils deviennent des **QUANTUM FORMS** : récompenses ×2, mais 15 % de chance de s'effondrer à l'observation (−5 % des forms en caisse).
+
+### Les Directives du Conseil (Global Council+)
+
+Toutes les 3 à 6 minutes de jeu actif, le Conseil exige une décision : un panneau propose **deux options** et 60 secondes pour trancher. Effets possibles : production ×1,5, clics ×3 ou stamps ×2 pendant 10 min, bursts instantanés de forms/stamps, ou +2 Absurdity. Ignorer une directive est sans pénalité — le Conseil soupire et la classe.
 
 ---
 
@@ -29,14 +35,16 @@ Toutes les 2 à 5 minutes, un bouton doré **PRIORITY FORM** apparaît 8 seconde
 
 Atteindre le seuil ne suffit pas : **l'Inspecteur Général** bloque chaque promotion.
 
-| # | Stage | Seuil (forms traités) |
-|---|-------|----------------------|
-| 1 | The Office | 0 |
-| 2 | The Administration | 1 000 000 |
-| 3 | The Ministry | 1e9 |
-| 4 | The Global Council | 3e12 |
-| 5 | The Cosmic Bureau | 3e16 |
-| 6 | The Existential Office | 1e21 |
+Chaque stage a sa palette de couleurs, son bouton et sa nouveauté de gameplay :
+
+| # | Stage | Seuil | Bouton | Nouveauté |
+|---|-------|-------|--------|-----------|
+| 1 | The Office | 0 | PROCESS FORM | les bases |
+| 2 | The Administration | 1 000 000 | STAMP PERMIT | Expéditions |
+| 3 | The Ministry | 1e9 | SIGN DECREE | Réforme (prestige) |
+| 4 | The Global Council | 3e12 | RATIFY TREATY | Directives du Conseil |
+| 5 | The Cosmic Bureau | 3e16 | APPROVE EXISTENCE | Formulaires quantiques |
+| 6 | The Existential Office | 1e21 | DOCUMENT REALITY | Déjà vu (2 % des clics ×100) |
 
 ### Le boss : l'Inspecteur Général (5 combats)
 
@@ -56,6 +64,7 @@ Au seuil de stage, il apparaît. **Seuls les clics font des dégâts** (dégât 
 | Achievements | **45** | chacun donne **+1 % de production** |
 | Événements aléatoires | **24** | toutes les ~30-60 s ; bonus basés sur la production/s, malus en % des forms en caisse |
 | Monstres d'expédition | **7** | + 7 reliques permanentes |
+| Directives du Conseil | **6** | choix binaires périodiques (Global+) |
 | Boss | **5** | un par transition de stage |
 
 ---
@@ -82,7 +91,7 @@ Débloquées à **The Administration**. On compose une escouade de **3 types de 
 
 ## La Réforme Administrative (prestige)
 
-Débloquée à **The Ministry**. Gain : `⌊√(forms traités du run / 1e9)⌋` points d'Absurdity (+2 % de production chacun, permanent).
+Débloquée à **The Ministry**. Gain : `⌊√(forms traités du run / 1e9)⌋` points d'Absurdity ; le bonus de production `(1+A)^0.19` est permanent (voir plus haut).
 
 - **Perdu** : forms, stamps, staff, upgrades, departments, policies, investments, stage.
 - **Conservé** : achievements, reliques, kills de monstres, Absurdity, statistiques lifetime.
@@ -112,5 +121,5 @@ Principes :
 
 - **Rien de dérivé n'est sauvegardé.** `recalcAll()` recalcule tous les multiplicateurs depuis les faits (possédé/acheté/niveaux) — on peut rééquilibrer `data.js` sans casser les sauvegardes. Les sauvegardes v2 migrent automatiquement.
 - **Jamais de gain en % du solde de stamps** dans les événements : à ~90 événements/h, ça compose exponentiellement même AFK (mesuré ×2867 en une nuit avant correctif). Tous les gains d'événements sont basés sur le revenu (`stampsPerSec × durée`).
-- **Courbe de progression** : les seuils de stage sont **super-exponentiels** (×1000, ×3000, ×10⁴, ×3×10⁴) parce que la croissance intra-stage compose (~×3000/stage) ; les fps du staff sont dérivés de `coût / (multiplicateur cumulé attendu × temps de rentabilisation)`, ce dernier croissant par stage ; le contenu est étalé sur toute la largeur de chaque stage et chaque investment de production se finance un stage plus tard que le précédent (les jalons de stamps étant linéaires en forms). Rythme mesuré au bot optimal (humain ≈ ×1,5-2) : Office 23 min, Administration 20, Ministry 28, Global 20, Cosmic ~1 h 40, Existential ~2 h 20 — ~5 h 30 pour un premier clear complet, la Réforme accélérant les suivants.
+- **Courbe de progression** : les seuils de stage sont **super-exponentiels** (×1000, ×3000, ×10⁴, ×3×10⁴) parce que la croissance intra-stage compose (~×3000/stage) ; les fps du staff sont dérivés de `coût / (multiplicateur cumulé attendu × temps de rentabilisation)`, ce dernier croissant par stage ; le contenu est étalé sur toute la largeur de chaque stage et chaque investment de production se finance un stage plus tard que le précédent (les jalons de stamps étant linéaires en forms). Rythme mesuré au bot optimal (humain ≈ ×1,5-2) : Office 23 min, Administration 20, Ministry 28, Global 20, Cosmic ~1 h 40, Existential ~2 h 20 — ~5 h 30 pour un premier clear complet. Après une réforme à l'entrée du Cosmic (~5,5K Absurdity, ×5,1), le second run complet prend ~1 h 40 : la réforme accélère ×3, elle ne plie pas le jeu (courbe validée par `SIM_ABSURDITY=5477 ./dev/sim.sh`).
 - Tests : harnais headless Node (stubs DOM + fichiers concaténés + assertions), 71 tests, plus des simulations de rythme (bot glouton) et d'économie.

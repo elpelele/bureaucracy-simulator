@@ -97,8 +97,9 @@ while (game.boss.active && guard < 200) {
   guard++;
 }
 assert(game.stageIndex === 1, `boss defeated -> Administration (took ${guard} attacks)`);
-// ~40 base hits, minus random crits (10% chance, x5 dmg) -> wide but real range
-assert(guard >= 10 && guard <= 60, `fight required real clicking: ${guard} attacks`);
+// ~40 base hits, minus random crits (10% chance, x5 dmg); theoretical minimum
+// with all crits is 8, so the honest lower bound is 7
+assert(guard >= 7 && guard <= 60, `fight required real clicking: ${guard} attacks`);
 assert(game.bossesDefeated === 1, 'boss counter incremented');
 assert(game.unlocks.expeditions, 'expeditions unlocked at Administration');
 
@@ -265,6 +266,30 @@ processClick(fakeEvt);
 const rampageGain = game.forms - beforeRampage;
 assert(rampageGain >= game.formsPerClick * game.clickMultiplier * 77, `rampage multiplies clicks x77 (gained ${formatNumber(rampageGain)})`);
 game.rampageUntil = 0;
+
+console.log('--- 17. Absurdity curve & Council directives ---');
+game.absurdity = 100;
+recalcAll();
+assert(absurdityFactor() > 2 && absurdityFactor() < 3, `absurdity 100 -> x${absurdityFactor().toFixed(2)} (gentle curve)`);
+game.absurdity = 5477; // cosmic-entry reform scale
+recalcAll();
+assert(absurdityFactor() > 4 && absurdityFactor() < 7, `cosmic-scale reform -> x${absurdityFactor().toFixed(1)}, no longer x110`);
+game.absurdity = 0;
+recalcAll();
+
+game.stageIndex = 3;
+game.directive = { active: true, id: 'budget_hearing', expiresAt: Date.now() + 60000 };
+chooseDirective('a');
+assert(!game.directive.active, 'directive resolved by choosing');
+assert(prodBuffFactor(Date.now()) === 1.5, 'production buff active after choice');
+game.buffs.prodUntil = 0;
+game.directive = { active: true, id: 'summit', expiresAt: Date.now() - 1 };
+directiveTick(Date.now());
+assert(!game.directive.active, 'unanswered directive expires');
+game.directive = { active: true, id: 'audit_committee', expiresAt: Date.now() + 60000 };
+const absBeforeDir = game.absurdity;
+chooseDirective('a');
+assert(game.absurdity === absBeforeDir + 2, 'audit committee grants +2 absurdity');
 
 console.log(`\n===== ${__pass} passed, ${__fail} failed =====`);
 process.exit(__fail > 0 ? 1 : 0);

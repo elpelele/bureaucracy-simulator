@@ -10,6 +10,7 @@
 const STAGES = [
   {
     id: 'office',
+    clickLabel: 'PROCESS FORM',
     name: 'The Office',
     desc: 'A small office drowning in paperwork.',
     threshold: 0,
@@ -17,6 +18,8 @@ const STAGES = [
   },
   {
     id: 'administration',
+    clickLabel: 'STAMP PERMIT',
+    newMechanic: 'NEW: Expeditions into the Deep Archives — send staff to fight paperwork monsters (Expeditions tab).',
     name: 'The Administration',
     desc: 'You now control a local government branch.',
     threshold: 1e6,
@@ -24,6 +27,8 @@ const STAGES = [
   },
   {
     id: 'ministry',
+    clickLabel: 'SIGN DECREE',
+    newMechanic: 'NEW: Administrative Reform — burn everything for permanent Absurdity power (Reform tab).',
     name: 'The Ministry',
     desc: 'An entire ministry bends to your bureaucratic will.',
     threshold: 1e9,
@@ -31,6 +36,8 @@ const STAGES = [
   },
   {
     id: 'global',
+    clickLabel: 'RATIFY TREATY',
+    newMechanic: 'NEW: COUNCIL DIRECTIVES — the Council will periodically demand a decision. Choose fast.',
     name: 'The Global Council',
     desc: 'International bureaucracy. Every nation requires your approval.',
     threshold: 3e12,
@@ -38,6 +45,8 @@ const STAGES = [
   },
   {
     id: 'cosmic',
+    clickLabel: 'APPROVE EXISTENCE',
+    newMechanic: 'NEW: Priority forms are now QUANTUM FORMS — twice the reward, but they sometimes collapse.',
     name: 'The Cosmic Bureau',
     desc: 'Alien civilizations must file their existence permits.',
     threshold: 3e16,
@@ -45,6 +54,8 @@ const STAGES = [
   },
   {
     id: 'existential',
+    clickLabel: 'DOCUMENT REALITY',
+    newMechanic: 'NEW: Reality flickers. Some of your clicks echo across timelines (×100).',
     name: 'The Existential Office',
     desc: 'Reality itself requires proper documentation.',
     threshold: 1e21,
@@ -1841,5 +1852,55 @@ const RELICS = [
     name: 'FORM A-0 (framed)',
     desc: '+50% global production. You defeated paperwork itself.',
     effect: () => { game.globalMultiplier *= 1.5; }
+  }
+];
+
+// ============================================
+// COUNCIL DIRECTIVES (Global Council+)
+// ============================================
+// Periodic two-option decisions. Timed buffs live in game.buffs; instant
+// effects are income-based (never % of a balance).
+const DIRECTIVES = [
+  {
+    id: 'budget_hearing',
+    name: 'BUDGET HEARING',
+    desc: 'The annual budget must be allocated. The committee awaits your signature.',
+    a: { label: 'Fund overtime', effect: 'prod', hint: 'Production ×1.5 for 10 min' },
+    b: { label: 'Fund the Stamp Bureau', effect: 'stamp', hint: 'Stamp income ×2 for 10 min' }
+  },
+  {
+    id: 'union_negotiation',
+    name: 'UNION NEGOTIATION',
+    desc: 'The Paper Pushers Union demands concessions.',
+    a: { label: 'Promise pizza fridays', effect: 'click', hint: 'Clicks ×3 for 10 min' },
+    b: { label: 'Promise nothing, concede forms', effect: 'forms', hint: 'Instant forms (4 min of production)' }
+  },
+  {
+    id: 'summit',
+    name: 'INTERNATIONAL SUMMIT',
+    desc: 'Every nation sends a delegate. And a folder.',
+    a: { label: 'Host the summit', effect: 'stamps_burst', hint: 'Instant stamps (10 min of income)' },
+    b: { label: 'Attend remotely', effect: 'prod', hint: 'Production ×1.5 for 10 min' }
+  },
+  {
+    id: 'audit_committee',
+    name: 'AUDIT COMMITTEE',
+    desc: 'They want to see everything. EVERYTHING.',
+    a: { label: 'Cooperate fully', effect: 'absurdity', hint: '+2 Absurdity' },
+    b: { label: 'Shred diligently', effect: 'forms', hint: 'Instant forms (4 min of production)' }
+  },
+  {
+    id: 'paper_standard',
+    name: 'FILING STANDARDS VOTE',
+    desc: 'A4 or Letter? Empires have fallen for less.',
+    a: { label: 'Vote A4', effect: 'prod', hint: 'Production ×1.5 for 10 min' },
+    b: { label: 'Vote Letter', effect: 'click', hint: 'Clicks ×3 for 10 min' }
+  },
+  {
+    id: 'lobbyist',
+    name: 'LOBBYIST VISIT',
+    desc: 'A man with a suspiciously heavy briefcase smiles at you.',
+    a: { label: 'Accept the briefcase', effect: 'forms_big', hint: 'Instant forms (10 min of production)' },
+    b: { label: 'Report him', effect: 'absurdity', hint: '+2 Absurdity' }
   }
 ];

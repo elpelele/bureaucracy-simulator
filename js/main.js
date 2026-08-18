@@ -22,7 +22,7 @@ function tick() {
   // When they walk away (no input for 90s, or hidden tab), it piles up in
   // the approval inbox instead — which is capped, so idling overnight
   // stops paying quickly.
-  const produced = game.formsPerSec * frenzyFactor(now) * delta;
+  const produced = game.formsPerSec * frenzyFactor(now) * prodBuffFactor(now) * delta;
   if (produced > 0) {
     if (playerIsActive(now)) {
       gainForms(produced, true);
@@ -33,7 +33,7 @@ function tick() {
   }
 
   // Passive stamp income
-  const stampsGain = game.stampsPerSec * delta;
+  const stampsGain = game.stampsPerSec * stampBuffFactor(now) * delta;
   if (stampsGain > 0) gainStamps(stampsGain);
 
   // Milestone stamps: 1 per 1000 forms processed (tracked, no refunds)
@@ -46,6 +46,7 @@ function tick() {
   // Timed systems
   goldenTick(now);
   bossTick(now);
+  directiveTick(now);
   expeditionTick(now);
   triggerRandomEvent();
   checkUnlocks();

@@ -6,6 +6,7 @@ const els = {
   formsDisplay: document.getElementById('forms-display'),
   stampsDisplay: document.getElementById('stamps-display'),
   absurdityDisplay: document.getElementById('absurdity-display'),
+  absurdityBonus: document.getElementById('absurdity-bonus'),
   absurdityContainer: document.getElementById('absurdity-container'),
   formsRate: document.getElementById('forms-rate'),
   stampsRate: document.getElementById('stamps-rate'),
@@ -16,6 +17,7 @@ const els = {
   timePlayed: document.getElementById('time-played'),
   sideStatus: document.getElementById('side-status'),
   stampBtn: document.getElementById('stamp-btn'),
+  directiveContainer: document.getElementById('directive-container'),
   inboxDisplay: document.getElementById('inbox-display'),
   inboxAmount: document.getElementById('inbox-amount'),
   inboxFill: document.getElementById('inbox-fill'),
@@ -88,6 +90,28 @@ function toast(message, type = '') {
 }
 
 // ============================================
+// PROMOTION OVERLAY (stage-up / reform celebration)
+// ============================================
+
+function showPromotionOverlay(title, subtitle) {
+  const el = document.createElement('div');
+  el.className = 'promotion-overlay';
+  el.innerHTML = `
+    <div class="promotion-box">
+      <div class="promotion-kicker">— OFFICIAL NOTICE —</div>
+      <div class="promotion-title">${title}</div>
+      <div class="promotion-sub">${subtitle}</div>
+    </div>
+  `;
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 400);
+  }, 2800);
+}
+
+// ============================================
 // LOGGING (limited to 20 entries)
 // ============================================
 
@@ -120,13 +144,16 @@ function render() {
   els.formsDisplay.textContent = formatNumber(game.forms);
   els.stampsDisplay.textContent = formatNumber(game.stamps);
   els.absurdityDisplay.textContent = formatNumber(game.absurdity);
+  if (els.absurdityBonus) els.absurdityBonus.textContent = `×${absurdityFactor().toFixed(2)} production`;
 
-  const effectiveClickPower = game.formsPerClick * game.clickMultiplier * rampage;
-  let rateText = `+${formatNumber(game.formsPerSec * frenzy)}/sec`;
+  const prodBuff = prodBuffFactor(now);
+  const clickBuff = clickBuffFactor(now);
+  const effectiveClickPower = game.formsPerClick * game.clickMultiplier * rampage * clickBuff;
+  let rateText = `+${formatNumber(game.formsPerSec * frenzy * prodBuff)}/sec`;
   if (frenzy > 1) rateText += ` [FRENZY ×${frenzy}]`;
   els.formsRate.textContent = rateText;
-  els.formsRate.classList.toggle('frenzy', frenzy > 1);
-  els.stampsRate.textContent = `+${formatNumber(game.stampsPerSec)}/sec`;
+  els.formsRate.classList.toggle('frenzy', frenzy > 1 || prodBuff > 1);
+  els.stampsRate.textContent = `+${formatNumber(game.stampsPerSec * stampBuffFactor(now))}/sec`;
   els.clickInfo.textContent = `${formatNumber(effectiveClickPower)} ${effectiveClickPower < 2 ? 'form' : 'forms'} per click`
     + (rampage > 1 ? ' [RAMPAGE!]' : '');
 
@@ -144,6 +171,7 @@ function render() {
   renderSideStatus(now);
   renderInbox();
   renderBoss(now);
+  renderDirective(now);
   renderStage();
 
   // Shop lists are signature-guarded (rebuilt only on structural change), so
@@ -165,6 +193,15 @@ function renderSideStatus(now) {
   }
   if (now < game.rampageUntil) {
     lines.push(`STAMP RAMPAGE ×${RAMPAGE_MULTIPLIER} — ${Math.ceil((game.rampageUntil - now) / 1000)}s`);
+  }
+  if (now < game.buffs.prodUntil) {
+    lines.push(`Directive: production ×${BUFF_PROD} — ${formatDuration(game.buffs.prodUntil - now)}`);
+  }
+  if (now < game.buffs.clickUntil) {
+    lines.push(`Directive: clicks ×${BUFF_CLICK} — ${formatDuration(game.buffs.clickUntil - now)}`);
+  }
+  if (now < game.buffs.stampUntil) {
+    lines.push(`Directive: stamps ×${BUFF_STAMP} — ${formatDuration(game.buffs.stampUntil - now)}`);
   }
   if (game.expedition.active) {
     const monster = MONSTERS.find(m => m.id === game.expedition.monsterId);
@@ -283,6 +320,42 @@ function renderBoss(now) {
   }
 }
 
+// --------------------------------------------
+// Council Directive panel — rebuilt on state change, countdown updated in place
+// --------------------------------------------
+let directiveUiState = '';
+
+function renderDirective(now) {
+  if (!els.directiveContainer) return;
+  now = now || Date.now();
+
+  const state = game.directive.active ? 'active:' + game.directive.id : 'hidden';
+  if (state !== directiveUiState) {
+    directiveUiState = state;
+    if (!game.directive.active) {
+      els.directiveContainer.innerHTML = '';
+    } else {
+      const d = DIRECTIVES.find(x => x.id === game.directive.id);
+      if (!d) return;
+      els.directiveContainer.innerHTML = `
+        <div class="directive-panel">
+          <div class="directive-title">COUNCIL DIRECTIVE — ${d.name} <span class="directive-timer">(<span id="directive-timer">60</span>s)</span></div>
+          <div class="directive-desc">${d.desc}</div>
+          <div class="directive-choices">
+            <button class="directive-btn" title="${d.a.hint}" onclick="chooseDirective('a')">${d.a.label}</button>
+            <button class="directive-btn" title="${d.b.hint}" onclick="chooseDirective('b')">${d.b.label}</button>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  if (game.directive.active) {
+    const timer = document.getElementById('directive-timer');
+    if (timer) timer.textContent = Math.max(0, Math.ceil((game.directive.expiresAt - now) / 1000));
+  }
+}
+
 function renderStage() {
   const currentStage = getCurrentStage();
   const nextStage = STAGES[game.stageIndex + 1];
@@ -307,7 +380,9 @@ function renderStage() {
       let text = `${formatNumber(game.totalForms)} / ${formatNumber(nextStage.threshold)} forms`;
       if (game.formsPerSec > 0) {
         const eta = (nextStage.threshold - game.totalForms) / game.formsPerSec;
-        text += ` (~${formatDuration(eta * 1000)} at current rate)`;
+        text += eta < 360000 // beyond ~100h the number is just noise
+          ? ` (~${formatDuration(eta * 1000)} at current rate)`
+          : ' (an eternity at this rate — consider a Reform)';
       }
       els.stageProgressLabel.textContent = text;
     } else {
@@ -867,7 +942,8 @@ function renderReform() {
   }
 
   const gain = reformGain();
-  const currentBonus = Math.round(game.absurdity * 2);
+  const currentFactor = absurdityFactor();
+  const newFactor = Math.pow(1 + game.absurdity + gain, 0.19);
   const ready = canReform();
 
   els.reformPanel.innerHTML = `
@@ -878,8 +954,8 @@ function renderReform() {
         The sheer absurdity of it all makes you permanently stronger.
       </p>
       <div class="reform-stats">
-        <div>Current Absurdity: <strong>${formatNumber(game.absurdity)}</strong> (+${currentBonus}% production)</div>
-        <div>Reform now for: <strong>+${formatNumber(gain)} Absurdity</strong> (+${gain * 2}% production)</div>
+        <div>Current Absurdity: <strong>${formatNumber(game.absurdity)}</strong> (×${currentFactor.toFixed(2)} production)</div>
+        <div>Reform now for: <strong>+${formatNumber(gain)} Absurdity</strong> (bonus becomes ×${newFactor.toFixed(2)})</div>
         <div>Reforms completed: ${game.reformCount}</div>
       </div>
       <div class="reform-keeps">
@@ -910,7 +986,7 @@ function updateStats() {
       <div>Stamps earned (all time)</div><div>${formatNumber(game.totalStampsEarned)}</div>
       <div>Total clicks</div><div>${formatNumber(game.totalClicks)}</div>
       <div>Current production</div><div>${formatNumber(game.formsPerSec)}/sec</div>
-      <div>Absurdity</div><div>${formatNumber(game.absurdity)} (+${Math.round(game.absurdity * 2)}%)</div>
+      <div>Absurdity</div><div>${formatNumber(game.absurdity)} (×${absurdityFactor().toFixed(2)} production)</div>
       <div>Administrative reforms</div><div>${game.reformCount}</div>
       <div>Inspectors General defeated</div><div>${game.bossesDefeated}</div>
       <div>Expeditions won / failed</div><div>${game.expeditionsWon} / ${game.expeditionsFailed}</div>

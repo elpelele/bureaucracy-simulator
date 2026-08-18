@@ -37,9 +37,14 @@ function toggleSound(on) {
   if (on) playSound('stamp');
 }
 
-// The stage class must not clobber the dark-mode class
+// The stage class must not clobber the dark-mode class.
+// Also swaps the main button's label to the stage's flavor.
 function setStageClass(stageId) {
   document.body.className = 'stage-' + stageId + (settings.darkMode ? ' dark' : '');
+  const stage = STAGES.find(s => s.id === stageId);
+  if (stage && stage.clickLabel && els.stampBtn) {
+    els.stampBtn.textContent = stage.clickLabel;
+  }
 }
 
 // --------------------------------------------
@@ -130,9 +135,10 @@ function recalcAll() {
   });
   RELICS.forEach(r => { if (game.relics.has(r.id)) r.effect(); });
 
-  // Permanent bonuses: achievements +1% each, absurdity +2% each, bosses +5% each
+  // Permanent bonuses: achievements +1% each, absurdity (sublinear curve),
+  // bosses +5% each
   game.globalMultiplier *= 1 + 0.01 * game.unlockedAchievements.size;
-  game.globalMultiplier *= 1 + 0.02 * game.absurdity;
+  game.globalMultiplier *= absurdityFactor();
   game.globalMultiplier *= Math.pow(1.05, game.bossesDefeated);
 
   game.stampsPerSec *= game.stampsMultiplier;
@@ -179,11 +185,23 @@ function processClick(e) {
   if (!clickAllowed()) return;
   game.lastActiveAt = Date.now();
 
-  const clickGain = game.formsPerClick * game.clickMultiplier * rampageFactor();
+  let clickGain = game.formsPerClick * game.clickMultiplier * rampageFactor() * clickBuffFactor();
+
+  // Existential Office: reality flickers — some clicks echo across timelines
+  let dejaVu = false;
+  if (game.stageIndex >= 5 && Math.random() < 0.02) {
+    dejaVu = true;
+    clickGain *= 100;
+  }
+
   const collected = collectInbox();
   gainForms(clickGain, true);
   game.totalClicks++;
 
+  if (dejaVu) {
+    showFloatText(e.clientX, e.clientY - 30, 'DÉJÀ VU ×100');
+    playSound('ding', 1.6);
+  }
   let text = '+' + formatNumber(clickGain);
   if (collected > 0) text += ` (+${formatNumber(collected)} approved)`;
   showFloatText(e.clientX, e.clientY, text);
@@ -455,7 +473,11 @@ function bossDefeated() {
   playSound('ding', 0.8);
   log(`INSPECTOR DEFEATED! Welcome to ${stage.name}. (+5% permanent production)`, 'special');
   log(`He confiscated ${formatNumber(confiscated)} forms on his way out. "Evidence", he said.`, 'warning');
-  toast(`Promotion: ${stage.name}!`, 'special');
+  showPromotionOverlay(stage.name, stage.desc);
+  if (stage.newMechanic) {
+    log(stage.newMechanic, 'special');
+    toast(stage.newMechanic.split('—')[0].trim(), 'special');
+  }
 
   // Tidy the shop lists: previous stages fold away (still expandable by hand)
   for (let i = 0; i < game.stageIndex; i++) {
@@ -612,11 +634,12 @@ function doReform() {
   if (!canReform()) return;
   const gain = reformGain();
 
+  const newFactor = Math.pow(1 + game.absurdity + gain, 0.19);
   const ok = confirm(
     `ADMINISTRATIVE REFORM\n\n` +
     `You will LOSE: forms, stamps, staff, upgrades, departments, policies, investments, and your current stage.\n` +
     `You will KEEP: achievements, relics, monster kills, and Absurdity.\n\n` +
-    `You gain +${gain} Absurdity (each grants +2% permanent production).\n\nProceed?`
+    `You gain +${formatNumber(gain)} Absurdity — permanent production bonus goes from ×${absurdityFactor().toFixed(2)} to ×${newFactor.toFixed(2)}.\n\nProceed?`
   );
   if (!ok) return;
 
@@ -644,6 +667,9 @@ function doReform() {
   game.frenzyUntil = 0;
   game.rampageUntil = 0;
   game.collapsedStages.clear();
+  game.directive = { active: false, id: null, expiresAt: 0 };
+  game.nextDirectiveAt = 0;
+  game.buffs = { prodUntil: 0, clickUntil: 0, stampUntil: 0 };
   game.unlocks.departments = false;
   game.unlocks.policies = false;
   // absurdity / expeditions / reforms stay unlocked
@@ -653,9 +679,108 @@ function doReform() {
   updateTabLocks();
   switchTab('staff');
   checkAchievements();
-  log(`ADMINISTRATIVE REFORM #${game.reformCount}! Everything burns. +${gain} Absurdity — the absurdity makes you stronger.`, 'special');
+  log(`ADMINISTRATIVE REFORM #${game.reformCount}! Everything burns. +${formatNumber(gain)} Absurdity — production bonus now ×${absurdityFactor().toFixed(2)}.`, 'special');
+  showPromotionOverlay(`REFORM #${game.reformCount}`, `+${formatNumber(gain)} Absurdity — permanent bonus ×${absurdityFactor().toFixed(2)}`);
   saveGame();
   renderAll();
+}
+
+// --------------------------------------------
+// Council Directives (Global Council+): periodic two-option decisions
+// --------------------------------------------
+const DIRECTIVE_STAGE = 3;          // unlocks at The Global Council
+const DIRECTIVE_LIFETIME = 60000;   // 60s to decide
+const BUFF_DURATION = 600000;       // timed buffs last 10 minutes
+const BUFF_PROD = 1.5;
+const BUFF_CLICK = 3;
+const BUFF_STAMP = 2;
+
+function prodBuffFactor(now) {
+  return (now || Date.now()) < game.buffs.prodUntil ? BUFF_PROD : 1;
+}
+function clickBuffFactor(now) {
+  return (now || Date.now()) < game.buffs.clickUntil ? BUFF_CLICK : 1;
+}
+function stampBuffFactor(now) {
+  return (now || Date.now()) < game.buffs.stampUntil ? BUFF_STAMP : 1;
+}
+
+function scheduleDirective(now) {
+  game.nextDirectiveAt = now + 180000 + Math.random() * 180000; // 3-6 min
+}
+
+function directiveTick(now) {
+  if (game.stageIndex < DIRECTIVE_STAGE) return;
+  if (game.directive.active) {
+    if (now > game.directive.expiresAt) {
+      game.directive.active = false;
+      log('The directive expired unanswered. The Council sighs and files it away.', 'warning');
+      scheduleDirective(now);
+    }
+    return;
+  }
+  if (!game.nextDirectiveAt) {
+    scheduleDirective(now);
+    return;
+  }
+  // Only demand decisions from a player who is actually there
+  if (now >= game.nextDirectiveAt && playerIsActive(now)) {
+    const directive = DIRECTIVES[Math.floor(Math.random() * DIRECTIVES.length)];
+    game.directive.active = true;
+    game.directive.id = directive.id;
+    game.directive.expiresAt = now + DIRECTIVE_LIFETIME;
+    playSound('ding', 1.2);
+    log(`COUNCIL DIRECTIVE: ${directive.name}. They want an answer within the minute.`, 'special');
+  }
+}
+
+function applyDirectiveEffect(effect) {
+  const now = Date.now();
+  switch (effect) {
+    case 'prod':
+      game.buffs.prodUntil = now + BUFF_DURATION;
+      return `Production ×${BUFF_PROD} for 10 minutes.`;
+    case 'click':
+      game.buffs.clickUntil = now + BUFF_DURATION;
+      return `Clicks ×${BUFF_CLICK} for 10 minutes.`;
+    case 'stamp':
+      game.buffs.stampUntil = now + BUFF_DURATION;
+      return `Stamp income ×${BUFF_STAMP} for 10 minutes.`;
+    case 'forms': {
+      const bonus = Math.floor(game.formsPerSec * 240);
+      game.forms += bonus;
+      return `Gained ${formatNumber(bonus)} forms.`;
+    }
+    case 'forms_big': {
+      const bonus = Math.floor(game.formsPerSec * 600);
+      game.forms += bonus;
+      return `Gained ${formatNumber(bonus)} forms.`;
+    }
+    case 'stamps_burst': {
+      const bonus = Math.floor(game.stampsPerSec * 600) + 50;
+      gainStamps(bonus);
+      return `Gained ${formatNumber(bonus)} stamps.`;
+    }
+    case 'absurdity':
+      game.absurdity += 2;
+      recalcAll();
+      return '+2 Absurdity. The Council appreciates the paperwork.';
+    default:
+      return 'Nothing happened. Suspiciously bureaucratic.';
+  }
+}
+
+function chooseDirective(option) {
+  if (!game.directive.active) return;
+  const directive = DIRECTIVES.find(d => d.id === game.directive.id);
+  game.directive.active = false;
+  scheduleDirective(Date.now());
+  if (!directive) return;
+  const choice = option === 'a' ? directive.a : directive.b;
+  const result = applyDirectiveEffect(choice.effect);
+  playSound('stamp', 1.2);
+  log(`DIRECTIVE ${directive.name}: "${choice.label}" — ${result}`, 'success');
+  checkAchievements();
 }
 
 // --------------------------------------------
@@ -703,7 +828,7 @@ function spawnGolden(now) {
   const btn = document.createElement('button');
   btn.id = 'golden-form';
   btn.className = 'golden-form';
-  btn.textContent = 'PRIORITY FORM';
+  btn.textContent = game.stageIndex >= 4 ? 'QUANTUM FORM' : 'PRIORITY FORM';
   btn.style.left = (15 + Math.random() * 60) + '%';
   btn.style.top = (20 + Math.random() * 50) + '%';
   btn.addEventListener('click', clickGolden);
@@ -721,21 +846,33 @@ function clickGolden(e) {
   scheduleGolden(Date.now());
 
   playSound('ding');
+
+  // Cosmic Bureau+: quantum forms — double rewards, but they can collapse
+  const quantum = game.stageIndex >= 4;
+  const kind = quantum ? 'QUANTUM FORM' : 'PRIORITY FORM';
+  const magnitude = quantum ? 2 : 1;
+
   const roll = Math.random();
   if (roll < 0.45) {
-    game.frenzyUntil = Date.now() + FRENZY_DURATION;
-    log(`PRIORITY FORM: Frenzy! Production ×${FRENZY_MULTIPLIER} for 30 seconds!`, 'special');
+    game.frenzyUntil = Date.now() + FRENZY_DURATION * magnitude;
+    log(`${kind}: Frenzy! Production ×${FRENZY_MULTIPLIER} for ${30 * magnitude} seconds!`, 'special');
   } else if (roll < 0.75) {
-    const bonus = Math.floor(game.formsPerSec * 120 + game.formsPerClick * game.clickMultiplier * 15 + 10);
+    const bonus = Math.floor((game.formsPerSec * 120 + game.formsPerClick * game.clickMultiplier * 15 + 10) * magnitude);
     game.forms += bonus;
-    log(`PRIORITY FORM: expedited processing! +${formatNumber(bonus)} forms!`, 'success');
+    log(`${kind}: expedited processing! +${formatNumber(bonus)} forms!`, 'success');
   } else if (roll < 0.9) {
-    const bonus = Math.floor(game.stampsPerSec * 120) + 5;
+    const bonus = Math.floor(game.stampsPerSec * 120 * magnitude) + 5;
     gainStamps(bonus);
-    log(`PRIORITY FORM: certified urgent! +${formatNumber(bonus)} stamps!`, 'success');
+    log(`${kind}: certified urgent! +${formatNumber(bonus)} stamps!`, 'success');
   } else {
-    game.rampageUntil = Date.now() + RAMPAGE_DURATION;
-    log(`PRIORITY FORM: STAMP RAMPAGE! Your clicks are worth ×${RAMPAGE_MULTIPLIER} for 15 seconds!`, 'special');
+    game.rampageUntil = Date.now() + RAMPAGE_DURATION * magnitude;
+    log(`${kind}: STAMP RAMPAGE! Your clicks are worth ×${RAMPAGE_MULTIPLIER} for ${15 * magnitude} seconds!`, 'special');
+  }
+
+  if (quantum && Math.random() < 0.15) {
+    const lost = Math.floor(game.forms * 0.05);
+    game.forms -= lost;
+    log(`The quantum form collapsed on observation! Superposition tax: -${formatNumber(lost)} forms.`, 'warning');
   }
   if (e) showFloatText(e.clientX, e.clientY, 'PRIORITY!');
 }
@@ -792,6 +929,7 @@ function saveGame() {
     frenzyUntil: game.frenzyUntil,
     rampageUntil: game.rampageUntil,
     collapsedStages: [...game.collapsedStages],
+    buffs: game.buffs,
 
     // Unlocks
     unlocks: game.unlocks,
@@ -866,6 +1004,7 @@ function loadGame() {
     game.frenzyUntil = data.frenzyUntil || 0;
     game.rampageUntil = data.rampageUntil || 0;
     game.collapsedStages = new Set(data.collapsedStages || []);
+    game.buffs = Object.assign({ prodUntil: 0, clickUntil: 0, stampUntil: 0 }, data.buffs || {});
 
     // Unlocks
     game.unlocks = Object.assign(game.unlocks, data.unlocks || {});

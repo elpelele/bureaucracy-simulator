@@ -1,12 +1,23 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Each stage has its own accent color and paper tint (see stage palettes) */
 body {
+  --accent: #b22;
+  --accent-dark: #811;
+  --accent-deep: #611;
   font-family: 'Courier New', monospace;
   background: #f9f7f1;
   color: #333;
   font-size: 14px;
   line-height: 1.4;
+  transition: background 1.5s;
 }
+
+body.stage-administration { --accent: #1565c0; --accent-dark: #0d47a1; --accent-deep: #0a3579; background: #eff4f9; }
+body.stage-ministry { --accent: #7b1fa2; --accent-dark: #4a148c; --accent-deep: #38105f; background: #f7f1fa; }
+body.stage-global { --accent: #e65100; --accent-dark: #bf360c; --accent-deep: #8f2808; background: #faf3ea; }
+body.stage-cosmic { --accent: #c2185b; --accent-dark: #880e4f; --accent-deep: #650a3a; background: #f8edf3; }
+body.stage-existential { --accent: #00838f; --accent-dark: #005662; --accent-deep: #003c45; background: #ecf6f7; }
 
 /* === LAYOUT === */
 .game-container {
@@ -118,26 +129,26 @@ body {
   font-size: 18px;
   font-family: inherit;
   font-weight: bold;
-  background: #b22;
+  background: var(--accent);
   color: white;
-  border: 3px solid #811;
+  border: 3px solid var(--accent-dark);
   border-radius: 4px;
   cursor: pointer;
-  transition: transform 0.05s, background 0.05s;
+  transition: transform 0.05s, filter 0.05s;
   user-select: none;
   text-transform: uppercase;
   letter-spacing: 2px;
-  box-shadow: 0 4px 0 #611, 0 6px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 0 var(--accent-deep), 0 6px 10px rgba(0,0,0,0.2);
 }
 
 #stamp-btn:hover {
-  background: #c33;
+  filter: brightness(1.1);
 }
 
 #stamp-btn:active {
-  background: #911;
+  filter: brightness(0.9);
   transform: translateY(4px);
-  box-shadow: 0 0 0 #611, 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 0 0 0 var(--accent-deep), 0 2px 5px rgba(0,0,0,0.2);
 }
 
 /* Float text for clicks */
@@ -181,9 +192,9 @@ body {
 }
 
 .qty-btn.active {
-  background: #b22;
+  background: var(--accent);
   color: #fff;
-  border-color: #811;
+  border-color: var(--accent-dark);
 }
 
 /* Tabs */
@@ -211,7 +222,7 @@ body {
 
 .tab-btn.active {
   color: #333;
-  border-bottom-color: #333;
+  border-bottom-color: var(--accent);
   font-weight: bold;
 }
 
@@ -900,6 +911,120 @@ body {
   background: #ffe0e0;
 }
 
+/* === PROMOTION OVERLAY === */
+.promotion-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0);
+  pointer-events: none;
+  transition: background 0.4s;
+}
+
+.promotion-overlay.show {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.promotion-box {
+  background: #fffdf5;
+  border: 3px double var(--accent);
+  padding: 30px 50px;
+  text-align: center;
+  transform: scale(0.8);
+  opacity: 0;
+  transition: transform 0.4s, opacity 0.4s;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.promotion-overlay.show .promotion-box {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.promotion-kicker {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: #999;
+  margin-bottom: 10px;
+}
+
+.promotion-title {
+  font-size: 26px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  color: var(--accent);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.promotion-sub {
+  font-size: 13px;
+  color: #666;
+  font-style: italic;
+}
+
+/* === COUNCIL DIRECTIVES === */
+.directive-panel {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #fffdf0;
+  border: 2px dashed var(--accent);
+  text-align: center;
+  animation: directive-pulse 2s infinite;
+}
+
+@keyframes directive-pulse {
+  0%, 100% { border-color: var(--accent); }
+  50% { border-color: var(--accent-dark); }
+}
+
+.directive-title {
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.directive-timer {
+  color: #999;
+  font-weight: normal;
+}
+
+.directive-desc {
+  font-size: 12px;
+  color: #666;
+  font-style: italic;
+  margin-bottom: 12px;
+}
+
+.directive-choices {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.directive-btn {
+  padding: 10px 20px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: bold;
+  background: #fff;
+  color: var(--accent);
+  border: 2px solid var(--accent);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.directive-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
 /* === STAGE THEMING === */
 body.stage-office .progress-fill { background: #4caf50; }
 body.stage-office .game-title { border-bottom-color: #4caf50; }
@@ -1020,6 +1145,19 @@ body.dark {
   background: #1e1e1e;
   color: #ddd;
 }
+
+body.dark.stage-administration { background: #1b2026; }
+body.dark.stage-ministry { background: #211d27; }
+body.dark.stage-global { background: #26201a; }
+body.dark.stage-cosmic { background: #251c21; }
+body.dark.stage-existential { background: #1a2426; }
+
+body.dark .promotion-box { background: #262420; }
+body.dark .promotion-sub { color: #999; }
+body.dark .directive-panel { background: #262420; }
+body.dark .directive-desc { color: #999; }
+body.dark .directive-btn { background: #1e1e1e; }
+body.dark .directive-btn:hover { background: var(--accent); color: #fff; }
 
 body.dark .stats-panel { border-right-color: #444; }
 body.dark .log-panel { border-left-color: #444; }

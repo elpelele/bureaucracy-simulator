@@ -85,6 +85,15 @@ function gainStamps(n) {
   game.totalStampsEarned += n;
 }
 
+// Absurdity production bonus. Deliberately gentle: the walls it must help
+// climb are only ~30-60x too hard, so even a x5 bonus roughly halves them.
+// Sim-tuned so a cosmic-entry reform (~5.5K pts) speeds the next run ~2-3x
+// instead of folding it. 10 pts -> x1.6 | 100 -> x2.4 | 5.5K -> x5.1 |
+// 1M -> x14 | 1B -> x51 (chained reforms self-limit around there).
+function absurdityFactor() {
+  return Math.pow(1 + game.absurdity, 0.19);
+}
+
 // Negative event severity: policies make it worse, the Red Stapler softens it
 function negFactor() {
   let f = game.negativeEventMultiplier;

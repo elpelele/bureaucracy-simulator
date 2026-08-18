@@ -78,6 +78,11 @@ const game = {
   // Collapsed stage sections in the shop lists ("staff:office", ...)
   collapsedStages: new Set(),
 
+  // Council directives (Global Council+) and their timed buffs
+  directive: { active: false, id: null, expiresAt: 0 },
+  nextDirectiveAt: 0,
+  buffs: { prodUntil: 0, clickUntil: 0, stampUntil: 0 },
+
   // Unlocks
   unlocks: {
     departments: false,

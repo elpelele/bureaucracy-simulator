@@ -6,6 +6,13 @@ Date.now = () => fakeNow;
 lastTick = fakeNow;
 
 const evt = { clientX: 0, clientY: 0 };
+
+// SIM_ABSURDITY=5477 ./dev/sim.sh -> simulates a post-reform run
+if (typeof process !== 'undefined' && process.env.SIM_ABSURDITY) {
+  game.absurdity = parseFloat(process.env.SIM_ABSURDITY);
+  recalcAll();
+  console.log(`(post-reform run: absurdity=${formatNumber(game.absurdity)}, production x${absurdityFactor().toFixed(1)})`);
+}
 let simSeconds = 0;
 let lastStageAt = 0;
 
