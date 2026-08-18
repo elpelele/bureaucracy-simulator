@@ -675,6 +675,27 @@ function resolveExpedition() {
   renderExpeditions();
 }
 
+// Bribe the archivists: pay stamps to finish the current expedition now.
+// Cost scales with the remaining time and your stamp income, so it stays a
+// meaningful luxury at every stage (and a real late-game stamp sink).
+function expeditionRushCost() {
+  if (!game.expedition.active) return 0;
+  const remaining = Math.max(0, (game.expedition.endTime - Date.now()) / 1000);
+  return Math.ceil(remaining * Math.max(2 * game.stampsPerSec, 5));
+}
+
+function rushExpedition() {
+  if (!game.expedition.active) return;
+  const cost = expeditionRushCost();
+  if (game.stamps < cost) return;
+  game.stamps -= cost;
+  game.expeditionsRushed++;
+  game.expedition.endTime = Date.now();
+  log(`Bribed the archivists with ${formatNumber(cost)} stamps — the squad reports back immediately.`, 'success');
+  playSound('ding', 1.1);
+  // resolves on the next tick via expeditionTick
+}
+
 function expeditionTick(now) {
   if (game.expedition.active && now >= game.expedition.endTime) {
     resolveExpedition();
@@ -1030,6 +1051,7 @@ function saveGame() {
     reformCount: game.reformCount,
     expeditionsWon: game.expeditionsWon,
     expeditionsFailed: game.expeditionsFailed,
+    expeditionsRushed: game.expeditionsRushed,
     bossesDefeated: game.bossesDefeated,
     startTime: game.startTime,
 
@@ -1119,6 +1141,7 @@ function loadGame() {
     game.reformCount = data.reformCount || 0;
     game.expeditionsWon = data.expeditionsWon || 0;
     game.expeditionsFailed = data.expeditionsFailed || 0;
+    game.expeditionsRushed = data.expeditionsRushed || 0;
 
     // Milestones derive from totalForms (prevents the old refund exploit)
     game.stampMilestones = Math.floor(game.totalForms / 1000);

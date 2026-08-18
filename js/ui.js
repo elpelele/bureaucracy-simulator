@@ -944,6 +944,9 @@ function renderExpeditions() {
           </div>
         </div>
         <div class="expedition-hint">Your squad is away from their desks — their production is paused.</div>
+        <button class="launch-btn" ${game.stamps >= expeditionRushCost() ? '' : 'disabled'} onclick="rushExpedition()">
+          BRIBE THE ARCHIVISTS — return now (${formatNumber(expeditionRushCost())} stamps)
+        </button>
       </div>
     `;
     els.expeditionsList.innerHTML = html;
@@ -1111,6 +1114,7 @@ function updateStats() {
       <div>Inspectors General defeated</div><div>${game.bossesDefeated}</div>
       <div>Expeditions won / failed</div><div>${game.expeditionsWon} / ${game.expeditionsFailed}</div>
       <div>Directives answered / ignored</div><div>${game.directivesAnswered} / ${game.directivesExpired}</div>
+      <div>Expeditions rushed (bribes)</div><div>${game.expeditionsRushed}</div>
       <div>Déjà vus / quantum collapses / rampages</div><div>${game.dejaVuCount} / ${game.quantumCollapses} / ${game.rampagesTriggered}</div>
       <div>Relics</div><div>${relicNames.length ? relicNames.join(', ') : 'none'}</div>
       <div>Achievements</div><div>${game.unlockedAchievements.size} / ${ACHIEVEMENTS.length} (+${game.unlockedAchievements.size}%)</div>

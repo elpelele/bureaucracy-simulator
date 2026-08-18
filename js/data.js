@@ -1268,7 +1268,8 @@ const ACHIEVEMENTS = [
   { id: 'committee_ghost', cat: 'other', name: 'Committee Ghost', desc: 'Let 5 directives expire unanswered.', check: () => game.directivesExpired >= 5 },
   { id: 'deja_vu_again', cat: 'endgame', name: 'Haven\'t We Met?', desc: 'Trigger 10 d\u00e9j\u00e0 vu clicks.', check: () => game.dejaVuCount >= 10 },
   { id: 'observer_effect', cat: 'endgame', name: 'Observer Effect', desc: 'Suffer 3 quantum form collapses.', check: () => game.quantumCollapses >= 3 },
-  { id: 'rampager', cat: 'other', name: 'Rubber Stamp Berserker', desc: 'Trigger 5 stamp rampages.', check: () => game.rampagesTriggered >= 5 }
+  { id: 'rampager', cat: 'other', name: 'Rubber Stamp Berserker', desc: 'Trigger 5 stamp rampages.', check: () => game.rampagesTriggered >= 5 },
+  { id: 'money_talks', cat: 'endgame', name: 'Money Talks', desc: 'Bribe the archivists 3 times to rush expeditions.', check: () => game.expeditionsRushed >= 3 }
 ];
 
 // ============================================
@@ -1852,6 +1853,17 @@ const INVESTMENTS = [
     maxLevel: 10,
     unlocked: () => game.totalForms >= 1e6,
     effect: () => { game.globalMultiplier *= 1.1; }
+  },
+  {
+    id: 'golden_cabinets',
+    name: 'Golden Filing Cabinets',
+    desc: '+2% global production per level. Pure, ruinous prestige furniture.',
+    baseCost: 1e12,
+    costMultiplier: 3,
+    level: 0,
+    maxLevel: 60,
+    unlocked: () => game.totalStampsEarned >= 1e11,
+    effect: () => { game.globalMultiplier *= 1.02; }
   },
   {
     id: 'infinite_ink',

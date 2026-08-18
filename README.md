@@ -63,7 +63,7 @@ Au seuil de stage, il apparaît. **Seuls les clics font des dégâts** (dégât 
 | Upgrades | **44** | uniques ; production, clic (dont % de production), stamps/s, formations de staff par stage (+40 %) |
 | Departments | **22** | achats uniques ; multiplicateurs et stamps/s ; HR : staff −10 % |
 | Policies | **10** | payées une fois, puis **suspendables/réactivables librement** ; trois à contrepartie (*Mandatory Overtime*, *Expedited Stamp Lane*, *Paper Rationing*) |
-| Investments | **9** (232 niveaux) | répétables, payés en stamps ; ~5e14 stamps pour tout maxer |
+| Investments | **10** (292 niveaux) | répétables, payés en stamps ; les *Golden Filing Cabinets* (coût ×3/niveau) font qu'il reste toujours un prochain achat, même au Cosmic |
 | Achievements | **50** | chacun donne **+1 % de production** |
 | Événements aléatoires | **24** | toutes les ~30-60 s ; bonus basés sur la production/s, malus en % des forms en caisse |
 | Monstres d'expédition | **7** | + 7 reliques permanentes |
@@ -90,6 +90,7 @@ Débloquées à **The Administration**. On compose une escouade de **3 types de 
 - **La bureaucratie s'adapte** : chaque victoire multiplie la puissance de ce monstre par **×2,5** — le farm s'auto-limite. L'adaptation se réinitialise à chaque **Réforme** (les Archives se réorganisent) ; le compteur de kills à vie reste acquis. Quand une escouade est au plancher de 5 %, la carte affiche la puissance brute qu'il faudrait pour 50 %.
 - **Échec** : 10 % de l'escouade démissionne (perdus définitivement).
 - Les reliques et l'Absurdity survivent aux réformes.
+- **Soudoyer les archivistes** : pendant une expédition, un bouton permet de payer en stamps (proportionnel au temps restant × ton revenu de stamps) pour un retour immédiat — le grand puits à stamps de l'endgame.
 
 ---
 

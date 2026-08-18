@@ -27,6 +27,7 @@ const game = {
   reformCount: 0,
   expeditionsWon: 0,
   expeditionsFailed: 0,
+  expeditionsRushed: 0,
   bossesDefeated: 0,
   startTime: Date.now(),
 

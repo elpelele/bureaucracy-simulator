@@ -420,5 +420,37 @@ assert(game.stampsMultiplier >= 1.5, '...but boosts stamps');
 game.activePolicies.delete('expedited_stamps');
 recalcAll();
 
+console.log('--- 24. Late-game stamp sinks ---');
+STAFF.find(st => st.id === 'intern').owned = 10;
+recalcAll();
+game.expedition.team = ['intern'];
+launchExpedition('unstable_pile');
+assert(game.expedition.active, 'expedition launched for rush test');
+game.stampsPerSec = 100; // pretend late-game stamp income
+const rushCost = expeditionRushCost();
+assert(rushCost > 0, `rush has a real cost (${formatNumber(rushCost)} stamps)`);
+game.stamps = rushCost - 1;
+rushExpedition();
+assert(game.expedition.active, 'cannot rush without enough stamps');
+game.stamps = rushCost + 10;
+const rushedAt = game.expeditionsRushed;
+rushExpedition();
+assert(game.expeditionsRushed === rushedAt + 1 && game.expedition.endTime <= Date.now(), 'rush paid: squad returns now');
+const realRandom24 = Math.random;
+Math.random = () => 0.01;
+expeditionTick(Date.now() + 1);
+Math.random = realRandom24;
+assert(!game.expedition.active, 'rushed expedition resolves on next tick');
+
+game.totalStampsEarned = 1e12;
+game.stamps = 5e12;
+game.buyQuantity = 1;
+const cab = INVESTMENTS.find(i => i.id === 'golden_cabinets');
+assert(cab.unlocked(), 'Golden Cabinets available late game');
+const multBeforeCab = game.globalMultiplier;
+buyInvestment('golden_cabinets');
+assert(cab.level === 1 && game.globalMultiplier > multBeforeCab, 'endless sink buys +2% production');
+assert(getInvestmentCost(cab, cab.level) === 3e12, 'next level costs x3 (always a next target)');
+
 console.log(`\n===== ${__pass} passed, ${__fail} failed =====`);
 process.exit(__fail > 0 ? 1 : 0);
