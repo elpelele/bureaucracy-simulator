@@ -1327,72 +1327,145 @@ body.dark .toast.special { background: #231f2e; border-color: #64a; color: #a78b
   100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--tilt)) scale(0.98); }
 }
 
-/* === LIVING DESK === */
+/* === LIVING DESK (diorama) === */
 .desk-scene {
   position: relative;
-  height: 74px;
-  margin: 0 auto 14px;
-  max-width: 420px;
+  height: 96px;
+  margin: 0 auto 16px;
+  max-width: 460px;
   overflow: hidden;
 }
 
+/* desk top with thickness + legs */
 .desk-surface {
   position: absolute;
-  left: 0; right: 0; bottom: 6px;
-  height: 3px;
-  background: #c9bd8f;
-  border-radius: 2px;
+  left: 24px; right: 24px; bottom: 16px;
+  height: 9px;
+  background: linear-gradient(#c8a76a, #a9834b);
+  border-radius: 3px 3px 1px 1px;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.15);
 }
 
+.desk-surface::before,
+.desk-surface::after {
+  content: '';
+  position: absolute;
+  top: 9px;
+  width: 8px;
+  height: 16px;
+  background: #a9834b;
+  border-radius: 0 0 2px 2px;
+}
+
+.desk-surface::before { left: 14px; }
+.desk-surface::after { right: 14px; }
+
+/* trays with actual paper stacks inside */
 .desk-tray {
   position: absolute;
-  bottom: 9px;
-  width: 64px;
+  bottom: 25px;
+  width: 74px;
   height: 26px;
-  border: 2px solid #b8ab77;
+  border: 2px solid #8a7b52;
   border-top: none;
-  border-radius: 0 0 6px 6px;
-  font-size: 9px;
-  font-weight: bold;
-  color: #a89760;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding-bottom: 2px;
-  letter-spacing: 1px;
+  border-radius: 0 0 5px 5px;
+  background: rgba(138, 123, 82, 0.08);
 }
 
-.desk-tray.in { left: 6%; }
-.desk-tray.out { right: 6%; }
+.desk-tray.in { left: 40px; }
+.desk-tray.out { right: 40px; }
 
-.desk-paper {
+.tray-label {
   position: absolute;
-  left: 8%;
-  width: 12px;
-  height: 15px;
-  background: #fff linear-gradient(#fff 3px, #ccc 3px, #ccc 4px, #fff 4px, #fff 7px, #ddd 7px, #ddd 8px, #fff 8px);
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  color: #a89760;
+}
+
+/* stacked sheets */
+.desk-tray i {
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  height: 4px;
+  background: #fffdf5;
   border: 1px solid #d5cba0;
   border-radius: 1px;
-  animation: paper-fly 0.8s ease-in-out forwards;
+}
+
+.desk-tray i:nth-child(2) { bottom: 3px; transform: rotate(-1.5deg); }
+.desk-tray i:nth-child(3) { bottom: 7px; transform: rotate(1deg); left: 7px; }
+.desk-tray i:nth-child(4) { bottom: 11px; transform: rotate(-0.5deg); right: 7px; }
+.desk-tray i:nth-child(5) { bottom: 15px; transform: rotate(2deg); }
+.desk-tray i:nth-child(6) { bottom: 19px; transform: rotate(-2deg); left: 9px; }
+
+/* the bureaucrat at work (icon = your best hired staff) */
+.desk-worker {
+  position: absolute;
+  bottom: 23px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 34px;
+  line-height: 1;
+  animation: worker-idle 3.2s ease-in-out infinite alternate;
+}
+
+@keyframes worker-idle {
+  from { transform: translateX(-50%) translateY(0); }
+  to { transform: translateX(-50%) translateY(-3px); }
+}
+
+.desk-worker.working {
+  animation: worker-stamp 0.22s ease-out;
+}
+
+@keyframes worker-stamp {
+  0% { transform: translateX(-50%) translateY(0) rotate(0); }
+  40% { transform: translateX(-50%) translateY(4px) rotate(-7deg) scale(1.08); }
+  100% { transform: translateX(-50%) translateY(0) rotate(0); }
+}
+
+/* flying paperwork: bigger, slower, legible */
+.desk-paper {
+  position: absolute;
+  left: 12%;
+  width: 16px;
+  height: 20px;
+  background:
+    linear-gradient(135deg, transparent 4px, #fffdf5 4px),
+    #fffdf5;
+  background-image:
+    linear-gradient(#fffdf5 4px, #c9c1a0 4px, #c9c1a0 5px, #fffdf5 5px,
+      #fffdf5 8px, #d8d1b2 8px, #d8d1b2 9px, #fffdf5 9px,
+      #fffdf5 12px, #d8d1b2 12px, #d8d1b2 13px, #fffdf5 13px);
+  border: 1px solid #c9bd8f;
+  border-radius: 1px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  animation: paper-fly 1.05s ease-in-out forwards;
   pointer-events: none;
 }
 
 @keyframes paper-fly {
-  0% { left: 8%; transform: translateY(14px) rotate(-10deg); opacity: 0; }
-  15% { opacity: 1; }
-  50% { transform: translateY(-16px) rotate(4deg); }
-  85% { opacity: 1; }
-  100% { left: 86%; transform: translateY(12px) rotate(12deg); opacity: 0; }
+  0% { left: 12%; transform: translateY(6px) rotate(-14deg) scale(0.9); opacity: 0; }
+  12% { opacity: 1; }
+  50% { transform: translateY(-34px) rotate(3deg) scale(1.05); }
+  88% { opacity: 1; }
+  100% { left: 80%; transform: translateY(6px) rotate(14deg) scale(0.9); opacity: 0; }
 }
 
 /* Per-stage desk decorations */
 .desk-decor {
   position: absolute;
-  bottom: 8px;
-  font-size: 20px;
+  bottom: 26px;
+  font-size: 17px;
+  filter: saturate(0.85);
 }
-.desk-decor.left { left: -8px; }
-.desk-decor.right { right: -8px; }
+.desk-decor.left { left: 0; }
+.desk-decor.right { right: 0; }
 body.stage-office .desk-decor.left::after { content: '🪴'; }
 body.stage-office .desk-decor.right::after { content: '📎'; }
 body.stage-administration .desk-decor.left::after { content: '🗄️'; }
@@ -1406,9 +1479,17 @@ body.stage-cosmic .desk-decor.right::after { content: '🌌'; }
 body.stage-existential .desk-decor.left::after { content: '👁️'; }
 body.stage-existential .desk-decor.right::after { content: '♾️'; }
 
-body.dark .desk-surface { background: #6a6040; }
-body.dark .desk-tray { border-color: #6a6040; color: #8a7a50; }
-body.dark .desk-paper { background-color: #3a3830; border-color: #6a6040; }
+body.dark .desk-surface { background: linear-gradient(#5a4c30, #453a24); }
+body.dark .desk-surface::before, body.dark .desk-surface::after { background: #453a24; }
+body.dark .desk-tray { border-color: #6a6040; background: rgba(106, 96, 64, 0.15); }
+body.dark .tray-label { color: #8a7a50; }
+body.dark .desk-tray i { background: #3a3830; border-color: #5a5030; }
+body.dark .desk-paper {
+  background: #3a3830;
+  background-image: linear-gradient(#3a3830 4px, #5a5030 4px, #5a5030 5px, #3a3830 5px,
+    #3a3830 8px, #55503a 8px, #55503a 9px, #3a3830 9px);
+  border-color: #6a6040;
+}
 
 /* === PAPER CONFETTI === */
 .paper-confetto {

@@ -90,6 +90,30 @@ function stampImprint(x, y, text, extraClass = '') {
   setTimeout(() => { el.remove(); imprintCount--; }, 900);
 }
 
+// The desk worker slams a stamp on every player click
+function deskWorkerPunch() {
+  const w = document.getElementById('desk-worker');
+  if (!w) return;
+  w.classList.remove('working');
+  void w.offsetWidth;
+  w.classList.add('working');
+}
+
+// The worker at the desk is your highest-tier hired staff
+let lastWorkerIcon = '';
+function updateDeskWorker() {
+  const w = document.getElementById('desk-worker');
+  if (!w) return;
+  let icon = '🧑‍💼';
+  for (let i = STAFF.length - 1; i >= 0; i--) {
+    if (STAFF[i].owned > 0) { icon = STAFF[i].icon || icon; break; }
+  }
+  if (icon !== lastWorkerIcon) {
+    lastWorkerIcon = icon;
+    w.textContent = icon;
+  }
+}
+
 // Shake the Inspector figure when he takes a hit
 function bossFigureHit() {
   const fig = document.getElementById('boss-figure');
@@ -243,6 +267,7 @@ function render() {
   els.timePlayed.textContent = formatTime(now - game.startTime);
 
   renderSideStatus(now);
+  updateDeskWorker();
   renderInbox();
   renderBoss(now);
   renderDirective(now);

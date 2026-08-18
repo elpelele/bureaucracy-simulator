@@ -216,6 +216,7 @@ function processClick(e) {
   let text = '+' + formatNumber(clickGain);
   if (collected > 0) text += ` (+${formatNumber(collected)} approved)`;
   stampImprint(e.clientX, e.clientY, getCurrentStage().stampText || 'APPROVED');
+  deskWorkerPunch();
   showFloatText(e.clientX, e.clientY - 26, text);
   playSound('stamp');
 
