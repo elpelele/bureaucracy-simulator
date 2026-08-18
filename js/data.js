@@ -1596,7 +1596,8 @@ const POLICIES = [
   {
     id: 'mandatory_overtime',
     name: 'Mandatory Overtime',
-    desc: 'All staff work double shifts. +50% production, but negative events hit 50% harder.',
+    desc: 'All staff work double shifts. +50% production.',
+    downside: 'Overtime pay: staff cost +25% while active.',
     cost: 12e6,
     costCurrency: 'forms',
     active: false,
@@ -1604,7 +1605,7 @@ const POLICIES = [
     stage: 'administration',
     effect: () => {
       game.globalMultiplier *= 1.5;
-      game.negativeEventMultiplier *= 1.5;
+      game.staffCostMultiplier *= 1.25;
     }
   },
   {
@@ -1687,7 +1688,8 @@ const POLICIES = [
   {
     id: 'expedited_stamps',
     name: 'Expedited Stamp Lane',
-    desc: 'Skip the queue for a fee. Stamp income +50%, but negative events hit 25% harder.',
+    desc: 'Skip the queue for a fee. Stamp income +50%.',
+    downside: 'The fee comes from somewhere: production −10% while active.',
     cost: 300e9,
     costCurrency: 'forms',
     active: false,
@@ -1695,13 +1697,14 @@ const POLICIES = [
     stage: 'ministry',
     effect: () => {
       game.stampsMultiplier *= 1.5;
-      game.negativeEventMultiplier *= 1.25;
+      game.globalMultiplier *= 0.9;
     }
   },
   {
     id: 'paper_rationing',
     name: 'Paper Rationing',
-    desc: 'Less paper wasted, less patience for backlogs. +25% production, approval inbox capacity halved.',
+    desc: 'Less paper wasted, less patience for backlogs. +25% production.',
+    downside: 'Approval inbox capacity halved while active — costly if you step away.',
     cost: 320e12,
     costCurrency: 'forms',
     active: false,

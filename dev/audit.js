@@ -96,6 +96,12 @@ DIRECTIVES.forEach(d => {
   if (d.kind === 'incident' && !d.onExpire) flag(`incident ${d.id}: missing onExpire (ignoring must have a consequence)`);
   if (d.kind === 'incident' && d.minStage === undefined) flag(`incident ${d.id}: missing minStage`);
 });
+POLICIES.forEach(pl => {
+  const src = pl.effect.toString();
+  const looksMalus = /\*= 0\.|staffCostMultiplier \*= 1\.|negativeEventMultiplier \*= 1\.|inboxCapacityMultiplier/.test(src);
+  if (looksMalus && !pl.downside) flag(`policy ${pl.id}: effect has a malus but no visible downside field`);
+  if (pl.downside && !looksMalus) flag(`policy ${pl.id}: declares a downside but effect has no malus`);
+});
 for (let i = 1; i < PERKS.length; i++) {
   if (PERKS[i].cost <= PERKS[i - 1].cost) flag(`perk costs not increasing: ${PERKS[i].id}`);
 }

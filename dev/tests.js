@@ -398,5 +398,27 @@ doReform();
 assert(monsterPower(pileM) === pileM.power, 'archives reshuffle: adaptation resets on reform');
 assert((game.monsterKills.unstable_pile || 0) >= 3, 'lifetime kill count preserved for achievements');
 
+console.log('--- 23. Policy downsides bite (and stop when suspended) ---');
+game.stageIndex = 1;
+game.purchasedPolicies.clear();
+game.activePolicies.clear();
+recalcAll();
+const intern23 = STAFF.find(st => st.id === 'intern');
+const costBefore = getCostForN(intern23, 1);
+game.purchasedPolicies.add('mandatory_overtime');
+game.activePolicies.add('mandatory_overtime');
+recalcAll();
+assert(getCostForN(intern23, 1) > costBefore, `Mandatory Overtime raises staff prices (${costBefore} -> ${getCostForN(intern23, 1)})`);
+togglePolicy('mandatory_overtime');
+assert(getCostForN(intern23, 1) === costBefore, 'suspending it restores prices');
+const prodBefore = game.globalMultiplier;
+game.purchasedPolicies.add('expedited_stamps');
+game.activePolicies.add('expedited_stamps');
+recalcAll();
+assert(game.globalMultiplier < prodBefore, 'Expedited Stamp Lane costs production');
+assert(game.stampsMultiplier >= 1.5, '...but boosts stamps');
+game.activePolicies.delete('expedited_stamps');
+recalcAll();
+
 console.log(`\n===== ${__pass} passed, ${__fail} failed =====`);
 process.exit(__fail > 0 ? 1 : 0);

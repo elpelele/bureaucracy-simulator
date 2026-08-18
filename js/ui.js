@@ -712,6 +712,7 @@ function renderPolicies() {
             <div class="item-info">
               <div class="item-name">${policy.name} ${isActive ? '[ACTIVE]' : '[SUSPENDED]'}</div>
               <div class="item-desc">${policy.desc}</div>
+              ${policy.downside ? `<div class="policy-downside">▼ ${policy.downside}</div>` : ''}
             </div>
             <div class="item-cost">
               <button class="policy-toggle-btn">${isActive ? 'SUSPEND' : 'REACTIVATE'}</button>
@@ -728,6 +729,7 @@ function renderPolicies() {
             <div class="item-info">
               <div class="item-name">${policy.name}</div>
               <div class="item-desc">${policy.desc}</div>
+              ${policy.downside ? `<div class="policy-downside">▼ ${policy.downside}</div>` : ''}
             </div>
             <div class="item-cost">${formatNumber(policy.cost)} ${policy.costCurrency}</div>
           </div>

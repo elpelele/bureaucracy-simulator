@@ -1101,6 +1101,15 @@ body.stage-existential .game-title { border-bottom-color: #00bcd4; }
 
 body.dark .policy-toggle-btn { background: #333; border-color: #666; color: #ddd; }
 
+.policy-downside {
+  font-size: 11px;
+  color: #a43;
+  margin-top: 3px;
+  font-weight: bold;
+}
+
+body.dark .policy-downside { color: #d66; }
+
 /* === QoL: next staff unlock teaser === */
 .shop-item.locked-teaser {
   opacity: 0.55;
