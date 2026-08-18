@@ -2111,66 +2111,66 @@ const PERKS = [
     id: 'severance_package',
     name: 'Severance Package',
     desc: 'Start every run after a Reform with 5 interns and 1,000 forms.',
-    cost: 10
+    cost: 25
   },
   {
     id: 'muscle_memory',
     name: 'Muscle Memory',
     desc: 'Your stamping hand never forgets. Click power ×1.5.',
-    cost: 15
+    cost: 60
   },
   {
     id: 'executive_inbox',
     name: 'Executive Inbox',
     desc: 'Mahogany, spacious. Approval inbox capacity +60 min.',
-    cost: 25
+    cost: 150
   },
   {
     id: 'dream_bureaucracy',
     name: 'Dream Bureaucracy',
     desc: 'You file forms in your sleep. Offline production 50% → 75%.',
-    cost: 40
+    cost: 400
   },
   {
     id: 'priority_subscription',
     name: 'Priority Mail Subscription',
     desc: 'Priority forms appear 25% more often.',
-    cost: 60
+    cost: 1000
   },
   {
     id: 'notarized_everything',
     name: 'Notarized Everything',
     desc: 'Every stamp begets stamps. Stamp income ×1.5.',
-    cost: 100
+    cost: 2500
   },
   {
     id: 'inspectors_weak_spot',
     name: "Inspector's Weak Spot",
     desc: 'He fears properly filled margins. Boss HP −25%, confiscation 90% → 75%.',
-    cost: 150
+    cost: 6000
   },
   {
     id: 'archive_maps',
     name: 'Archive Maps',
     desc: 'Hand-drawn by survivors. Expedition success +10%, casualties halved.',
-    cost: 250
+    cost: 15000
   },
   {
     id: 'institutional_memory',
     name: 'Institutional Memory',
     desc: 'The building itself remembers how. Production ×1.25.',
-    cost: 400
+    cost: 40000
   },
   {
     id: 'bureaucratic_singularity',
     name: 'Bureaucratic Singularity',
     desc: 'All forms converge. Production ×1.5.',
-    cost: 1500
+    cost: 100000
   },
   {
     id: 'deep_state',
     name: 'Deep State',
     desc: 'You never really left. Reforms restart at The Administration.',
-    cost: 3000
+    cost: 250000
   }
 ];

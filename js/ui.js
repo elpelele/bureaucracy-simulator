@@ -1097,6 +1097,24 @@ function renderPerkShopHtml() {
   html += `<div class="investments-header">Spend your Absurdity <strong>balance</strong> (${formatNumber(game.absurdity)}) on permanent perks.
     The production bonus (×${absurdityFactor().toFixed(2)}) is based on <strong>lifetime</strong> Absurdity (${formatNumber(game.totalAbsurdityEarned)}) — spending here never lowers it. Perks survive reforms.</div>`;
 
+  // Repeatable sink first: there is always a next Shadow Budget level
+  const sbCost = shadowBudgetCost();
+  const sbMaxed = game.shadowBudgetLevel >= SHADOW_BUDGET_MAX;
+  const sbAffordable = !sbMaxed && game.absurdity >= sbCost;
+  html += `
+    <div class="shop-item ${sbMaxed ? 'owned' : (sbAffordable ? 'affordable' : '')}"
+         onclick="${sbMaxed ? '' : 'buyShadowBudget()'}">
+      <div class="item-icon">🗳️</div>
+      <div class="item-info">
+        <div class="item-name">Shadow Budget ${sbMaxed ? '[MAX]' : `[Lv.${game.shadowBudgetLevel}]`}</div>
+        <div class="item-desc">+5% production per level, forever. The line item nobody audits. Cost ×5 each level.</div>
+      </div>
+      <div class="item-cost ${sbMaxed ? '' : (sbAffordable ? 'affordable' : 'expensive')}">
+        ${sbMaxed ? '' : formatNumber(sbCost) + ' absurdity'}
+      </div>
+    </div>
+  `;
+
   PERKS.forEach(perk => {
     const owned = game.purchasedPerks.has(perk.id);
     const affordable = game.absurdity >= perk.cost;

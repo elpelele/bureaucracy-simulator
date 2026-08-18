@@ -90,6 +90,7 @@ const game = {
 
   // Absurdity perks (persist through reforms)
   purchasedPerks: new Set(),
+  shadowBudgetLevel: 0,   // repeatable absurdity sink, x5 cost per level
 
   // Unlocks
   unlocks: {

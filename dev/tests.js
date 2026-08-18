@@ -325,13 +325,13 @@ game.purchasedUpgrades.delete('civil_exam');
 recalcAll();
 
 console.log('--- 19. Absurdity perks & office incidents ---');
-gainAbsurdity(500);
+gainAbsurdity(50000);
 const lifetimeBefore = game.totalAbsurdityEarned;
 const factorBefore = absurdityFactor();
 const balanceBefore = game.absurdity;
 buyPerk('muscle_memory');
 assert(game.purchasedPerks.has('muscle_memory'), 'perk purchased');
-assert(game.absurdity === balanceBefore - 15, `balance debited by the perk cost (${game.absurdity})`);
+assert(game.absurdity === balanceBefore - 60, `balance debited by the perk cost (${game.absurdity})`);
 assert(game.totalAbsurdityEarned === lifetimeBefore, 'lifetime untouched by spending');
 assert(Math.abs(absurdityFactor() - factorBefore) < 1e-12, 'production bonus unchanged after spending');
 assert(game.clickMultiplier >= 1.5, 'muscle memory applied via recalc');
@@ -451,6 +451,20 @@ const multBeforeCab = game.globalMultiplier;
 buyInvestment('golden_cabinets');
 assert(cab.level === 1 && game.globalMultiplier > multBeforeCab, 'endless sink buys +2% production');
 assert(getInvestmentCost(cab, cab.level) === 3e12, 'next level costs x3 (always a next target)');
+
+console.log('--- 25. Shadow Budget (repeatable absurdity sink) ---');
+gainAbsurdity(600e3);
+const sbLvl = game.shadowBudgetLevel;
+const sbCostBefore = shadowBudgetCost();
+const multBeforeSB = game.globalMultiplier;
+buyShadowBudget();
+assert(game.shadowBudgetLevel === sbLvl + 1, 'shadow budget level bought');
+assert(game.globalMultiplier > multBeforeSB, '+5% production applied');
+assert(shadowBudgetCost() === sbCostBefore * 5, 'next level costs x5');
+game.totalForms = 4e9;
+game.stageIndex = 2;
+doReform();
+assert(game.shadowBudgetLevel === sbLvl + 1, 'shadow budget survives reform');
 
 console.log(`\n===== ${__pass} passed, ${__fail} failed =====`);
 process.exit(__fail > 0 ? 1 : 0);

@@ -143,6 +143,7 @@ function recalcAll() {
   if (hasPerk('priority_subscription')) game.goldenFrequencyMultiplier *= 0.75;
   if (hasPerk('notarized_everything')) game.stampsMultiplier *= 1.5;
   if (hasPerk('institutional_memory')) game.globalMultiplier *= 1.25;
+  game.globalMultiplier *= Math.pow(1.05, game.shadowBudgetLevel);
   if (hasPerk('bureaucratic_singularity')) game.globalMultiplier *= 1.5;
 
   // Permanent bonuses: achievements +1% each, absurdity (sublinear curve),
@@ -338,6 +339,27 @@ function buyPerk(id) {
   toast(`Perk: ${perk.name}`, 'special');
   renderReform();
   checkAchievements();
+}
+
+// Repeatable absurdity sink: always a next level to save for, but the cost
+// quintuples each time so the gain is bounded by your wealth
+const SHADOW_BUDGET_BASE = 500e3;
+const SHADOW_BUDGET_MAX = 40;
+
+function shadowBudgetCost() {
+  return SHADOW_BUDGET_BASE * Math.pow(5, game.shadowBudgetLevel);
+}
+
+function buyShadowBudget() {
+  if (game.shadowBudgetLevel >= SHADOW_BUDGET_MAX) return;
+  const cost = shadowBudgetCost();
+  if (game.absurdity < cost) return;
+  game.absurdity -= cost;
+  game.shadowBudgetLevel++;
+  recalcAll();
+  playSound('ding', 0.9);
+  log(`Shadow Budget approved at level ${game.shadowBudgetLevel}. Nobody asks where it goes. (+5% production)`, 'special');
+  renderReform();
 }
 
 // Enacted policies can be suspended and reactivated freely
@@ -1088,6 +1110,7 @@ function saveGame() {
     purchasedUpgrades: [...game.purchasedUpgrades],
     purchasedPolicies: [...game.purchasedPolicies],
     purchasedPerks: [...game.purchasedPerks],
+    shadowBudgetLevel: game.shadowBudgetLevel,
     activePolicies: [...game.activePolicies],
     unlockedAchievements: [...game.unlockedAchievements],
 
@@ -1177,6 +1200,7 @@ function loadGame() {
     // Older saves had no purchased/active distinction: active = purchased
     game.purchasedPolicies = new Set(data.purchasedPolicies || data.activePolicies || []);
     game.purchasedPerks = new Set(data.purchasedPerks || []);
+    game.shadowBudgetLevel = data.shadowBudgetLevel || 0;
     game.unlockedAchievements = new Set(data.unlockedAchievements || []);
 
     game.directivesAnswered = data.directivesAnswered || 0;

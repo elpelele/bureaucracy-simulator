@@ -68,7 +68,7 @@ Au seuil de stage, il apparaît. **Seuls les clics font des dégâts** (dégât 
 | Événements aléatoires | **24** | toutes les ~30-60 s ; bonus basés sur la production/s, malus en % des forms en caisse |
 | Monstres d'expédition | **7** | + 7 reliques permanentes |
 | Directives & incidents | **10** | panneaux non bloquants à deux choix (incidents dès l'Administration) |
-| Perks d'Absurdity | **11** | permanents, survivent aux réformes (~5 550 Absurdity pour tout) |
+| Perks d'Absurdity | **11 + Shadow Budget** | permanents, survivent aux réformes (~415K pour l'arbre, puits répétable ensuite) |
 | Boss | **5** | un par transition de stage |
 
 ---
@@ -103,7 +103,7 @@ Débloquée à **The Ministry**. Gain : `⌊√(forms traités du run / 1e9)⌋`
 
 ### Les Perks d'Absurdity
 
-Onze améliorations permanentes achetées avec le solde d'Absurdity (10 → 3 000 pièce), du démarrage avec 5 interns après réforme (*Severance Package*) au boss affaibli (*Inspector's Weak Spot* : HP −25 %, confiscation 90 % → 75 %), expéditions plus sûres (*Archive Maps*), production hors-ligne à 75 % (*Dream Bureaucracy*), jusqu'au *Deep State* (3 000) : les réformes redémarrent directement à l'Administration.
+Onze améliorations permanentes achetées avec le solde d'Absurdity (25 → 250 000, ~415K au total — l'échelle est pensée pour s'étaler sur 2-3 réformes), du démarrage avec 5 interns après réforme (*Severance Package*) au boss affaibli (*Inspector's Weak Spot*), expéditions plus sûres (*Archive Maps*), jusqu'au *Deep State* (250 000) : les réformes redémarrent directement à l'Administration. S'y ajoute le **Shadow Budget**, répétable : +5 % de production par niveau à coût ×5 — quel que soit ton stock d'Absurdity, il reste toujours un prochain niveau à viser.
 
 ---
 
