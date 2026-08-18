@@ -68,7 +68,8 @@ const game = {
     sent: [],   // [{id, count}] staff units away from their desks
     team: []    // staff ids selected in the team builder (max 3)
   },
-  monsterKills: {},       // monsterId -> times defeated
+  monsterKills: {},       // monsterId -> times defeated (lifetime, achievements)
+  monsterKillsRun: {},    // this run only — drives the x2.5 adaptation, reset on reform
   relics: new Set(),
 
   // Priority form (golden clickable), frenzy & rampage

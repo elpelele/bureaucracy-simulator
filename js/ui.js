@@ -899,19 +899,23 @@ function renderExpeditions() {
   const squad = buildSquad();
   MONSTERS.forEach(monster => {
     const kills = game.monsterKills[monster.id] || 0;
+    const runKills = game.monsterKillsRun[monster.id] || 0;
     const relic = RELICS.find(r => r.id === monster.relic);
     const hasRelic = game.relics.has(monster.relic);
     const effPower = monsterPower(monster);
-    const chance = squad.length ? Math.round(expeditionChance(monster, squad) * 100) : 0;
+    const rawChance = squad.length ? expeditionChance(monster, squad) : 0;
+    const chance = Math.round(rawChance * 100);
     const canLaunch = squad.length > 0;
+    // raw squad power that would give ~50% odds (helps read the 5% floor)
+    const neededFor50 = effPower * 0.5 / 0.6;
 
     html += `
       <div class="monster-card ${kills > 0 ? 'defeated' : ''}">
         <div class="monster-name">${monster.name} ${kills > 0 ? `[defeated ×${kills}]` : ''}</div>
         <div class="monster-desc">${monster.desc}</div>
         <div class="monster-stats">
-          Power: ${formatNumber(effPower)}${kills > 0 ? ' (it adapted to your tactics)' : ''} | Duration: ${formatDuration(monster.duration)} | Reward: +${monster.absurdity} Absurdity${relic && !hasRelic ? ` + ${relic.name}` : ''}
-          ${squad.length ? `<br>Success odds with current squad: <strong>${chance}%</strong>` : ''}
+          Power: ${formatNumber(effPower)}${runKills > 0 ? ' (it adapted — resets on Reform)' : ''} | Duration: ${formatDuration(monster.duration)} | Reward: +${monster.absurdity} Absurdity${relic && !hasRelic ? ` + ${relic.name}` : ''}
+          ${squad.length ? `<br>Success odds with current squad: <strong>${chance}%</strong>${rawChance <= 0.05 ? ` — far too strong for now (a squad of ~${formatNumber(neededFor50)} raw power would have 50%)` : ''}` : ''}
         </div>
         <button class="launch-btn" ${canLaunch ? '' : 'disabled'} onclick="launchExpedition('${monster.id}')">LAUNCH EXPEDITION</button>
       </div>

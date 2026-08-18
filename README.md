@@ -87,7 +87,7 @@ Débloquées à **The Administration**. On compose une escouade de **3 types de 
 | The Emeritus Director | 600e9 | 6 h | +120 | The Golden Paperclip (priority forms +30 %) |
 | FORM A-0 | 40e15 | 8 h | +300 | FORM A-0 encadré (+50 % production) |
 
-- **La bureaucratie s'adapte** : chaque victoire multiplie la puissance de ce monstre par **×2,5** — le farm s'auto-limite.
+- **La bureaucratie s'adapte** : chaque victoire multiplie la puissance de ce monstre par **×2,5** — le farm s'auto-limite. L'adaptation se réinitialise à chaque **Réforme** (les Archives se réorganisent) ; le compteur de kills à vie reste acquis. Quand une escouade est au plancher de 5 %, la carte affiche la puissance brute qu'il faudrait pour 50 %.
 - **Échec** : 10 % de l'escouade démissionne (perdus définitivement).
 - Les reliques et l'Absurdity survivent aux réformes.
 

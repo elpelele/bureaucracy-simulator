@@ -583,9 +583,10 @@ function buildSquad() {
     .filter(entry => entry.count > 0);
 }
 
-// Monsters grow ×2.5 stronger with each kill — repeat farming self-limits
+// Monsters grow ×2.5 stronger with each kill THIS RUN — farming self-limits,
+// but the archives reshuffle on reform so early monsters never stay dead
 function monsterPower(monster) {
-  const kills = game.monsterKills[monster.id] || 0;
+  const kills = game.monsterKillsRun[monster.id] || 0;
   return monster.power * Math.pow(2.5, kills);
 }
 
@@ -630,6 +631,7 @@ function resolveExpedition() {
   if (success) {
     game.expeditionsWon++;
     game.monsterKills[monster.id] = (game.monsterKills[monster.id] || 0) + 1;
+    game.monsterKillsRun[monster.id] = (game.monsterKillsRun[monster.id] || 0) + 1;
     gainAbsurdity(monster.absurdity);
 
     let msg = `EXPEDITION SUCCESS: ${monster.name} defeated! +${monster.absurdity} Absurdity.`;
@@ -719,7 +721,8 @@ function doReform() {
   game.collapsedStages.clear();
   game.directive = { active: false, id: null, expiresAt: 0 };
   game.nextDirectiveAt = 0;
-  game.buffs = { prodUntil: 0, clickUntil: 0, stampUntil: 0 };
+  game.buffs = { prodUntil: 0, clickUntil: 0, stampUntil: 0, prodDebuffUntil: 0 };
+  game.monsterKillsRun = {}; // the archives reshuffle: adaptation resets
   game.unlocks.departments = false;
   game.unlocks.policies = false;
   // absurdity / expeditions / reforms stay unlocked
@@ -1037,6 +1040,7 @@ function saveGame() {
       team: game.expedition.team
     },
     monsterKills: game.monsterKills,
+    monsterKillsRun: game.monsterKillsRun,
     relics: [...game.relics],
     frenzyUntil: game.frenzyUntil,
     rampageUntil: game.rampageUntil,
@@ -1122,6 +1126,7 @@ function loadGame() {
       game.expedition.team = data.expedition.team || [];
     }
     game.monsterKills = data.monsterKills || {};
+    game.monsterKillsRun = data.monsterKillsRun || {};
     game.relics = new Set(data.relics || []);
     game.frenzyUntil = data.frenzyUntil || 0;
     game.rampageUntil = data.rampageUntil || 0;
