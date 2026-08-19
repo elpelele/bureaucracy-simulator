@@ -245,9 +245,20 @@ let lastTitle = '';
 let dispForms = 0;
 let dispStamps = 0;
 
+// Smooth only the mid-range: decreases snap (spending must be instant),
+// huge jumps snap (collections must land at once), and once the gap is
+// small the value settles crisply instead of crawling through decimals.
+function smoothTowards(display, target) {
+  const gap = target - display;
+  if (gap <= 0) return target;                          // spend: instant
+  if (gap > target * 0.4) return target;                // big arrival: instant
+  if (gap < Math.max(1, target * 0.003)) return target; // settle crisply
+  return display + gap * 0.35;
+}
+
 function renderFast() {
-  dispForms = game.forms < dispForms ? game.forms : dispForms + (game.forms - dispForms) * 0.25;
-  dispStamps = game.stamps < dispStamps ? game.stamps : dispStamps + (game.stamps - dispStamps) * 0.25;
+  dispForms = smoothTowards(dispForms, game.forms);
+  dispStamps = smoothTowards(dispStamps, game.stamps);
   els.formsDisplay.textContent = formatNumber(dispForms);
   els.stampsDisplay.textContent = formatNumber(dispStamps);
 }

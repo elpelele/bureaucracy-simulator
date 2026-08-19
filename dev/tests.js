@@ -523,5 +523,12 @@ game.stampsPerSec = 0;
 game.stampsMultiplier = 1;
 recalcAll();
 
+console.log('--- 28. Counter smoothing: spends and big jumps are instant ---');
+assert(smoothTowards(1000, 400) === 400, 'spending snaps down instantly');
+assert(smoothTowards(0, 1e6) === 1e6, 'huge arrivals snap up instantly');
+assert(smoothTowards(999, 1000) === 1000, 'tiny gaps settle crisply (no decimal crawl)');
+const mid = smoothTowards(800, 1000);
+assert(mid > 800 && mid < 1000, 'mid-range gains animate smoothly');
+
 console.log(`\n===== ${__pass} passed, ${__fail} failed =====`);
 process.exit(__fail > 0 ? 1 : 0);
