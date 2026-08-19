@@ -1654,7 +1654,7 @@ const POLICIES = [
   {
     id: 'paperless_initiative',
     name: 'Paperless Initiative (Fake)',
-    desc: 'Pretend to go paperless. Somehow, form production rises +35%.',
+    desc: 'Pretend to go paperless. Somehow: +35% production.',
     cost: 200e6,
     costCurrency: 'forms',
     active: false,
