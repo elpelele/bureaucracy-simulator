@@ -573,10 +573,10 @@ const UPGRADES = [
   {
     id: 'digital_scanner',
     name: 'Digital Scanner',
-    desc: 'Scan forms instantly. +10 forms per click.',
+    desc: 'Scan forms instantly. Clicks gain +0.5% of your production.',
     cost: 500000,
     costCurrency: 'forms',
-    effect: () => { game.formsPerClick += 10; },
+    effect: () => { game.clickFpsPercent += 0.005; },
     unlocked: () => game.totalForms >= 200000,
     stage: 'office'
   },
@@ -594,10 +594,10 @@ const UPGRADES = [
   {
     id: 'golden_stamp',
     name: 'Golden Stamp',
-    desc: 'A symbol of authority. +100% click power.',
+    desc: 'A symbol of authority. Priority form rewards +50%.',
     cost: 50,
     costCurrency: 'stamps',
-    effect: () => { game.clickMultiplier *= 2; },
+    effect: () => { game.goldenRewardMultiplier *= 1.5; },
     unlocked: () => game.stamps >= 25,
     stage: 'office'
   },
@@ -626,20 +626,20 @@ const UPGRADES = [
   {
     id: 'bureaucratic_inertia',
     name: 'Bureaucratic Inertia',
-    desc: 'Forms process themselves. +25% production.',
+    desc: 'Forms process themselves. +20% production.',
     cost: 30e6,
     costCurrency: 'forms',
-    effect: () => { game.globalMultiplier *= 1.25; },
+    effect: () => { game.globalMultiplier *= 1.2; },
     unlocked: () => game.totalForms >= 4e6,
     stage: 'administration'
   },
   {
     id: 'rubber_stamp_machine',
     name: 'Rubber Stamp Machine',
-    desc: 'Approve everything automatically. +50 forms/click.',
+    desc: 'Approve everything automatically. Clicks gain +0.5% of your production.',
     cost: 5e6,
     costCurrency: 'forms',
-    effect: () => { game.formsPerClick += 50; },
+    effect: () => { game.clickFpsPercent += 0.005; },
     unlocked: () => game.totalForms >= 2e6,
     stage: 'administration'
   },
@@ -666,10 +666,10 @@ const UPGRADES = [
   {
     id: 'infinite_carbon_copies',
     name: 'Infinite Carbon Copies',
-    desc: 'Each form becomes many. +25% production.',
+    desc: 'Each form becomes many. +30% production.',
     cost: 2.8e9,
     costCurrency: 'forms',
-    effect: () => { game.globalMultiplier *= 1.25; },
+    effect: () => { game.globalMultiplier *= 1.3; },
     unlocked: () => game.totalForms >= 350e6,
     stage: 'administration'
   },
@@ -698,20 +698,20 @@ const UPGRADES = [
   {
     id: 'national_form_day',
     name: 'National Form Day',
-    desc: 'A holiday celebrating paperwork. +50% production.',
+    desc: 'A holiday celebrating paperwork. +40% production.',
     cost: 30e9,
     costCurrency: 'forms',
-    effect: () => { game.globalMultiplier *= 1.5; },
+    effect: () => { game.globalMultiplier *= 1.4; },
     unlocked: () => game.totalForms >= 4e9,
     stage: 'ministry'
   },
   {
     id: 'mandatory_forms',
     name: 'Mandatory Form Requirement',
-    desc: 'Everything requires a form. +500 forms/click.',
+    desc: 'Everything requires a form. Clicks gain +1% of your production.',
     cost: 20e9,
     costCurrency: 'forms',
-    effect: () => { game.formsPerClick += 500; },
+    effect: () => { game.clickFpsPercent += 0.01; },
     unlocked: () => game.totalForms >= 5e9,
     stage: 'ministry'
   },
@@ -738,10 +738,10 @@ const UPGRADES = [
   {
     id: 'ai_bureaucrat',
     name: 'AI Bureaucrat',
-    desc: 'Artificial intelligence for artificial delays. +50% production.',
+    desc: 'Artificial intelligence for artificial delays. +60% production.',
     cost: 2.8e12,
     costCurrency: 'forms',
-    effect: () => { game.globalMultiplier *= 1.5; },
+    effect: () => { game.globalMultiplier *= 1.6; },
     unlocked: () => game.totalForms >= 350e9,
     stage: 'ministry'
   },
@@ -750,30 +750,30 @@ const UPGRADES = [
   {
     id: 'un_resolution',
     name: 'UN Resolution 4081',
-    desc: 'All nations must process forms. +50% production.',
+    desc: 'All nations must process forms. +40% production.',
     cost: 150e12,
     costCurrency: 'forms',
-    effect: () => { game.globalMultiplier *= 1.5; },
+    effect: () => { game.globalMultiplier *= 1.4; },
     unlocked: () => game.totalForms >= 18e12,
     stage: 'global'
   },
   {
     id: 'world_stamp',
     name: 'World Stamp Treaty',
-    desc: 'Universal stamp recognition. +10000 stamps/sec.',
+    desc: 'Universal stamp recognition. All stamp gains ×1.5.',
     cost: 100000,
     costCurrency: 'stamps',
-    effect: () => { game.stampsPerSec += 10000; },
+    effect: () => { game.stampsMultiplier *= 1.5; },
     unlocked: () => game.stamps >= 50000,
     stage: 'global'
   },
   {
     id: 'global_automation',
     name: 'Global Form Automation',
-    desc: 'Every computer processes forms. +50% production.',
+    desc: 'Every computer processes forms. +60% production.',
     cost: 1.92e15,
     costCurrency: 'forms',
-    effect: () => { game.globalMultiplier *= 1.5; },
+    effect: () => { game.globalMultiplier *= 1.6; },
     unlocked: () => game.totalForms >= 240e12,
     stage: 'global'
   },
@@ -792,30 +792,30 @@ const UPGRADES = [
   {
     id: 'alien_paperwork',
     name: 'Alien Paperwork Treaty',
-    desc: 'Extraterrestrials must file forms. +50% production.',
+    desc: 'Extraterrestrials must file forms. +40% production.',
     cost: 1.5e18,
     costCurrency: 'forms',
-    effect: () => { game.globalMultiplier *= 1.5; },
+    effect: () => { game.globalMultiplier *= 1.4; },
     unlocked: () => game.totalForms >= 180e15,
     stage: 'cosmic'
   },
   {
     id: 'quantum_forms',
     name: 'Schr\u00f6dinger Archives',
-    desc: 'Forms exist in superposition. +50% production.',
+    desc: 'Forms exist in superposition. +60% production.',
     cost: 19.2e18,
     costCurrency: 'forms',
-    effect: () => { game.globalMultiplier *= 1.5; },
+    effect: () => { game.globalMultiplier *= 1.6; },
     unlocked: () => game.totalForms >= 2.4e18,
     stage: 'cosmic'
   },
   {
     id: 'dyson_stamp',
     name: 'Dyson Stamp Sphere',
-    desc: 'Harness a star to power stamps. +1M stamps/sec.',
+    desc: 'Harness a star to power stamps. All stamp gains ×2.',
     cost: 1e6,
     costCurrency: 'stamps',
-    effect: () => { game.stampsPerSec += 1e6; },
+    effect: () => { game.stampsMultiplier *= 2; },
     unlocked: () => game.stamps >= 500000,
     stage: 'cosmic'
   },
@@ -834,20 +834,20 @@ const UPGRADES = [
   {
     id: 'time_forms',
     name: 'Temporal Form Processing',
-    desc: 'Process forms from all timelines. +50% production.',
+    desc: 'Process forms from all timelines. +60% production.',
     cost: 50e21,
     costCurrency: 'forms',
-    effect: () => { game.globalMultiplier *= 1.5; },
+    effect: () => { game.globalMultiplier *= 1.6; },
     unlocked: () => game.totalForms >= 6e21,
     stage: 'existential'
   },
   {
     id: 'reality_stamp',
     name: 'Reality Stamp',
-    desc: 'Stamp existence into being. +1B stamps/sec.',
+    desc: 'Stamp existence into being. All stamp gains ×2.',
     cost: 1e9,
     costCurrency: 'stamps',
-    effect: () => { game.stampsPerSec += 1e9; },
+    effect: () => { game.stampsMultiplier *= 2; },
     unlocked: () => game.stamps >= 100e6,
     stage: 'existential'
   },
@@ -965,10 +965,10 @@ const DEPARTMENTS = [
   {
     id: 'archives',
     name: 'Archives Department',
-    desc: 'Stores all the forms. Generates 1 stamp per second.',
+    desc: 'Stores all the forms. Generates 2 stamps per second.',
     cost: 200000,
     costCurrency: 'forms',
-    effect: () => { game.stampsPerSec += 1; },
+    effect: () => { game.stampsPerSec += 2; },
     owned: false,
     unlocked: () => game.stamps >= 100,
     stage: 'office'
@@ -976,10 +976,10 @@ const DEPARTMENTS = [
   {
     id: 'it',
     name: 'IT Department',
-    desc: '"Have you tried turning it off and on again?" +50% all production.',
+    desc: '"Have you tried turning it off and on again?" +60% all production.',
     cost: 500000,
     costCurrency: 'forms',
-    effect: () => { game.globalMultiplier *= 1.5; },
+    effect: () => { game.globalMultiplier *= 1.6; },
     owned: false,
     unlocked: () => getTotalStaff() >= 50,
     stage: 'office'
@@ -1000,10 +1000,10 @@ const DEPARTMENTS = [
   {
     id: 'tax_office',
     name: 'Tax Office',
-    desc: 'Tax everything. +50% production.',
+    desc: 'Tax everything. +40% production.',
     cost: 80e6,
     costCurrency: 'forms',
-    effect: () => { game.globalMultiplier *= 1.5; },
+    effect: () => { game.globalMultiplier *= 1.4; },
     owned: false,
     unlocked: () => game.totalForms >= 10e6,
     stage: 'administration'
@@ -1033,10 +1033,10 @@ const DEPARTMENTS = [
   {
     id: 'propaganda',
     name: 'Propaganda Ministry',
-    desc: 'Convince everyone forms are good. +50% production.',
+    desc: 'Convince everyone forms are good. +60% production.',
     cost: 5e9,
     costCurrency: 'forms',
-    effect: () => { game.globalMultiplier *= 1.5; },
+    effect: () => { game.globalMultiplier *= 1.6; },
     owned: false,
     unlocked: () => game.totalForms >= 600e6,
     stage: 'administration'
@@ -1046,10 +1046,10 @@ const DEPARTMENTS = [
   {
     id: 'secret_police',
     name: 'Secret Form Police',
-    desc: 'Enforce form compliance. +50% production.',
+    desc: 'Enforce form compliance. +45% production.',
     cost: 80e9,
     costCurrency: 'forms',
-    effect: () => { game.globalMultiplier *= 1.5; },
+    effect: () => { game.globalMultiplier *= 1.45; },
     owned: false,
     unlocked: () => game.totalForms >= 10e9,
     stage: 'ministry'
@@ -1068,10 +1068,10 @@ const DEPARTMENTS = [
   {
     id: 'defense',
     name: 'Defense Department',
-    desc: 'Defend against form-free zones. +25% production.',
+    desc: 'Defend against form-free zones. +35% production.',
     cost: 500e9,
     costCurrency: 'forms',
-    effect: () => { game.globalMultiplier *= 1.25; },
+    effect: () => { game.globalMultiplier *= 1.35; },
     owned: false,
     unlocked: () => game.totalForms >= 60e9,
     stage: 'ministry'
@@ -1079,10 +1079,10 @@ const DEPARTMENTS = [
   {
     id: 'research',
     name: 'Form Research Institute',
-    desc: 'Discover new types of forms. +50% production.',
+    desc: 'Discover new types of forms. +55% production.',
     cost: 5e12,
     costCurrency: 'forms',
-    effect: () => { game.globalMultiplier *= 1.5; },
+    effect: () => { game.globalMultiplier *= 1.55; },
     owned: false,
     unlocked: () => game.totalForms >= 600e9,
     stage: 'ministry'
@@ -1103,10 +1103,10 @@ const DEPARTMENTS = [
   {
     id: 'world_bank_forms',
     name: 'World Bank of Forms',
-    desc: 'Loan forms to developing nations. +1000 stamps/sec.',
+    desc: 'Loan forms to developing nations. All stamp gains +25%.',
     cost: 50e12,
     costCurrency: 'forms',
-    effect: () => { game.stampsPerSec += 1000; },
+    effect: () => { game.stampsMultiplier *= 1.25; },
     owned: false,
     unlocked: () => game.stamps >= 50000,
     stage: 'global'
@@ -1138,10 +1138,10 @@ const DEPARTMENTS = [
   {
     id: 'alien_embassy',
     name: 'Alien Embassy',
-    desc: 'Process extraterrestrial visas. +100000 stamps/sec.',
+    desc: 'Process extraterrestrial visas. All stamp gains ×1.5.',
     cost: 50e15,
     costCurrency: 'forms',
-    effect: () => { game.stampsPerSec += 100000; },
+    effect: () => { game.stampsMultiplier *= 1.5; },
     owned: false,
     unlocked: () => game.stamps >= 1e6,
     stage: 'cosmic'
@@ -1162,10 +1162,10 @@ const DEPARTMENTS = [
   {
     id: 'time_bureau',
     name: 'Temporal Affairs Bureau',
-    desc: 'File forms across all timelines. +50% production.',
+    desc: 'File forms across all timelines. +70% production.',
     cost: 160e21,
     costCurrency: 'forms',
-    effect: () => { game.globalMultiplier *= 1.5; },
+    effect: () => { game.globalMultiplier *= 1.7; },
     owned: false,
     unlocked: () => game.totalForms >= 20e21,
     stage: 'existential'
@@ -1173,10 +1173,10 @@ const DEPARTMENTS = [
   {
     id: 'reality_office',
     name: 'Office of Reality',
-    desc: 'Determine what exists. +10M stamps/sec.',
+    desc: 'Determine what exists. All stamp gains ×1.5.',
     cost: 100e21,
     costCurrency: 'forms',
-    effect: () => { game.stampsPerSec += 10e6; },
+    effect: () => { game.stampsMultiplier *= 1.5; },
     owned: false,
     unlocked: () => game.stamps >= 1e9,
     stage: 'existential'
@@ -1184,10 +1184,10 @@ const DEPARTMENTS = [
   {
     id: 'void_ministry',
     name: 'Ministry of the Void',
-    desc: 'Administer nothingness. +100% production.',
+    desc: 'Administer nothingness. +120% production.',
     cost: 2.4e24,
     costCurrency: 'forms',
-    effect: () => { game.globalMultiplier *= 2; },
+    effect: () => { game.globalMultiplier *= 2.2; },
     owned: false,
     unlocked: () => game.totalForms >= 300e21,
     stage: 'existential'
@@ -1654,68 +1654,68 @@ const POLICIES = [
   {
     id: 'paperless_initiative',
     name: 'Paperless Initiative (Fake)',
-    desc: 'Pretend to go paperless. Somehow +25% forms.',
+    desc: 'Pretend to go paperless. Somehow +35% forms.',
     cost: 200e6,
     costCurrency: 'forms',
     active: false,
     unlocked: () => game.totalForms >= 25e6,
     stage: 'administration',
-    effect: () => { game.globalMultiplier *= 1.25; }
+    effect: () => { game.globalMultiplier *= 1.35; }
   },
   {
     id: 'form_tax',
     name: 'Form Processing Tax',
-    desc: 'Tax every form. +50 stamps per second.',
+    desc: 'Tax every form. +75 stamps per second.',
     cost: 50e6,
     costCurrency: 'forms',
     active: false,
     unlocked: () => game.stamps >= 1000,
     stage: 'administration',
-    effect: () => { game.stampsPerSec += 50; }
+    effect: () => { game.stampsPerSec += 75; }
   },
   {
     id: 'triple_redundancy',
     name: 'Triple Redundancy',
-    desc: 'Every form needs two copies. +25% production.',
+    desc: 'Every form needs two copies. +20% production.',
     cost: 12e9,
     costCurrency: 'forms',
     active: false,
     unlocked: () => game.totalForms >= 1.5e9,
     stage: 'ministry',
-    effect: () => { game.globalMultiplier *= 1.25; }
+    effect: () => { game.globalMultiplier *= 1.2; }
   },
   {
     id: 'eternal_archives',
     name: 'Eternal Archives',
-    desc: 'Forms are never deleted. +25% production.',
+    desc: 'Forms are never deleted. +30% production.',
     cost: 1.2e12,
     costCurrency: 'forms',
     active: false,
     unlocked: () => game.totalForms >= 150e9,
     stage: 'ministry',
-    effect: () => { game.globalMultiplier *= 1.25; }
+    effect: () => { game.globalMultiplier *= 1.3; }
   },
   {
     id: 'universal_forms',
     name: 'Universal Form Standard',
-    desc: 'One form for all nations. +25% production.',
+    desc: 'One form for all nations. +30% production.',
     cost: 45e12,
     costCurrency: 'forms',
     active: false,
     unlocked: () => game.totalForms >= 6e12,
     stage: 'global',
-    effect: () => { game.globalMultiplier *= 1.25; }
+    effect: () => { game.globalMultiplier *= 1.3; }
   },
   {
     id: 'quantum_filing',
     name: 'Quantum Filing System',
-    desc: 'Forms exist in all states. +25% production.',
+    desc: 'Forms exist in all states. +30% production.',
     cost: 450e15,
     costCurrency: 'forms',
     active: false,
     unlocked: () => game.totalForms >= 60e15,
     stage: 'cosmic',
-    effect: () => { game.globalMultiplier *= 1.25; }
+    effect: () => { game.globalMultiplier *= 1.3; }
   },
   {
     id: 'reality_mandate',
@@ -1767,13 +1767,13 @@ const INVESTMENTS = [
   {
     id: 'efficiency_training',
     name: 'Efficiency Training',
-    desc: '+5% global production per level.',
+    desc: '+6% global production per level.',
     baseCost: 10,
     costMultiplier: 1.7,
     level: 0,
     maxLevel: 25,
     unlocked: () => game.stamps >= 5,
-    effect: () => { game.globalMultiplier *= 1.05; }
+    effect: () => { game.globalMultiplier *= 1.06; }
   },
   {
     id: 'stamp_press',
@@ -1824,35 +1824,35 @@ const INVESTMENTS = [
   {
     id: 'automation_fund',
     name: 'Automation Fund',
-    desc: '+5% global production per level.',
+    desc: 'Machines click for you: clicks gain +0.1% of production per level.',
     baseCost: 100,
     costMultiplier: 2.5,
     level: 0,
     maxLevel: 25,
     unlocked: () => game.totalForms >= 100000,
-    effect: () => { game.globalMultiplier *= 1.05; }
+    effect: () => { game.clickFpsPercent += 0.001; }
   },
   {
     id: 'stamp_empire',
     name: 'Stamp Empire',
-    desc: '+5 stamps/sec per level.',
+    desc: '+2% all stamp gains per level.',
     baseCost: 500,
     costMultiplier: 2,
     level: 0,
     maxLevel: 30,
     unlocked: () => game.stamps >= 200,
-    effect: () => { game.stampsPerSec += 5; }
+    effect: () => { game.stampsMultiplier *= 1.02; }
   },
   {
     id: 'bureaucratic_mastery',
     name: 'Bureaucratic Mastery',
-    desc: '+10% global production per level.',
+    desc: '+12% global production per level.',
     baseCost: 3e6,
     costMultiplier: 4,
     level: 0,
     maxLevel: 10,
     unlocked: () => game.totalForms >= 1e6,
-    effect: () => { game.globalMultiplier *= 1.1; }
+    effect: () => { game.globalMultiplier *= 1.12; }
   },
   {
     id: 'golden_cabinets',
@@ -1868,13 +1868,13 @@ const INVESTMENTS = [
   {
     id: 'infinite_ink',
     name: 'Infinite Ink Supply',
-    desc: '+20% global production per level.',
+    desc: '+25% global production per level.',
     baseCost: 1e11,
     costMultiplier: 8,
     level: 0,
     maxLevel: 5,
     unlocked: () => game.totalForms >= 1e9,
-    effect: () => { game.globalMultiplier *= 1.2; }
+    effect: () => { game.globalMultiplier *= 1.25; }
   }
 ];
 

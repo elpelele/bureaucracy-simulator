@@ -80,9 +80,12 @@ function gainForms(n, countsAsProcessed) {
   }
 }
 
+// stampsMultiplier applies to EVERY stamp gain (milestones, rate, events),
+// which is what makes late-game "all stamp gains xN" upgrades real
 function gainStamps(n) {
-  game.stamps += n;
-  game.totalStampsEarned += n;
+  const gained = n * game.stampsMultiplier;
+  game.stamps += gained;
+  game.totalStampsEarned += gained;
 }
 
 function gainAbsurdity(n) {

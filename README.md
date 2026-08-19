@@ -109,7 +109,7 @@ Onze améliorations permanentes achetées avec le solde d'Absurdity (25 → 250 
 
 ## Réglages & sauvegarde
 
-Onglet **Settings** : mode sombre, sons de tampon (synthèse WebAudio, aucun fichier audio), export/import de sauvegarde (base64) et hard reset. Les réglages sont stockés à part et survivent au hard reset.
+Onglet **Settings** : mode sombre, **mode bureau discret** (cache le bureau animé, les tampons, les confettis et le grain papier — pour tamponner incognito en open-space), sons de tampon (synthèse WebAudio, aucun fichier audio), export/import de sauvegarde (base64) et hard reset. Les réglages sont stockés à part et survivent au hard reset.
 
 ---
 
@@ -129,6 +129,7 @@ js/main.js      boucle de jeu (tick 100 ms) et init
 Principes :
 
 - **Rien de dérivé n'est sauvegardé.** `recalcAll()` recalcule tous les multiplicateurs depuis les faits (possédé/acheté/niveaux) — on peut rééquilibrer `data.js` sans casser les sauvegardes. Les sauvegardes v2 migrent automatiquement.
+- **Un stage ne contient jamais deux achats au même effet** (l'audit l'interdit, toutes catégories confondues) ; les upgrades de clic au-delà de l'Office donnent du **% de production par clic** (le flat meurt), et les sources de stamps au Global+ sont des **multiplicateurs de tous les gains** (le flat stamps/s meurt face aux jalons).
 - **Jamais de gain en % du solde de stamps** dans les événements : à ~90 événements/h, ça compose exponentiellement même AFK (mesuré ×2867 en une nuit avant correctif). Tous les gains d'événements sont basés sur le revenu (`stampsPerSec × durée`).
 - **Courbe de progression** : les seuils de stage sont **super-exponentiels** (×1000, ×3000, ×10⁴, ×3×10⁴) parce que la croissance intra-stage compose (~×3000/stage) ; les fps du staff sont dérivés de `coût / (multiplicateur cumulé attendu × temps de rentabilisation)`, ce dernier croissant par stage ; le contenu est étalé sur toute la largeur de chaque stage et chaque investment de production se finance un stage plus tard que le précédent (les jalons de stamps étant linéaires en forms). Rythme mesuré au bot optimal (humain ≈ ×1,5-2) : Office 24 min, Administration 20, Ministry 28, Global 17, Cosmic ~1 h 30, Existential ~1 h — ~4 h pour un premier clear complet. Après une réforme à l'entrée du Cosmic (~5,5K Absurdity, ×5,1), le run suivant va ~×3 plus vite : la réforme accélère, elle ne plie pas le jeu (courbe validée par `SIM_ABSURDITY=5477 ./dev/sim.sh`).
 - Console de test : taper `dev.help()` dans la console du navigateur — `dev.panel()` force un incident/directive, `dev.golden()` un formulaire prioritaire, `dev.stage(n)` saute à un stage, `dev.boss()` fait apparaître l'Inspecteur, `dev.give()` / `dev.stamps()` / `dev.absurdity()` créditent des ressources. Ces helpers court-circuitent volontairement les conditions normales.

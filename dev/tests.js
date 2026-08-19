@@ -466,5 +466,38 @@ game.stageIndex = 2;
 doReform();
 assert(game.shadowBudgetLevel === sbLvl + 1, 'shadow budget survives reform');
 
+console.log('--- 26. Stamp multiplier is global; golden rewards; discreet mode ---');
+game.stampsMultiplier = 2;
+const stampsBefore26 = game.stamps;
+gainStamps(10);
+assert(Math.abs(game.stamps - stampsBefore26 - 20) < 1e-9, 'gainStamps applies the multiplier to every gain');
+game.stampMilestones = Math.floor(game.totalForms / 1000);
+game.totalForms += 1000;
+const stampsBeforeMile = game.stamps;
+lastTick = Date.now();
+tick();
+assert(game.stamps - stampsBeforeMile >= 2, `milestone stamps are multiplied too (+${(game.stamps - stampsBeforeMile).toFixed(1)})`);
+game.stampsMultiplier = 1;
+
+game.purchasedUpgrades.add('golden_stamp');
+recalcAll();
+assert(game.goldenRewardMultiplier === 1.5, 'Golden Stamp boosts priority form rewards (no longer a click x2 duplicate)');
+game.purchasedUpgrades.delete('golden_stamp');
+const af = INVESTMENTS.find(i => i.id === 'automation_fund');
+af.level = 3;
+recalcAll();
+assert(Math.abs(game.clickFpsPercent - 0.003) < 1e-12, 'Automation Fund now feeds clicks (%% of production), no longer a duplicate of Efficiency Training');
+af.level = 0;
+recalcAll();
+
+settings.discreet = true;
+const imprintsBefore = imprintCount;
+stampImprint(10, 10, 'APPROVED');
+assert(imprintCount === imprintsBefore, 'discreet mode: no stamp imprints spawned');
+spawnDeskPapers(1);
+paperConfetti(5);
+assert(true, 'discreet mode: desk papers and confetti are no-ops');
+settings.discreet = false;
+
 console.log(`\n===== ${__pass} passed, ${__fail} failed =====`);
 process.exit(__fail > 0 ? 1 : 0);

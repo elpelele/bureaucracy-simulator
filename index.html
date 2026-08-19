@@ -151,6 +151,10 @@
         <span>Dark mode</span>
       </label>
       <label class="setting-row">
+        <input type="checkbox" id="setting-discreet" onchange="toggleDiscreet(this.checked)">
+        <span>Discreet office mode (hide animations — the desk, stamps, confetti)</span>
+      </label>
+      <label class="setting-row">
         <input type="checkbox" id="setting-sound" checked onchange="toggleSound(this.checked)">
         <span>Stamp sounds</span>
         <button class="save-btn test-sound-btn" onclick="playSound('stamp')">TEST</button>

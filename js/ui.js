@@ -78,6 +78,7 @@ function showFloatText(x, y, text) {
 let imprintCount = 0;
 
 function stampImprint(x, y, text, extraClass = '') {
+  if (settings.discreet) return;
   if (imprintCount >= 24) return; // don't flood the DOM at 15 clicks/s
   imprintCount++;
   const el = document.createElement('div');
@@ -130,6 +131,7 @@ function bossFigureHit() {
 let deskAccumulator = 0;
 
 function spawnDeskPapers(delta) {
+  if (settings.discreet) return;
   if (!els.deskScene) return;
   if (typeof document !== 'undefined' && document.hidden) return;
   if (game.formsPerSec <= 0) return;
@@ -155,6 +157,7 @@ function spawnDeskPapers(delta) {
 // ============================================
 
 function paperConfetti(n) {
+  if (settings.discreet) return;
   for (let i = 0; i < n; i++) {
     const c = document.createElement('div');
     c.className = 'paper-confetto' + (Math.random() < 0.4 ? ' accent' : '');
@@ -251,7 +254,7 @@ function render() {
   if (frenzy > 1) rateText += ` [FRENZY ×${frenzy}]`;
   els.formsRate.textContent = rateText;
   els.formsRate.classList.toggle('frenzy', frenzy > 1 || prodBuff > 1);
-  els.stampsRate.textContent = `+${formatNumber(game.stampsPerSec * stampBuffFactor(now))}/sec`;
+  els.stampsRate.textContent = `+${formatNumber(game.stampsPerSec * game.stampsMultiplier * stampBuffFactor(now))}/sec`;
   els.clickInfo.textContent = `${formatNumber(effectiveClickPower)} ${effectiveClickPower < 2 ? 'form' : 'forms'} per click`
     + (rampage > 1 ? ' [RAMPAGE!]' : '');
 

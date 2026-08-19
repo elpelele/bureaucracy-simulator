@@ -115,6 +115,37 @@ ACHIEVEMENTS.forEach(a => {
   if (!['forms', 'staff', 'progress', 'endgame', 'other'].includes(a.cat)) flag(`achievement ${a.id}: unknown cat "${a.cat}"`);
 });
 
+console.log('--- Economy shape rules (learned from manual one-by-one review) ---');
+// Flat +N forms/click dies past The Office (production dwarfs it): later
+// click upgrades must use clickFpsPercent (% of production per click).
+UPGRADES.forEach(u => {
+  if (/formsPerClick \+=/.test(u.effect.toString()) && stageIdx(u.stage) > 0) {
+    flag(`${u.id} (${u.stage}): flat forms/click past The Office — use clickFpsPercent`);
+  }
+});
+// Flat +N stamps/sec dies past The Ministry (milestone income dwarfs it):
+// Global+ stamp sources must multiply all stamp gains instead.
+[...UPGRADES, ...DEPARTMENTS, ...POLICIES].forEach(item => {
+  if (/stampsPerSec \+=/.test(item.effect.toString()) && stageIdx(item.stage) >= 3) {
+    flag(`${item.id} (${item.stage}): flat stamps/sec at Global+ — use stampsMultiplier`);
+  }
+});
+// Two upgrades in the same stage with the same effect body = a duplicate
+const effectSeen = new Map();
+[...UPGRADES, ...DEPARTMENTS, ...POLICIES].forEach(u => {
+  const body = u.effect.toString().replace(/\s+/g, '');
+  if (body === '()=>{}') return; // intentionally empty (HR)
+  const key = u.stage + '|' + body;
+  if (effectSeen.has(key)) flag(`duplicate effect in ${u.stage}: ${u.id} vs ${effectSeen.get(key)}`);
+  effectSeen.set(key, u.id);
+});
+const invEffectSeen = new Map();
+INVESTMENTS.forEach(inv => {
+  const key = inv.effect.toString().replace(/\s+/g, '');
+  if (invEffectSeen.has(key)) flag(`duplicate investment effect: ${inv.id} vs ${invEffectSeen.get(key)}`);
+  invEffectSeen.set(key, inv.id);
+});
+
 console.log('--- Visual fields present (icons, stamp texts, labels) ---');
 STAFF.forEach(st => { if (!st.icon) flag(`staff ${st.id}: missing icon`); });
 MONSTERS.forEach(m => { if (!m.icon) flag(`monster ${m.id}: missing icon`); });

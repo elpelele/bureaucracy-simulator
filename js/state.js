@@ -8,7 +8,8 @@
 // User preferences — stored separately from the save so a hard reset keeps them
 const settings = {
   darkMode: false,
-  sound: true
+  sound: true,
+  discreet: false  // office-friendly: hides the flashy animations
 };
 
 const game = {
@@ -46,6 +47,7 @@ const game = {
   staffCostMultiplier: 1,
   negativeEventMultiplier: 1,
   goldenFrequencyMultiplier: 1,
+  goldenRewardMultiplier: 1,
   inboxCapacityBonus: 0,  // extra seconds of inbox capacity
   inboxCapacityMultiplier: 1,
 

@@ -33,7 +33,7 @@ function tick() {
   }
 
   // Passive stamp income
-  const stampsGain = game.stampsPerSec * stampBuffFactor(now) * delta;
+  const stampsGain = game.stampsPerSec * stampBuffFactor(now) * delta; // gainStamps applies stampsMultiplier
   if (stampsGain > 0) gainStamps(stampsGain);
 
   // Milestone stamps: 1 per 1000 forms processed (tracked, no refunds)

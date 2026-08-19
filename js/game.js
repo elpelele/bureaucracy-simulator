@@ -19,14 +19,23 @@ function saveSettings() {
 
 function applySettings() {
   document.body.classList.toggle('dark', !!settings.darkMode);
+  document.body.classList.toggle('discreet', !!settings.discreet);
   const darkBox = document.getElementById('setting-dark');
   const soundBox = document.getElementById('setting-sound');
+  const discreetBox = document.getElementById('setting-discreet');
   if (darkBox) darkBox.checked = !!settings.darkMode;
   if (soundBox) soundBox.checked = !!settings.sound;
+  if (discreetBox) discreetBox.checked = !!settings.discreet;
 }
 
 function toggleDarkMode(on) {
   settings.darkMode = !!on;
+  saveSettings();
+  applySettings();
+}
+
+function toggleDiscreet(on) {
+  settings.discreet = !!on;
   saveSettings();
   applySettings();
 }
@@ -40,7 +49,7 @@ function toggleSound(on) {
 // The stage class must not clobber the dark-mode class.
 // Also swaps the main button's label to the stage's flavor.
 function setStageClass(stageId) {
-  document.body.className = 'stage-' + stageId + (settings.darkMode ? ' dark' : '');
+  document.body.className = 'stage-' + stageId + (settings.darkMode ? ' dark' : '') + (settings.discreet ? ' discreet' : '');
   const stage = STAGES.find(s => s.id === stageId);
   if (stage && stage.clickLabel && els.stampBtn) {
     els.stampBtn.textContent = stage.clickLabel;
@@ -125,6 +134,7 @@ function recalcAll() {
   game.staffCostMultiplier = 1;
   game.negativeEventMultiplier = 1;
   game.goldenFrequencyMultiplier = 1;
+  game.goldenRewardMultiplier = 1;
   game.inboxCapacityBonus = 0;
   game.inboxCapacityMultiplier = 1;
   STAFF.forEach(s => { s.fps = s.baseFps; });
@@ -151,8 +161,6 @@ function recalcAll() {
   game.globalMultiplier *= 1 + 0.01 * game.unlockedAchievements.size;
   game.globalMultiplier *= absurdityFactor();
   game.globalMultiplier *= Math.pow(1.05, game.bossesDefeated);
-
-  game.stampsPerSec *= game.stampsMultiplier;
 
   calculateRates();
 }
@@ -1017,12 +1025,12 @@ function clickGolden(e) {
   // Cosmic Bureau+: quantum forms — double rewards, but they can collapse
   const quantum = game.stageIndex >= 4;
   const kind = quantum ? 'QUANTUM FORM' : 'PRIORITY FORM';
-  const magnitude = quantum ? 2 : 1;
+  const magnitude = (quantum ? 2 : 1) * game.goldenRewardMultiplier;
 
   const roll = Math.random();
   if (roll < 0.45) {
     game.frenzyUntil = Date.now() + FRENZY_DURATION * magnitude;
-    log(`${kind}: Frenzy! Production ×${FRENZY_MULTIPLIER} for ${30 * magnitude} seconds!`, 'special');
+    log(`${kind}: Frenzy! Production ×${FRENZY_MULTIPLIER} for ${Math.round(30 * magnitude)} seconds!`, 'special');
   } else if (roll < 0.75) {
     const bonus = Math.floor((game.formsPerSec * 120 + game.formsPerClick * game.clickMultiplier * 15 + 10) * magnitude);
     game.forms += bonus;
@@ -1034,7 +1042,7 @@ function clickGolden(e) {
   } else {
     game.rampageUntil = Date.now() + RAMPAGE_DURATION * magnitude;
     game.rampagesTriggered++;
-    log(`${kind}: STAMP RAMPAGE! Your clicks are worth ×${RAMPAGE_MULTIPLIER} for ${15 * magnitude} seconds!`, 'special');
+    log(`${kind}: STAMP RAMPAGE! Your clicks are worth ×${RAMPAGE_MULTIPLIER} for ${Math.round(15 * magnitude)} seconds!`, 'special');
   }
 
   if (quantum && Math.random() < 0.15) {
