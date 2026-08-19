@@ -855,11 +855,11 @@ function renderPolicies() {
 
     let html = '';
     if (enactedPolicies.length > 0) {
-      html += '<div class="category-header">Enacted Policies (click to suspend / reactivate)</div>';
+      html += '<div class="category-header">Enacted Policies (click to suspend / reactivate — changes take 60s to process)</div>';
       enactedPolicies.forEach(policy => {
         const isActive = game.activePolicies.has(policy.id);
         html += `
-          <div class="shop-item ${isActive ? 'owned' : 'suspended'}" onclick="togglePolicy('${policy.id}')">
+          <div class="shop-item enacted-policy ${isActive ? 'owned' : 'suspended'}" data-policy="${policy.id}" onclick="togglePolicy('${policy.id}')">
             <div class="item-info">
               <div class="item-name">${policy.name} ${isActive ? '[ACTIVE]' : '[SUSPENDED]'}</div>
               <div class="item-desc">${policy.desc}</div>
@@ -895,7 +895,25 @@ function renderPolicies() {
         cost: node.querySelector('.item-cost')
       };
     });
+    els.policiesList.querySelectorAll('.enacted-policy[data-policy]').forEach(node => {
+      policyNodes['enacted:' + node.dataset.policy] = {
+        root: node,
+        btn: node.querySelector('.policy-toggle-btn')
+      };
+    });
   }
+
+  // live cooldown countdown on enacted policies
+  enactedPolicies.forEach(policy => {
+    const n = policyNodes['enacted:' + policy.id];
+    if (!n || !n.btn) return;
+    const waitMs = policyToggleReadyIn(policy.id);
+    const isActive = game.activePolicies.has(policy.id);
+    n.btn.textContent = waitMs > 0
+      ? `PROCESSING… ${Math.ceil(waitMs / 1000)}s`
+      : (isActive ? 'SUSPEND' : 'REACTIVATE');
+    n.root.classList.toggle('cooling', waitMs > 0);
+  });
 
   availablePolicies.forEach(policy => {
     const n = policyNodes[policy.id];

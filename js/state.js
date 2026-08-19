@@ -107,6 +107,7 @@ const game = {
   purchasedUpgrades: new Set(),
   purchasedPolicies: new Set(),  // enacted once (paid)
   activePolicies: new Set(),     // currently in effect (toggleable subset)
+  policyCooldowns: {},           // policyId -> timestamp: no re-toggle before this
   unlockedAchievements: new Set(),
 
   // Lifetime mechanic counters (achievements & stats)

@@ -325,6 +325,7 @@ function buyPolicy(id) {
   spend(policy.cost, policy.costCurrency);
   game.purchasedPolicies.add(id);
   game.activePolicies.add(id);
+  game.policyCooldowns[id] = Date.now() + POLICY_TOGGLE_COOLDOWN;
   recalcAll();
   log(`Policy enacted: ${policy.name}!`, 'special');
   checkAchievements();
@@ -370,11 +371,25 @@ function buyShadowBudget() {
   renderReform();
 }
 
-// Enacted policies can be suspended and reactivated freely
+// Enacted policies can be suspended and reactivated, but each change needs
+// 60s of administrative processing — no flipping Overtime off for every
+// shopping spree and back on for free
+const POLICY_TOGGLE_COOLDOWN = 60000;
+
+function policyToggleReadyIn(id) {
+  return Math.max(0, (game.policyCooldowns[id] || 0) - Date.now());
+}
+
 function togglePolicy(id) {
   if (!game.purchasedPolicies.has(id)) return;
   const policy = POLICIES.find(p => p.id === id);
   if (!policy) return;
+
+  if (policyToggleReadyIn(id) > 0) {
+    log(`${policy.name}: the change request is still being processed (${Math.ceil(policyToggleReadyIn(id) / 1000)}s).`, 'warning');
+    return;
+  }
+  game.policyCooldowns[id] = Date.now() + POLICY_TOGGLE_COOLDOWN;
 
   if (game.activePolicies.has(id)) {
     game.activePolicies.delete(id);
@@ -771,6 +786,7 @@ function doReform() {
   game.purchasedUpgrades.clear();
   game.purchasedPolicies.clear();
   game.activePolicies.clear();
+  game.policyCooldowns = {};
   STAFF.forEach(s => { s.owned = 0; });
   DEPARTMENTS.forEach(d => { d.owned = false; });
   INVESTMENTS.forEach(i => { i.level = 0; });
@@ -1117,6 +1133,7 @@ function saveGame() {
     // Purchases (facts only — multipliers are recomputed on load)
     purchasedUpgrades: [...game.purchasedUpgrades],
     purchasedPolicies: [...game.purchasedPolicies],
+    policyCooldowns: game.policyCooldowns,
     purchasedPerks: [...game.purchasedPerks],
     shadowBudgetLevel: game.shadowBudgetLevel,
     activePolicies: [...game.activePolicies],
@@ -1210,6 +1227,7 @@ function loadGame() {
     game.activePolicies = new Set(data.activePolicies || []);
     // Older saves had no purchased/active distinction: active = purchased
     game.purchasedPolicies = new Set(data.purchasedPolicies || data.activePolicies || []);
+    game.policyCooldowns = data.policyCooldowns || {};
     game.purchasedPerks = new Set(data.purchasedPerks || []);
     game.shadowBudgetLevel = data.shadowBudgetLevel || 0;
     game.unlockedAchievements = new Set(data.unlockedAchievements || []);

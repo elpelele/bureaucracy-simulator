@@ -1096,6 +1096,15 @@ body.stage-existential .game-title { border-bottom-color: #00bcd4; }
   border-style: dashed;
 }
 
+.shop-item.cooling {
+  cursor: wait;
+}
+
+.shop-item.cooling .policy-toggle-btn {
+  color: #999;
+  border-style: dashed;
+}
+
 .policy-toggle-btn {
   padding: 5px 12px;
   font-family: inherit;
