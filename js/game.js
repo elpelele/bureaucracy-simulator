@@ -1134,6 +1134,9 @@ function saveGame() {
   };
 
   localStorage.setItem('bureaucracy_save', JSON.stringify(saveData));
+
+  const indicator = document.getElementById('save-indicator');
+  if (indicator) indicator.textContent = 'saved ' + new Date().toLocaleTimeString();
 }
 
 function deriveStageIndex(totalForms) {
@@ -1279,6 +1282,7 @@ function applyOfflineProgress(lastSaved) {
   if (offlineStamps > 0) gainStamps(offlineStamps);
 
   log(`While you were away (${formatDuration(dtSeconds * 1000)}): +${formatNumber(offlineForms)} forms piled up in your inbox, +${formatNumber(offlineStamps)} stamps. Sign here.`, 'info');
+  toast(`Away ${formatDuration(dtSeconds * 1000)}: +${formatNumber(offlineForms)} in inbox, +${formatNumber(offlineStamps)} stamps`);
 }
 
 // --------------------------------------------

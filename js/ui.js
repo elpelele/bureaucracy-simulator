@@ -254,7 +254,7 @@ function render() {
   if (frenzy > 1) rateText += ` [FRENZY ×${frenzy}]`;
   els.formsRate.textContent = rateText;
   els.formsRate.classList.toggle('frenzy', frenzy > 1 || prodBuff > 1);
-  els.stampsRate.textContent = `+${formatNumber(game.stampsPerSec * game.stampsMultiplier * stampBuffFactor(now))}/sec`;
+  els.stampsRate.textContent = `+${formatNumber(stampIncomePerSec() * stampBuffFactor(now))}/sec`;
   els.clickInfo.textContent = `${formatNumber(effectiveClickPower)} ${effectiveClickPower < 2 ? 'form' : 'forms'} per click`
     + (rampage > 1 ? ' [RAMPAGE!]' : '');
 
@@ -531,6 +531,13 @@ function updateTabBadges() {
   badge(els.tabInvestments, 'Investments', INVESTMENTS.filter(inv =>
     inv.unlocked() && inv.level < inv.maxLevel && game.stamps >= getInvestmentCost(inv, inv.level)
   ).length);
+  // Reform tab shows the pending gain once it is meaningful
+  if (els.tabReform && !els.tabReform.classList.contains('locked')) {
+    const gain = reformGain();
+    const worthIt = canReform() && gain >= Math.max(25, game.totalAbsurdityEarned * 0.05);
+    const text = worthIt ? `Reform (+${formatNumber(gain)})` : 'Reform';
+    if (els.tabReform.textContent !== text) els.tabReform.textContent = text;
+  }
 }
 
 // --------------------------------------------
@@ -642,7 +649,8 @@ function renderStaff() {
     n.stats.textContent =
       `Owned: ${staff.owned}${away > 0 ? ` (${away} exploring)` : ''} (${formatNumber(currentProduction)}/sec)` +
       (displayQty > 0 ? ` | +${formatNumber(totalGain)}/sec` : '');
-    n.cost.textContent = `${qty === -1 && displayQty > 0 ? `(${displayQty}) ` : ''}${formatNumber(cost)} ${staff.costCurrency}`;
+    n.cost.textContent = `${qty === -1 && displayQty > 0 ? `(${displayQty}) ` : ''}${formatNumber(cost)} ${staff.costCurrency}`
+      + (canBuy ? '' : affordEtaText(cost, staff.costCurrency));
     n.cost.classList.toggle('affordable', canBuy);
     n.cost.classList.toggle('expensive', !canBuy);
   });
@@ -664,7 +672,8 @@ function renderUpgrades() {
     return;
   }
 
-  const signature = availableUpgrades.map(u => u.id).join(',') + '|' + [...game.collapsedStages].sort().join(',');
+  const ownedOpen = game.collapsedStages.has('upgrades:owned-open');
+  const signature = availableUpgrades.map(u => u.id).join(',') + '|' + [...game.collapsedStages].sort().join(',') + '|' + game.purchasedUpgrades.size;
   if (signature !== upgradesUiSignature) {
     upgradesUiSignature = signature;
     upgradeNodes = {};
@@ -691,16 +700,32 @@ function renderUpgrades() {
         `;
       });
     }
+    if (game.purchasedUpgrades.size > 0) {
+      html += `<div class="category-header collapsible" onclick="toggleStageCollapse('upgrades','owned-open')">` +
+        `${ownedOpen ? '▾' : '▸'} Purchased upgrades (${game.purchasedUpgrades.size})</div>`;
+      if (ownedOpen) {
+        UPGRADES.forEach(u => {
+          if (!game.purchasedUpgrades.has(u.id)) return;
+          html += `<div class="upgrade-item owned-upgrade"><div class="upgrade-name">${u.name}</div><div class="upgrade-desc">${u.desc}</div></div>`;
+        });
+      }
+    }
     els.upgradesList.innerHTML = html;
 
     els.upgradesList.querySelectorAll('.upgrade-item[data-id]').forEach(node => {
-      upgradeNodes[node.dataset.id] = node;
+      upgradeNodes[node.dataset.id] = { root: node, cost: node.querySelector('.upgrade-cost') };
     });
   }
 
   availableUpgrades.forEach(upgrade => {
-    const node = upgradeNodes[upgrade.id];
-    if (node) node.classList.toggle('affordable', canAfford(upgrade.cost, upgrade.costCurrency));
+    const n = upgradeNodes[upgrade.id];
+    if (!n) return;
+    const affordable = canAfford(upgrade.cost, upgrade.costCurrency);
+    n.root.classList.toggle('affordable', affordable);
+    if (n.cost) {
+      const currency = upgrade.costCurrency === 'stamps' ? 'stamps' : 'forms';
+      n.cost.textContent = `${formatNumber(upgrade.cost)} ${currency}` + (affordable ? '' : affordEtaText(upgrade.cost, upgrade.costCurrency));
+    }
   });
 }
 
@@ -771,6 +796,7 @@ function renderDepartments() {
     if (!n || dept.owned) return;
     const affordable = canAfford(dept.cost, dept.costCurrency);
     n.root.classList.toggle('affordable', affordable);
+    n.cost.textContent = `${formatNumber(dept.cost)} ${dept.costCurrency}` + (affordable ? '' : affordEtaText(dept.cost, dept.costCurrency));
     n.cost.classList.toggle('affordable', affordable);
     n.cost.classList.toggle('expensive', !affordable);
   });
@@ -856,6 +882,7 @@ function renderPolicies() {
     if (!n) return;
     const affordable = canAfford(policy.cost, policy.costCurrency);
     n.root.classList.toggle('affordable', affordable);
+    n.cost.textContent = `${formatNumber(policy.cost)} ${policy.costCurrency}` + (affordable ? '' : affordEtaText(policy.cost, policy.costCurrency));
     n.cost.classList.toggle('affordable', affordable);
     n.cost.classList.toggle('expensive', !affordable);
   });
@@ -930,7 +957,7 @@ function renderInvestments() {
       : (toBuy > 1 ? `x${toBuy} ` : '');
 
     n.name.textContent = `${inv.name} ${maxed ? '[MAX]' : `[Lv.${inv.level}/${inv.maxLevel}]`}`;
-    n.cost.textContent = maxed ? '' : `${qtyPrefix}${formatNumber(cost)} stamps`;
+    n.cost.textContent = maxed ? '' : `${qtyPrefix}${formatNumber(cost)} stamps` + (affordable ? '' : affordEtaText(cost, 'stamps'));
     n.root.classList.toggle('affordable', affordable);
     n.cost.classList.toggle('affordable', affordable);
     n.cost.classList.toggle('expensive', !maxed && !affordable);
@@ -1165,6 +1192,7 @@ function updateStats() {
       <div>Relics</div><div>${relicNames.length ? relicNames.join(', ') : 'none'}</div>
       <div>Achievements</div><div>${game.unlockedAchievements.size} / ${ACHIEVEMENTS.length} (+${game.unlockedAchievements.size}%)</div>
       <div>Time played</div><div>${formatTime(Date.now() - game.startTime)}</div>
+      <div>This run</div><div>${formatTime(Date.now() - game.runStartTime)}${game.reformCount > 0 ? ` (after reform #${game.reformCount})` : ''}</div>
     </div>
   `;
 }

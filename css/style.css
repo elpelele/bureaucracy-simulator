@@ -1594,6 +1594,18 @@ body.discreet .golden-form { animation: none; box-shadow: none; }
   color: #999;
 }
 
+.save-indicator {
+  color: #bbb;
+  font-size: 10px;
+}
+
+body.dark .save-indicator { color: #555; }
+
+.upgrade-item.owned-upgrade {
+  opacity: 0.55;
+  cursor: default;
+}
+
 .site-footer a {
   color: #888;
   text-decoration: none;

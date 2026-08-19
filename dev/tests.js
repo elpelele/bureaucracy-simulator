@@ -499,5 +499,23 @@ paperConfetti(5);
 assert(true, 'discreet mode: desk papers and confetti are no-ops');
 settings.discreet = false;
 
+console.log('--- 27. Counters & QoL helpers ---');
+game.stampsPerSec = 10;
+game.stampsMultiplier = 2;
+STAFF.find(st => st.id === 'intern').owned = 100; // some fps
+recalcAll();
+game.stampsPerSec = 10;
+game.stampsMultiplier = 2;
+const expectedIncome = (10 + game.formsPerSec / 1000) * 2;
+assert(Math.abs(stampIncomePerSec() - expectedIncome) < 1e-9, `stamp income counter includes milestones (${formatNumber(stampIncomePerSec())}/s)`);
+game.forms = 0;
+const eta = affordEtaText(game.formsPerSec * 60, 'forms');
+assert(eta.includes('1m'), `affordability ETA shown (${eta.trim()})`);
+game.forms = 1e12;
+assert(affordEtaText(100, 'forms') === '', 'no ETA when already affordable');
+game.stampsPerSec = 0;
+game.stampsMultiplier = 1;
+recalcAll();
+
 console.log(`\n===== ${__pass} passed, ${__fail} failed =====`);
 process.exit(__fail > 0 ? 1 : 0);

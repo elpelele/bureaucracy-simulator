@@ -134,6 +134,23 @@ function effectiveClickBase() {
   return game.formsPerClick + game.formsPerSec * game.clickFpsPercent;
 }
 
+// Real stamp income per second: passive rate + milestone flow (1/1000 forms),
+// both scaled by the global stamp multiplier — what the player actually earns
+function stampIncomePerSec() {
+  return (game.stampsPerSec + game.formsPerSec / 1000) * game.stampsMultiplier;
+}
+
+// " (~12s)" suffix for items you cannot afford yet; '' when meaningless
+function affordEtaText(cost, currency) {
+  const have = currency === 'stamps' ? game.stamps : game.forms;
+  if (have >= cost) return '';
+  const income = currency === 'stamps' ? stampIncomePerSec() : game.formsPerSec;
+  if (income <= 0) return '';
+  const eta = (cost - have) / income;
+  if (eta > 360000) return ''; // >100h: not worth printing
+  return ` (~${formatDuration(eta * 1000)})`;
+}
+
 // Staff units currently away on an expedition
 function sentCount(staffId) {
   if (!game.expedition.active) return 0;
