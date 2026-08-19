@@ -1390,6 +1390,37 @@ function importSave() {
   }
 }
 
+// --------------------------------------------
+// FORM B-42-INFINITY: the true ending. Filing yourself wipes everything —
+// except the Legacy, a third storage that even a hard reset never touches.
+// The archives remember.
+// --------------------------------------------
+function readLegacy() {
+  try {
+    return JSON.parse(localStorage.getItem('bureaucracy_legacy') || 'null');
+  } catch (e) { return null; }
+}
+
+function selfFile() {
+  if (!game.finalFormAt) return;
+  const prior = readLegacy() || { endings: 0, bestMs: Infinity };
+  const elapsed = game.finalFormAt - game.startTime;
+  const legacy = {
+    endings: (prior.endings || 0) + 1,
+    bestMs: Math.min(prior.bestMs || Infinity, elapsed),
+    lastService: {
+      timeMs: elapsed,
+      reforms: game.reformCount,
+      clicks: game.totalClicks,
+      lifetimeAbsurdity: game.totalAbsurdityEarned
+    }
+  };
+  localStorage.setItem('bureaucracy_legacy', JSON.stringify(legacy));
+  suppressSaving = true;
+  localStorage.removeItem('bureaucracy_save');
+  location.reload();
+}
+
 function hardReset() {
   if (!confirm('HARD RESET: wipe EVERYTHING, including achievements, relics and Absurdity?')) return;
   if (!confirm('Are you sure? There is no form to appeal this decision.')) return;

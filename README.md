@@ -107,6 +107,14 @@ Onze améliorations permanentes achetées avec le solde d'Absurdity (25 → 250 
 
 ---
 
+## La fin (et l'après)
+
+Acheter **The Final Form** (8e24, Existential Office) déclenche le moment « REALITY FULLY DOCUMENTED » — overlay, confettis, épilogue dans le log, achievement *The Last Stamp*, ligne trophée dans Stats. Le jeu continue ensuite (réformes, FORM A-0, collections).
+
+Puis un dernier document apparaît sur le bureau : **FORM B-∞ — Voluntary Self-Classification**. Le décliner ne coûte rien, il attendra. Le signer, c'est la vraie fin : un écran d'états de service, puis **tout est effacé** — sauf la **Legacy**, un registre que même le hard reset ne touche pas (« the Archives remember ») : nombre de classements, meilleur temps de service, visibles dans Stats à chaque nouvelle partie.
+
+---
+
 ## Réglages & sauvegarde
 
 Onglet **Settings** : mode sombre, **mode bureau discret** (cache le bureau animé, les tampons, les confettis et le grain papier — pour tamponner incognito en open-space), sons de tampon (synthèse WebAudio, aucun fichier audio), export/import de sauvegarde (base64, presse-papier ou fichier .txt téléchargeable/rechargeable) et hard reset. Les réglages sont stockés à part et survivent au hard reset.

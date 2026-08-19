@@ -28,6 +28,7 @@ const els = {
   inboxEmptyHint: document.getElementById('inbox-empty-hint'),
   approveBtn: document.getElementById('approve-btn'),
   bossContainer: document.getElementById('boss-container'),
+  finaleContainer: document.getElementById('finale-container'),
   staffList: document.getElementById('staff-list'),
   upgradesList: document.getElementById('upgrades-list'),
   departmentsList: document.getElementById('departments-list'),
@@ -305,6 +306,7 @@ function render() {
   renderInbox();
   renderBoss(now);
   renderDirective(now);
+  renderFinale();
   renderStage();
 
   // Shop lists are signature-guarded (rebuilt only on structural change), so
@@ -456,6 +458,74 @@ function renderBoss(now) {
     const cd = document.getElementById('boss-cooldown');
     if (cd) cd.textContent = Math.max(0, Math.ceil((game.boss.cooldownUntil - now) / 1000));
   }
+}
+
+// --------------------------------------------
+// FORM B-∞ — the final document (appears once reality is documented)
+// --------------------------------------------
+let finaleUiState = '';
+
+function renderFinale() {
+  if (!els.finaleContainer) return;
+  const state = game.finalFormAt > 0 ? 'delivered' : 'hidden';
+  if (state === finaleUiState) return;
+  finaleUiState = state;
+  els.finaleContainer.innerHTML = state === 'hidden' ? '' : `
+    <div class="finale-panel">
+      <div class="finale-title">A LAST DOCUMENT SITS ON YOUR DESK</div>
+      <div class="finale-desc">FORM B-∞ — Voluntary Self-Classification. It is not urgent. It never will be.</div>
+      <button class="finale-btn" onclick="openFinaleOverlay()">EXAMINE IT</button>
+    </div>
+  `;
+}
+
+function openFinaleOverlay() {
+  closeFinaleOverlay();
+  const el = document.createElement('div');
+  el.id = 'finale-overlay';
+  el.className = 'finale-overlay';
+  el.innerHTML = `
+    <div class="finale-form">
+      <div class="promotion-kicker">— FORM B-∞ —</div>
+      <div class="finale-form-title">VOLUNTARY SELF-CLASSIFICATION</div>
+      <p>The undersigned, having documented the entirety of reality, requests to be
+      archived among their works. All holdings, ranks, reliquaries and absurdities
+      shall be surrendered. The Archives will remember the service.</p>
+      <p class="finale-warning">Filing yourself erases EVERYTHING — save, achievements, relics, perks, Absurdity.
+      Only the Legacy entry survives. Forever.</p>
+      <div class="finale-choices">
+        <button class="finale-btn" onclick="closeFinaleOverlay()">DECLINE — remain at your desk</button>
+        <button class="finale-btn danger" onclick="showEpitaph()">FILE YOURSELF</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(el);
+}
+
+function closeFinaleOverlay() {
+  const el = document.getElementById('finale-overlay');
+  if (el) el.remove();
+}
+
+function showEpitaph() {
+  const el = document.getElementById('finale-overlay');
+  if (!el) return;
+  const elapsed = game.finalFormAt - game.startTime;
+  el.innerHTML = `
+    <div class="finale-form">
+      <div class="promotion-kicker">— CASE CLOSED —</div>
+      <div class="finale-form-title">RECORD OF SERVICE</div>
+      <p>Reality documented in <strong>${formatTime(elapsed)}</strong>.<br>
+      ${game.reformCount} administrative reform${game.reformCount === 1 ? '' : 's'}.
+      ${formatNumber(game.totalClicks)} stamps by hand.
+      ${formatNumber(game.totalAbsurdityEarned)} lifetime Absurdity.</p>
+      <p class="finale-warning">The Office remains open. Someone else will sit at the desk.</p>
+      <div class="finale-choices">
+        <button class="finale-btn danger" onclick="selfFile()">SIGN — BEGIN ANEW</button>
+        <button class="finale-btn" onclick="closeFinaleOverlay()">Not yet</button>
+      </div>
+    </div>
+  `;
 }
 
 // --------------------------------------------
@@ -1275,6 +1345,7 @@ function updateStats() {
       <div>Achievements</div><div>${game.unlockedAchievements.size} / ${ACHIEVEMENTS.length} (+${game.unlockedAchievements.size}%)</div>
       <div>Time played</div><div>${formatTime(Date.now() - game.startTime)}</div>
       ${game.finalFormAt ? `<div>Reality documented</div><div>after ${formatTime(game.finalFormAt - game.startTime)} 🏆</div>` : ''}
+      ${(() => { const lg = readLegacy(); return lg ? `<div>Legacy (the Archives remember)</div><div>filed ${lg.endings}× — best service: ${formatTime(lg.bestMs)} ∞</div>` : ''; })()}
       <div>This run</div><div>${formatTime(Date.now() - game.runStartTime)}${game.reformCount > 0 ? ` (after reform #${game.reformCount})` : ''}</div>
     </div>
   `;

@@ -596,5 +596,20 @@ saveGame();
 loadGame();
 assert(game.finalFormAt === endingStamp, 'the ending timestamp survives save/load');
 
+console.log('--- 34. FORM B-∞: filing yourself leaves only the Legacy ---');
+assert(game.finalFormAt > 0, 'ending reached earlier in the suite');
+localStorage.removeItem('bureaucracy_legacy');
+selfFile(); // location.reload is a noop in the stub
+const legacy = readLegacy();
+assert(legacy && legacy.endings === 1, 'legacy written on self-filing');
+assert(legacy.bestMs === game.finalFormAt - game.startTime, 'best service time recorded');
+assert(localStorage.getItem('bureaucracy_save') === null, 'the save is erased');
+saveGame();
+assert(localStorage.getItem('bureaucracy_save') === null, 'auto-save suppressed during the wipe');
+suppressSaving = false;
+selfFile(); // second run's ending increments the count
+assert(readLegacy().endings === 2, 'the Archives count every filing');
+suppressSaving = false;
+
 console.log(`\n===== ${__pass} passed, ${__fail} failed =====`);
 process.exit(__fail > 0 ? 1 : 0);

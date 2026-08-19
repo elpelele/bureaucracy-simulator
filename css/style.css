@@ -1610,6 +1610,94 @@ body.discreet .desk-scene { display: none; }
 body.discreet::before { display: none; }
 body.discreet .golden-form { animation: none; box-shadow: none; }
 
+/* === FORM B-INFINITY (the true ending) === */
+.finale-panel {
+  margin-bottom: 20px;
+  padding: 14px;
+  background: #fffdf5;
+  border: 2px double #00838f;
+  text-align: center;
+}
+
+.finale-title {
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  color: #00838f;
+  margin-bottom: 5px;
+}
+
+.finale-desc {
+  font-size: 11px;
+  color: #666;
+  font-style: italic;
+  margin-bottom: 10px;
+}
+
+.finale-btn {
+  padding: 8px 18px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: bold;
+  background: #fff;
+  color: #00838f;
+  border: 2px solid #00838f;
+  cursor: pointer;
+}
+
+.finale-btn:hover { background: #00838f; color: #fff; }
+
+.finale-btn.danger { color: #b22; border-color: #b22; }
+.finale-btn.danger:hover { background: #b22; color: #fff; }
+
+.finale-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.finale-form {
+  max-width: 480px;
+  margin: 20px;
+  padding: 30px 36px;
+  background: #fffdf5;
+  border: 3px double #333;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.finale-form p { margin: 12px 0; }
+
+.finale-form-title {
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.finale-warning {
+  font-size: 11px;
+  color: #a43;
+  font-weight: bold;
+}
+
+.finale-choices {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+body.dark .finale-panel { background: #1a2426; }
+body.dark .finale-form { background: #262420; border-color: #888; color: #ddd; }
+body.dark .finale-btn { background: #1e1e1e; }
+
 /* === FOOTER === */
 .site-footer {
   text-align: center;
