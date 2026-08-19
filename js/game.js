@@ -1330,6 +1330,33 @@ function exportSave() {
   }
 }
 
+function downloadSave() {
+  saveGame();
+  const data = btoa(unescape(encodeURIComponent(localStorage.getItem('bureaucracy_save'))));
+  const stamp = new Date().toISOString().slice(0, 16).replace(/[T:]/g, '-');
+  const blob = new Blob([data], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `bureaucracy-save-${stamp}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  log('Save downloaded as a .txt file.', 'success');
+}
+
+function importSaveFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const area = document.getElementById('export-area');
+    if (area) area.value = String(reader.result).trim();
+    importSave();
+  };
+  reader.readAsText(file);
+}
+
 function importSave() {
   const area = document.getElementById('export-area');
   if (!area) return;

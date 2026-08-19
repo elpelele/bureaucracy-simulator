@@ -167,8 +167,11 @@
         <textarea id="export-area" class="export-area" aria-label="Save data" placeholder="Exported save appears here. Paste a save here to import it." spellcheck="false"></textarea>
         <div class="save-buttons">
           <button class="save-btn" onclick="exportSave()">EXPORT SAVE</button>
+          <button class="save-btn" onclick="downloadSave()">DOWNLOAD .TXT</button>
           <button class="save-btn" onclick="importSave()">IMPORT SAVE</button>
+          <button class="save-btn" onclick="document.getElementById('import-file').click()">LOAD .TXT FILE</button>
           <button class="save-btn danger" onclick="hardReset()">HARD RESET</button>
+          <input type="file" id="import-file" accept=".txt,text/plain" style="display:none" onchange="importSaveFile(this.files[0])">
         </div>
       </div>
     </div>

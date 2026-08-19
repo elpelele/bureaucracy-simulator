@@ -109,7 +109,7 @@ Onze améliorations permanentes achetées avec le solde d'Absurdity (25 → 250 
 
 ## Réglages & sauvegarde
 
-Onglet **Settings** : mode sombre, **mode bureau discret** (cache le bureau animé, les tampons, les confettis et le grain papier — pour tamponner incognito en open-space), sons de tampon (synthèse WebAudio, aucun fichier audio), export/import de sauvegarde (base64) et hard reset. Les réglages sont stockés à part et survivent au hard reset.
+Onglet **Settings** : mode sombre, **mode bureau discret** (cache le bureau animé, les tampons, les confettis et le grain papier — pour tamponner incognito en open-space), sons de tampon (synthèse WebAudio, aucun fichier audio), export/import de sauvegarde (base64, presse-papier ou fichier .txt téléchargeable/rechargeable) et hard reset. Les réglages sont stockés à part et survivent au hard reset.
 
 ---
 

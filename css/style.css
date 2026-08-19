@@ -891,6 +891,7 @@ body.stage-existential { --accent: #00838f; --accent-dark: #005662; --accent-dee
 .save-buttons {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .save-btn {
