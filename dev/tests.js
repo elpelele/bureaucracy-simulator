@@ -538,5 +538,17 @@ assert(effectiveCollapsed('departments', 'office', false, false) === true, 'othe
 game.collapsedStages.delete('departments:office');
 assert(effectiveCollapsed('departments', 'office', false, false) === false, 'and the manual open state too');
 
+console.log('--- 30. Expedition needs 2+ of a type (half is sent) ---');
+game.expedition.active = false;
+game.expedition.team = [];
+STAFF.find(st => st.id === 'commissioner').owned = 1;
+toggleExpeditionStaff('commissioner');
+assert(!game.expedition.team.includes('commissioner'), 'a single unit cannot join a squad (half of 1 is 0)');
+STAFF.find(st => st.id === 'commissioner').owned = 2;
+toggleExpeditionStaff('commissioner');
+assert(game.expedition.team.includes('commissioner'), 'two units make the type eligible (sends 1)');
+game.expedition.team = [];
+STAFF.find(st => st.id === 'commissioner').owned = 0;
+
 console.log(`\n===== ${__pass} passed, ${__fail} failed =====`);
 process.exit(__fail > 0 ? 1 : 0);

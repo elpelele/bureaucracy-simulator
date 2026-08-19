@@ -703,6 +703,12 @@ body.stage-existential { --accent: #00838f; --accent-dark: #005662; --accent-dee
   background: #ddd;
 }
 
+.team-chip.ineligible {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-style: dashed;
+}
+
 .team-chip.selected {
   background: #64a;
   color: #fff;

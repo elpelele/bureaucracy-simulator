@@ -1080,19 +1080,29 @@ function renderExpeditions() {
     return;
   }
 
-  // Team builder
-  const eligible = STAFF.filter(s => isStaffUnlocked(s) && s.owned >= 2);
-  html += '<div class="category-header">Assemble a squad (max 3 staff types — half of each type is sent)</div>';
-  if (eligible.length === 0) {
-    html += '<div class="empty-state">You need at least 2 of a staff type to send an expedition.</div>';
+  // Team builder — half of each type is sent, so a type needs at least 2
+  // owned; single units show up disabled so the rule is visible
+  const ownedStaff = STAFF.filter(s => isStaffUnlocked(s) && s.owned > 0);
+  const eligible = ownedStaff.filter(s => s.owned >= 2);
+  html += '<div class="category-header">Assemble a squad (max 3 staff types — half of each type is sent, so a type needs at least 2)</div>';
+  if (ownedStaff.length === 0) {
+    html += '<div class="empty-state">Hire some staff first — expeditions send half of a type\'s headcount.</div>';
   } else {
     html += '<div class="team-builder">';
-    eligible.forEach(s => {
+    ownedStaff.forEach(s => {
+      if (s.owned < 2) {
+        html += `
+          <button class="team-chip ineligible" disabled title="You only have 1 — half of 1 is nobody. Hire a second one.">
+            ${s.icon || ''} ${s.name} (1 — need 2+)
+          </button>
+        `;
+        return;
+      }
       const selected = game.expedition.team.includes(s.id);
       const count = Math.floor(s.owned / 2);
       html += `
         <button class="team-chip ${selected ? 'selected' : ''}" onclick="toggleExpeditionStaff('${s.id}')">
-          ${s.name} (${count})
+          ${s.icon || ''} ${s.name} (sends ${count})
         </button>
       `;
     });
