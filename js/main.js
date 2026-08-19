@@ -106,11 +106,8 @@ function init() {
     requestAnimationFrame(displayLoop);
   }
 
-  // Refresh the visible shop/list and tab badges once per second
-  setInterval(() => {
-    renderActiveTab();
-    updateTabBadges();
-  }, 1000);
+  // Refresh the visible list once per second (badges live in render, 10Hz)
+  setInterval(renderActiveTab, 1000);
 
   // Auto-save every 30 seconds, plus when leaving the page
   setInterval(saveGame, 30000);

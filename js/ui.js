@@ -301,6 +301,7 @@ function render() {
 
   renderSideStatus(now);
   updateDeskWorker();
+  updateTabBadges();
   renderInbox();
   renderBoss(now);
   renderDirective(now);
