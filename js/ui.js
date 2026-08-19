@@ -249,7 +249,7 @@ function render() {
 
   const prodBuff = prodBuffFactor(now);
   const clickBuff = clickBuffFactor(now);
-  const effectiveClickPower = effectiveClickBase() * game.clickMultiplier * rampage * clickBuff;
+  const effectiveClickPower = effectiveClickBase() * rampage * clickBuff;
   let rateText = `+${formatNumber(game.formsPerSec * frenzy * prodBuff)}/sec`;
   if (frenzy > 1) rateText += ` [FRENZY ×${frenzy}]`;
   els.formsRate.textContent = rateText;

@@ -204,7 +204,7 @@ function processClick(e) {
   if (!clickAllowed()) return;
   game.lastActiveAt = Date.now();
 
-  let clickGain = effectiveClickBase() * game.clickMultiplier * rampageFactor() * clickBuffFactor();
+  let clickGain = effectiveClickBase() * rampageFactor() * clickBuffFactor();
 
   // Existential Office: reality flickers — some clicks echo across timelines
   let dejaVu = false;
@@ -510,7 +510,7 @@ function bossPending() {
 }
 
 function bossClickDamage() {
-  return effectiveClickBase() * game.clickMultiplier + game.formsPerSec * 0.05;
+  return effectiveClickBase() + game.formsPerSec * 0.05;
 }
 
 function startBossFight() {

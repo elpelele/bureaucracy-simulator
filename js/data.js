@@ -1782,20 +1782,20 @@ const INVESTMENTS = [
     baseCost: 25,
     costMultiplier: 1.4,
     level: 0,
-    maxLevel: 50,
+    maxLevel: 25,
     unlocked: () => game.stampsPerSec >= 1,
     effect: () => { game.stampsPerSec += 1; }
   },
   {
     id: 'click_training',
     name: 'Click Training',
-    desc: '+2 forms per click per level.',
-    baseCost: 15,
+    desc: '+5% click power per level.',
+    baseCost: 25,
     costMultiplier: 1.3,
     level: 0,
-    maxLevel: 50,
+    maxLevel: 20,
     unlocked: () => game.totalClicks >= 50,
-    effect: () => { game.formsPerClick += 2; }
+    effect: () => { game.clickMultiplier *= 1.05; }
   },
   {
     id: 'hiring_budget',
@@ -1855,17 +1855,6 @@ const INVESTMENTS = [
     effect: () => { game.globalMultiplier *= 1.12; }
   },
   {
-    id: 'golden_cabinets',
-    name: 'Golden Filing Cabinets',
-    desc: '+2% global production per level. Pure, ruinous prestige furniture.',
-    baseCost: 1e12,
-    costMultiplier: 3,
-    level: 0,
-    maxLevel: 60,
-    unlocked: () => game.totalStampsEarned >= 1e11,
-    effect: () => { game.globalMultiplier *= 1.02; }
-  },
-  {
     id: 'infinite_ink',
     name: 'Infinite Ink Supply',
     desc: '+25% global production per level.',
@@ -1875,6 +1864,17 @@ const INVESTMENTS = [
     maxLevel: 5,
     unlocked: () => game.totalForms >= 1e9,
     effect: () => { game.globalMultiplier *= 1.25; }
+  },
+  {
+    id: 'golden_cabinets',
+    name: 'Golden Filing Cabinets',
+    desc: '+2% global production per level. Pure, ruinous prestige furniture.',
+    baseCost: 1e12,
+    costMultiplier: 3,
+    level: 0,
+    maxLevel: 60,
+    unlocked: () => game.totalStampsEarned >= 1e11,
+    effect: () => { game.globalMultiplier *= 1.02; }
   }
 ];
 

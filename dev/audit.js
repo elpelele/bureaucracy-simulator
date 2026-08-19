@@ -139,6 +139,16 @@ const effectSeen = new Map();
   if (effectSeen.has(key)) flag(`duplicate effect in ${u.stage}: ${u.id} vs ${effectSeen.get(key)}`);
   effectSeen.set(key, u.id);
 });
+INVESTMENTS.forEach(inv => {
+  if (/formsPerClick \+=/.test(inv.effect.toString())) {
+    flag(`investment ${inv.id}: flat forms/click — use clickMultiplier or clickFpsPercent`);
+  }
+});
+for (let i = 1; i < INVESTMENTS.length; i++) {
+  if (INVESTMENTS[i].baseCost < INVESTMENTS[i - 1].baseCost) {
+    flag(`investments not sorted by base cost: ${INVESTMENTS[i].id} (${INVESTMENTS[i].baseCost}) after ${INVESTMENTS[i - 1].id} (${INVESTMENTS[i - 1].baseCost})`);
+  }
+}
 const invEffectSeen = new Map();
 INVESTMENTS.forEach(inv => {
   const key = inv.effect.toString().replace(/\s+/g, '');

@@ -128,10 +128,12 @@ function getInboxCapacity() {
   return game.formsPerSec * (INBOX_BASE_SECONDS + game.inboxCapacityBonus) * game.inboxCapacityMultiplier;
 }
 
-// Base click value: flat forms/click plus a share of production (late-game
-// click upgrades feed clickFpsPercent so clicking stays relevant forever)
+// Click value: the flat part is scaled by click multipliers (the early-game
+// lever), while the %-of-production part is NOT — it already scales with
+// production, so multiplying it too would compound out of control.
+// Timed specials (rampage, directive click buffs) multiply the whole thing.
 function effectiveClickBase() {
-  return game.formsPerClick + game.formsPerSec * game.clickFpsPercent;
+  return game.formsPerClick * game.clickMultiplier + game.formsPerSec * game.clickFpsPercent;
 }
 
 // Real stamp income per second: passive rate + milestone flow (1/1000 forms),

@@ -314,7 +314,7 @@ assert(game.purchasedPolicies.has('mandatory_overtime') && !game.activePolicies.
 game.purchasedUpgrades.add('click_nuke');
 STAFF.find(st => st.id === 'intern').owned = 100;
 recalcAll();
-const expectedClick = game.formsPerClick + game.formsPerSec * 0.01;
+const expectedClick = game.formsPerClick * game.clickMultiplier + game.formsPerSec * 0.01;
 assert(Math.abs(effectiveClickBase() - expectedClick) < 1e-9, `click gains +1% of production (${formatNumber(effectiveClickBase())})`);
 game.purchasedUpgrades.delete('click_nuke');
 
