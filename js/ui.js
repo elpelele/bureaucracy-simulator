@@ -237,13 +237,27 @@ function log(message, type = 'info') {
 
 let lastTitle = '';
 
+// --------------------------------------------
+// 60fps display layer (requestAnimationFrame): the big counters lerp
+// upward smoothly and SNAP downward — spending must feel instant.
+// Game logic stays on the 100ms tick; this is presentation only.
+// --------------------------------------------
+let dispForms = 0;
+let dispStamps = 0;
+
+function renderFast() {
+  dispForms = game.forms < dispForms ? game.forms : dispForms + (game.forms - dispForms) * 0.25;
+  dispStamps = game.stamps < dispStamps ? game.stamps : dispStamps + (game.stamps - dispStamps) * 0.25;
+  els.formsDisplay.textContent = formatNumber(dispForms);
+  els.stampsDisplay.textContent = formatNumber(dispStamps);
+}
+
 function render() {
   const now = Date.now();
   const frenzy = frenzyFactor(now);
   const rampage = rampageFactor(now);
 
-  els.formsDisplay.textContent = formatNumber(game.forms);
-  els.stampsDisplay.textContent = formatNumber(game.stamps);
+  renderFast();
   els.absurdityDisplay.textContent = formatNumber(game.absurdity);
   if (els.absurdityBonus) els.absurdityBonus.textContent = `×${absurdityFactor().toFixed(2)} production`;
 

@@ -802,10 +802,10 @@ const UPGRADES = [
   {
     id: 'quantum_forms',
     name: 'Schr\u00f6dinger Archives',
-    desc: 'Forms exist in superposition. +60% production.',
+    desc: 'Forms exist in superposition. +80% production.',
     cost: 19.2e18,
     costCurrency: 'forms',
-    effect: () => { game.globalMultiplier *= 1.6; },
+    effect: () => { game.globalMultiplier *= 1.8; },
     unlocked: () => game.totalForms >= 2.4e18,
     stage: 'cosmic'
   },
@@ -1127,10 +1127,10 @@ const DEPARTMENTS = [
   {
     id: 'space_station',
     name: 'Orbital Filing Station',
-    desc: 'Process forms from orbit. +25% production.',
+    desc: 'Process forms from orbit. +35% production.',
     cost: 4.8e18,
     costCurrency: 'forms',
-    effect: () => { game.globalMultiplier *= 1.25; },
+    effect: () => { game.globalMultiplier *= 1.35; },
     owned: false,
     unlocked: () => game.totalForms >= 600e15,
     stage: 'cosmic'
@@ -1666,34 +1666,38 @@ const POLICIES = [
     id: 'form_tax',
     name: 'Form Processing Tax',
     desc: 'Tax every form. +75 stamps per second.',
+    downside: 'The tax skims production −5% while active.',
     cost: 50e6,
     costCurrency: 'forms',
     active: false,
     unlocked: () => game.stamps >= 1000,
     stage: 'administration',
-    effect: () => { game.stampsPerSec += 75; }
+    effect: () => {
+      game.stampsPerSec += 75;
+      game.globalMultiplier *= 0.95;
+    }
   },
   {
     id: 'triple_redundancy',
     name: 'Triple Redundancy',
-    desc: 'Every form needs two copies. +20% production.',
+    desc: 'Every form needs two copies. +30% production.',
     cost: 12e9,
     costCurrency: 'forms',
     active: false,
     unlocked: () => game.totalForms >= 1.5e9,
     stage: 'ministry',
-    effect: () => { game.globalMultiplier *= 1.2; }
+    effect: () => { game.globalMultiplier *= 1.3; }
   },
   {
     id: 'eternal_archives',
     name: 'Eternal Archives',
-    desc: 'Forms are never deleted. +30% production.',
+    desc: 'Forms are never deleted. Approval inbox capacity +30 min.',
     cost: 1.2e12,
     costCurrency: 'forms',
     active: false,
     unlocked: () => game.totalForms >= 150e9,
     stage: 'ministry',
-    effect: () => { game.globalMultiplier *= 1.3; }
+    effect: () => { game.inboxCapacityBonus += 1800; }
   },
   {
     id: 'universal_forms',
@@ -1709,13 +1713,13 @@ const POLICIES = [
   {
     id: 'quantum_filing',
     name: 'Quantum Filing System',
-    desc: 'Forms exist in all states. +30% production.',
+    desc: 'Every observation files a form. Clicks gain +1% of your production.',
     cost: 450e15,
     costCurrency: 'forms',
     active: false,
     unlocked: () => game.totalForms >= 60e15,
     stage: 'cosmic',
-    effect: () => { game.globalMultiplier *= 1.3; }
+    effect: () => { game.clickFpsPercent += 0.01; }
   },
   {
     id: 'reality_mandate',

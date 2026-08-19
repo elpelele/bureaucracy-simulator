@@ -96,6 +96,16 @@ function init() {
   // Game loop (10 ticks per second)
   setInterval(tick, 100);
 
+  // Smooth 60fps counters in the browser (never in the headless harness,
+  // where requestAnimationFrame is a setTimeout stub and would loop forever)
+  if (typeof process === 'undefined') {
+    const displayLoop = () => {
+      renderFast();
+      requestAnimationFrame(displayLoop);
+    };
+    requestAnimationFrame(displayLoop);
+  }
+
   // Refresh the visible shop/list and tab badges once per second
   setInterval(() => {
     renderActiveTab();
