@@ -119,9 +119,11 @@ function init() {
     }
   }
 
-  // Welcome message
-  log('Welcome to Bureaucracy Simulator!', 'info');
-  log('Click the stamp to process forms.', 'info');
+  // Welcome message (first visit only — returning players get 'Game loaded!')
+  if (!localStorage.getItem('bureaucracy_save')) {
+    log('Welcome to Bureaucracy Simulator!', 'info');
+    log('Click the stamp to process forms.', 'info');
+  }
 }
 
 init();

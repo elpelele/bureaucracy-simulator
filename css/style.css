@@ -1029,6 +1029,14 @@ body.dark .directive-panel.incident {
   transition: background 0.1s, color 0.1s;
 }
 
+.directive-btn-hint {
+  display: block;
+  margin-top: 3px;
+  font-size: 9px;
+  font-weight: normal;
+  opacity: 0.75;
+}
+
 .directive-btn:hover {
   background: var(--accent);
   color: #fff;

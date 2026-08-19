@@ -752,7 +752,7 @@ function doReform() {
   const ok = confirm(
     `ADMINISTRATIVE REFORM\n\n` +
     `You will LOSE: forms, stamps, staff, upgrades, departments, policies, investments, and your current stage.\n` +
-    `You will KEEP: achievements, relics, monster kills, and Absurdity.\n\n` +
+    `You will KEEP: achievements, relics, monster kills, Absurdity, perks and Shadow Budget.\n\n` +
     `You gain +${formatNumber(gain)} Absurdity — permanent production bonus goes from ×${absurdityFactor().toFixed(2)} to ×${newFactor.toFixed(2)}.\n\nProceed?`
   );
   if (!ok) return;

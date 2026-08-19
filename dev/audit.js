@@ -156,6 +156,87 @@ INVESTMENTS.forEach(inv => {
   invEffectSeen.set(key, inv.id);
 });
 
+console.log('--- Help texts match effects (desc vs code) ---');
+function checkDesc(item, kind) {
+  const src = item.effect.toString();
+  const desc = (item.desc || '') + ' ' + (item.downside || '');
+
+  const mMult = src.match(/globalMultiplier \*= ([\d.]+)/);
+  if (mMult) {
+    const v = parseFloat(mMult[1]);
+    if (v < 1) {
+      const dMalus = desc.match(/production [−-](\d+)%/i);
+      if (!dMalus) flag(`${kind} ${item.id}: production malus ×${v} not stated`);
+      else if (parseInt(dMalus[1]) !== Math.round((1 - v) * 100)) flag(`${kind} ${item.id}: malus says -${dMalus[1]}% but effect is ×${v}`);
+    } else {
+      const pct = Math.round((v - 1) * 100);
+      const dPct = desc.match(/\+(\d+)% (?:all |global )?(?:form(?:s| processing)?|production|speed|all production)/i)
+        || desc.match(/(\d+)% more efficient/i);
+      const dTimes = desc.match(/[×x]([\d.]+) production/i);
+      if (dPct) {
+        if (parseInt(dPct[1]) !== pct) flag(`${kind} ${item.id}: desc says +${dPct[1]}% but effect is ×${v} (+${pct}%)`);
+      } else if (dTimes) {
+        if (Math.abs(parseFloat(dTimes[1]) - v) > 1e-9) flag(`${kind} ${item.id}: desc says ×${dTimes[1]} but effect is ×${v}`);
+      } else {
+        flag(`${kind} ${item.id}: production effect ×${v} not stated in desc "${desc}"`);
+      }
+    }
+  }
+
+  const mSps = src.match(/stampsPerSec \+= ([\d.e]+)/);
+  if (mSps) {
+    const v = parseFloat(mSps[1]);
+    const d = desc.match(/(?:\+|Generates )(\d+(?:\.\d+)?) stamps?(?:\/sec| per second)/i);
+    if (!d) flag(`${kind} ${item.id}: +${v} stamps/sec not stated in desc "${desc}"`);
+    else if (parseFloat(d[1]) !== v) flag(`${kind} ${item.id}: desc says +${d[1]} stamps/sec but effect adds ${v}`);
+  }
+
+  const mSMult = src.match(/stampsMultiplier \*= ([\d.]+)/);
+  if (mSMult) {
+    const v = parseFloat(mSMult[1]);
+    if (v >= 1) {
+      const dT = desc.match(/stamp (?:gains|income) [×x]([\d.]+)/i);
+      const dP = desc.match(/\+(\d+)% (?:all )?stamp/i) || desc.match(/stamp (?:gains|income) \+(\d+)%/i);
+      if (dT) {
+        if (Math.abs(parseFloat(dT[1]) - v) > 1e-9) flag(`${kind} ${item.id}: desc says stamps ×${dT[1]} but effect is ×${v}`);
+      } else if (dP) {
+        if (parseInt(dP[1]) !== Math.round((v - 1) * 100)) flag(`${kind} ${item.id}: desc says +${dP[1]}% stamps but effect is ×${v}`);
+      } else flag(`${kind} ${item.id}: stamp multiplier ×${v} not stated in desc "${desc}"`);
+    }
+  }
+
+  const mClickPct = src.match(/clickFpsPercent \+= ([\d.]+)/);
+  if (mClickPct) {
+    const v = parseFloat(mClickPct[1]) * 100;
+    const d = desc.match(/([\d.]+)% of (?:your )?production/i);
+    if (!d) flag(`${kind} ${item.id}: click % of production not stated in desc "${desc}"`);
+    else if (Math.abs(parseFloat(d[1]) - v) > 1e-9) flag(`${kind} ${item.id}: desc says ${d[1]}% but effect is ${v}%`);
+  }
+
+  const mFlat = src.match(/formsPerClick \+= (\d+)/);
+  if (mFlat) {
+    const d = desc.match(/\+(\d+) forms? per click/i);
+    if (!d) flag(`${kind} ${item.id}: flat click bonus not stated in desc "${desc}"`);
+    else if (parseInt(d[1]) !== parseInt(mFlat[1])) flag(`${kind} ${item.id}: desc says +${d[1]}/click but effect adds ${mFlat[1]}`);
+  }
+
+  const mCMult = src.match(/clickMultiplier \*= ([\d.]+)/);
+  if (mCMult) {
+    const v = parseFloat(mCMult[1]);
+    const dP = desc.match(/\+(\d+)% click/i);
+    const dX = desc.match(/worth ([\d.]+)x/i) || desc.match(/[×x]([\d.]+)/);
+    if (dP) {
+      if (parseInt(dP[1]) !== Math.round((v - 1) * 100)) flag(`${kind} ${item.id}: desc says +${dP[1]}% click but effect is ×${v}`);
+    } else if (dX) {
+      if (Math.abs(parseFloat(dX[1]) - v) > 1e-9) flag(`${kind} ${item.id}: desc says ×${dX[1]} click but effect is ×${v}`);
+    } else flag(`${kind} ${item.id}: click multiplier ×${v} not stated in desc "${desc}"`);
+  }
+}
+UPGRADES.forEach(u => checkDesc(u, 'upgrade'));
+DEPARTMENTS.forEach(d => checkDesc(d, 'department'));
+POLICIES.forEach(pl => checkDesc(pl, 'policy'));
+INVESTMENTS.forEach(inv => checkDesc(inv, 'investment'));
+
 console.log('--- Visual fields present (icons, stamp texts, labels) ---');
 STAFF.forEach(st => { if (!st.icon) flag(`staff ${st.id}: missing icon`); });
 MONSTERS.forEach(m => { if (!m.icon) flag(`monster ${m.id}: missing icon`); });

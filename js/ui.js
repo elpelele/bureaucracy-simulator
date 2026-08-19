@@ -386,7 +386,8 @@ function renderBoss(now) {
       els.bossContainer.innerHTML = `
         <div class="boss-panel">
           <div class="boss-title">THE INSPECTOR GENERAL</div>
-          <div class="boss-desc">He blocks your promotion to ${nextStage.name}. Only YOUR clicks can defeat him — production won't help.</div>
+          <div class="boss-desc">He blocks your promotion to ${nextStage.name}. Only clicks damage him (each hit also carries 5% of your production).
+            Beware: on his way out he <strong>confiscates ${hasPerk('inspectors_weak_spot') ? '75%' : '90%'} of your on-hand forms</strong> — spend them before the fight!</div>
           <button class="boss-fight-btn" onclick="startBossFight()">CONFRONT HIM</button>
         </div>
       `;
@@ -449,8 +450,8 @@ function renderDirective(now) {
           <div class="directive-title">${kindLabel} — ${d.name} <span class="directive-timer">(<span id="directive-timer">60</span>s)</span></div>
           <div class="directive-desc">${d.desc}</div>
           <div class="directive-choices">
-            <button class="directive-btn" title="${d.a.hint}" onclick="chooseDirective('a')">${d.a.label}</button>
-            <button class="directive-btn" title="${d.b.hint}" onclick="chooseDirective('b')">${d.b.label}</button>
+            <button class="directive-btn" onclick="chooseDirective('a')">${d.a.label}<span class="directive-btn-hint">${d.a.hint}</span></button>
+            <button class="directive-btn" onclick="chooseDirective('b')">${d.b.label}<span class="directive-btn-hint">${d.b.hint}</span></button>
           </div>
         </div>
       `;
@@ -1110,7 +1111,7 @@ function renderReform() {
         <div>Reforms completed: ${game.reformCount}</div>
       </div>
       <div class="reform-keeps">
-        <div><strong>You keep:</strong> achievements, relics, monster kills, Absurdity</div>
+        <div><strong>You keep:</strong> achievements, relics, monster kills, Absurdity, perks & Shadow Budget</div>
         <div><strong>You lose:</strong> forms, stamps, staff, upgrades, departments, policies, investments, stage</div>
       </div>
       <button class="reform-btn" ${ready ? '' : 'disabled'} onclick="doReform()">
