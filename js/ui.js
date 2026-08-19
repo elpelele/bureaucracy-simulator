@@ -538,8 +538,17 @@ function toggleStageCollapse(listName, stageId) {
   renderActiveTab();
 }
 
-function collapseHeader(listName, stageId, stageName, itemCount) {
-  const collapsed = game.collapsedStages.has(listName + ':' + stageId);
+// A collapsed section unfolds itself while it holds something buyable,
+// and folds itself once everything in it is purchased; otherwise the
+// player's manual choice is respected.
+function effectiveCollapsed(listName, stageId, actionable, allDone) {
+  if (actionable) return false;
+  if (allDone) return true;
+  return game.collapsedStages.has(listName + ':' + stageId);
+}
+
+function collapseHeader(listName, stageId, stageName, itemCount, collapsed) {
+  if (collapsed === undefined) collapsed = game.collapsedStages.has(listName + ':' + stageId);
   return `<div class="category-header collapsible" onclick="toggleStageCollapse('${listName}','${stageId}')">` +
     `${collapsed ? '▸' : '▾'} ${stageName}${collapsed ? ` <span class="collapsed-count">(${itemCount} hidden)</span>` : ''}</div>`;
 }
@@ -705,22 +714,29 @@ function renderUpgrades() {
   }
 
   const ownedOpen = game.collapsedStages.has('upgrades:owned-open');
-  const signature = availableUpgrades.map(u => u.id).join(',') + '|' + [...game.collapsedStages].sort().join(',') + '|' + game.purchasedUpgrades.size;
+  const byStage = {};
+  availableUpgrades.forEach(upgrade => {
+    if (!byStage[upgrade.stage]) byStage[upgrade.stage] = [];
+    byStage[upgrade.stage].push(upgrade);
+  });
+  // sections with something buyable unfold themselves (part of the signature
+  // so crossing an affordability threshold triggers the rebuild)
+  const groupState = {};
+  for (const [stageId, list] of Object.entries(byStage)) {
+    const actionable = list.some(u => canAfford(u.cost, u.costCurrency));
+    groupState[stageId] = effectiveCollapsed('upgrades', stageId, actionable, false);
+  }
+  const signature = availableUpgrades.map(u => u.id).join(',') + '|' + [...game.collapsedStages].sort().join(',')
+    + '|' + game.purchasedUpgrades.size + '|' + Object.entries(groupState).map(([k, v]) => k + (v ? '-' : '+')).join(',');
   if (signature !== upgradesUiSignature) {
     upgradesUiSignature = signature;
     upgradeNodes = {};
 
-    const byStage = {};
-    availableUpgrades.forEach(upgrade => {
-      if (!byStage[upgrade.stage]) byStage[upgrade.stage] = [];
-      byStage[upgrade.stage].push(upgrade);
-    });
-
     let html = '';
     for (const [stageId, upgradeList] of Object.entries(byStage)) {
       const stage = STAGES.find(s => s.id === stageId);
-      html += collapseHeader('upgrades', stageId, stage ? stage.name : stageId, upgradeList.length);
-      if (game.collapsedStages.has('upgrades:' + stageId)) continue;
+      html += collapseHeader('upgrades', stageId, stage ? stage.name : stageId, upgradeList.length, groupState[stageId]);
+      if (groupState[stageId]) continue;
       upgradeList.forEach(upgrade => {
         const currency = upgrade.costCurrency === 'stamps' ? 'stamps' : 'forms';
         html += `
@@ -783,23 +799,29 @@ function renderDepartments() {
     return;
   }
 
+  const byStage = {};
+  availableDepts.forEach(dept => {
+    if (!byStage[dept.stage]) byStage[dept.stage] = [];
+    byStage[dept.stage].push(dept);
+  });
+  const groupState = {};
+  for (const [stageId, list] of Object.entries(byStage)) {
+    const actionable = list.some(d => !d.owned && canAfford(d.cost, d.costCurrency));
+    const allDone = list.every(d => d.owned);
+    groupState[stageId] = effectiveCollapsed('departments', stageId, actionable, allDone);
+  }
   // owned state is part of the structure: buying rebuilds once (name, onclick)
-  const signature = availableDepts.map(d => d.id + (d.owned ? '*' : '')).join(',') + '|' + [...game.collapsedStages].sort().join(',');
+  const signature = availableDepts.map(d => d.id + (d.owned ? '*' : '')).join(',') + '|' + [...game.collapsedStages].sort().join(',')
+    + '|' + Object.entries(groupState).map(([k, v]) => k + (v ? '-' : '+')).join(',');
   if (signature !== deptsUiSignature) {
     deptsUiSignature = signature;
     deptNodes = {};
 
-    const byStage = {};
-    availableDepts.forEach(dept => {
-      if (!byStage[dept.stage]) byStage[dept.stage] = [];
-      byStage[dept.stage].push(dept);
-    });
-
     let html = '';
     for (const [stageId, deptList] of Object.entries(byStage)) {
       const stage = STAGES.find(s => s.id === stageId);
-      html += collapseHeader('departments', stageId, stage ? stage.name : stageId, deptList.length);
-      if (game.collapsedStages.has('departments:' + stageId)) continue;
+      html += collapseHeader('departments', stageId, stage ? stage.name : stageId, deptList.length, groupState[stageId]);
+      if (groupState[stageId]) continue;
       deptList.forEach(dept => {
         html += `
           <div class="shop-item ${dept.owned ? 'owned' : ''}" data-id="${dept.id}"

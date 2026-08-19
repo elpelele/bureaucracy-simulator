@@ -530,5 +530,13 @@ assert(smoothTowards(999, 1000) === 1000, 'tiny gaps settle crisply (no decimal 
 const mid = smoothTowards(800, 1000);
 assert(mid > 800 && mid < 1000, 'mid-range gains animate smoothly');
 
+console.log('--- 29. Sections auto-unfold for buyable items ---');
+game.collapsedStages.add('departments:office');
+assert(effectiveCollapsed('departments', 'office', true, false) === false, 'affordable item -> section unfolds despite collapse');
+assert(effectiveCollapsed('departments', 'office', false, true) === true, 'everything bought -> section folds itself');
+assert(effectiveCollapsed('departments', 'office', false, false) === true, 'otherwise the manual collapse is respected');
+game.collapsedStages.delete('departments:office');
+assert(effectiveCollapsed('departments', 'office', false, false) === false, 'and the manual open state too');
+
 console.log(`\n===== ${__pass} passed, ${__fail} failed =====`);
 process.exit(__fail > 0 ? 1 : 0);
