@@ -804,7 +804,8 @@ function doReform() {
   game.monsterKillsRun = {}; // the archives reshuffle: adaptation resets
   game.unlocks.departments = false;
   game.unlocks.policies = false;
-  // absurdity / expeditions / reforms stay unlocked
+  game.unlocks.expeditions = false; // re-earned at The Administration
+  // absurdity display / the Reform tab (perk shop) stay unlocked
 
   // Perk-granted head starts
   if (hasPerk('severance_package')) {
@@ -819,6 +820,7 @@ function doReform() {
 
   setStageClass(STAGES[game.stageIndex].id);
   recalcAll();
+  checkUnlocks(); // Deep State restarts at Administration: re-unlock instantly
   updateTabLocks();
   switchTab('staff');
   checkAchievements();

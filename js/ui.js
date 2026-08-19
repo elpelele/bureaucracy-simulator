@@ -1342,14 +1342,16 @@ function renderActiveTab() {
 
 function updateTabLocks() {
   const locks = [
-    [els.tabDepartments, game.unlocks.departments],
-    [els.tabPolicies, game.unlocks.policies],
-    [els.tabExpeditions, game.unlocks.expeditions],
-    [els.tabReform, game.unlocks.reforms]
+    [els.tabDepartments, game.unlocks.departments, 'Departments'],
+    [els.tabPolicies, game.unlocks.policies, 'Policies'],
+    [els.tabExpeditions, game.unlocks.expeditions, 'Expeditions'],
+    [els.tabReform, game.unlocks.reforms, 'Reform']
   ];
-  locks.forEach(([el, unlocked]) => {
+  locks.forEach(([el, unlocked, label]) => {
     if (!el) return;
     el.classList.toggle('locked', !unlocked);
+    // a re-locked tab must not keep its stale "(N)" badge from before
+    if (!unlocked && el.textContent !== label) el.textContent = label;
   });
 }
 

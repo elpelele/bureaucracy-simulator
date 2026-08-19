@@ -564,5 +564,23 @@ assert(!game.purchasedPolicies.has('triple_redundancy') && game.purchasedUpgrade
 assert(game.purchasedPolicies.has('mandatory_overtime'), 'real policies stay policies');
 assert(game.globalMultiplier > 1, 'migrated bonus still applies via recalc');
 
+console.log('--- 32. Reform re-locks tabs and clears stale badges ---');
+game.purchasedPerks.delete('deep_state');
+game.unlocks.expeditions = true;
+els.tabPolicies.classList.remove('locked');
+els.tabPolicies.textContent = 'Policies (2)'; // stale badge from before
+game.totalForms = 4e9;
+game.stageIndex = 2;
+doReform();
+assert(game.unlocks.expeditions === false, 'expeditions re-lock on reform (re-earned at Administration)');
+assert(els.tabPolicies.textContent === 'Policies', `stale badge cleared on locked tab (${els.tabPolicies.textContent})`);
+game.purchasedPerks.add('deep_state');
+gainAbsurdity(1); // any gain, then reform again with Deep State
+game.totalForms = 4e9;
+game.stageIndex = 2;
+doReform();
+assert(game.stageIndex === 1 && game.unlocks.expeditions === true, 'Deep State: restart at Administration re-unlocks expeditions instantly');
+game.purchasedPerks.delete('deep_state');
+
 console.log(`\n===== ${__pass} passed, ${__fail} failed =====`);
 process.exit(__fail > 0 ? 1 : 0);
