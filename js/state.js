@@ -30,6 +30,7 @@ const game = {
   expeditionsFailed: 0,
   expeditionsRushed: 0,
   bossesDefeated: 0,
+  finalFormAt: 0,        // timestamp when The Final Form was purchased (the ending)
   startTime: Date.now(),
 
   // Current run stats (reset on reform)

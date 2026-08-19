@@ -1331,6 +1331,7 @@ const ACHIEVEMENTS = [
   { id: 'deja_vu_again', cat: 'endgame', name: 'Haven\'t We Met?', desc: 'Trigger 10 d\u00e9j\u00e0 vu clicks.', check: () => game.dejaVuCount >= 10 },
   { id: 'observer_effect', cat: 'endgame', name: 'Observer Effect', desc: 'Suffer 3 quantum form collapses.', check: () => game.quantumCollapses >= 3 },
   { id: 'rampager', cat: 'other', name: 'Rubber Stamp Berserker', desc: 'Trigger 5 stamp rampages.', check: () => game.rampagesTriggered >= 5 },
+  { id: 'the_last_stamp', cat: 'endgame', name: 'The Last Stamp', desc: 'Process The Final Form. Reality is fully documented.', check: () => game.finalFormAt > 0 },
   { id: 'money_talks', cat: 'endgame', name: 'Money Talks', desc: 'Bribe the archivists 3 times to rush expeditions.', check: () => game.expeditionsRushed >= 3 }
 ];
 

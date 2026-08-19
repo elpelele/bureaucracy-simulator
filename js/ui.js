@@ -1274,6 +1274,7 @@ function updateStats() {
       <div>Relics</div><div>${relicNames.length ? relicNames.join(', ') : 'none'}</div>
       <div>Achievements</div><div>${game.unlockedAchievements.size} / ${ACHIEVEMENTS.length} (+${game.unlockedAchievements.size}%)</div>
       <div>Time played</div><div>${formatTime(Date.now() - game.startTime)}</div>
+      ${game.finalFormAt ? `<div>Reality documented</div><div>after ${formatTime(game.finalFormAt - game.startTime)} 🏆</div>` : ''}
       <div>This run</div><div>${formatTime(Date.now() - game.runStartTime)}${game.reformCount > 0 ? ` (after reform #${game.reformCount})` : ''}</div>
     </div>
   `;

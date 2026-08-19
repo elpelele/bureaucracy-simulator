@@ -296,6 +296,18 @@ function buyUpgrade(id) {
   game.purchasedUpgrades.add(id);
   recalcAll();
   log(`Purchased: ${upgrade.name}`, 'success');
+
+  // The ending: reality is fully documented. The game keeps running —
+  // bureaucracy never truly ends — but the moment is celebrated once.
+  if (id === 'the_final_form' && !game.finalFormAt) {
+    game.finalFormAt = Date.now();
+    showPromotionOverlay('REALITY FULLY DOCUMENTED', 'Every form. Every timeline. Approved, stamped, filed in triplicate.');
+    playSound('ding', 0.6);
+    log('THE FINAL FORM HAS BEEN PROCESSED. Reality is fully documented. The universe files itself under B, for Bureaucracy.', 'special');
+    log(`Documented after ${formatTime(game.finalFormAt - game.startTime)} of service, ${game.reformCount} reform${game.reformCount === 1 ? '' : 's'} and ${formatNumber(game.totalClicks)} stamps of the hand.`, 'special');
+    log('The Office remains open. It always will.', 'info');
+    saveGame();
+  }
   checkAchievements();
   render();
 }
@@ -1102,6 +1114,7 @@ function saveGame() {
     expeditionsFailed: game.expeditionsFailed,
     expeditionsRushed: game.expeditionsRushed,
     bossesDefeated: game.bossesDefeated,
+    finalFormAt: game.finalFormAt,
     startTime: game.startTime,
 
     // Run stats
@@ -1203,6 +1216,7 @@ function loadGame() {
     // Progression (v2 saves: derive stage from forms, grandfather bosses in)
     game.stageIndex = data.stageIndex !== undefined ? data.stageIndex : deriveStageIndex(game.totalForms);
     game.bossesDefeated = data.bossesDefeated !== undefined ? data.bossesDefeated : game.stageIndex;
+    game.finalFormAt = data.finalFormAt || 0;
     if (data.boss) game.boss.cooldownUntil = data.boss.cooldownUntil || 0;
 
     // Expedition

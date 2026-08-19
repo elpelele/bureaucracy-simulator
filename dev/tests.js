@@ -582,5 +582,19 @@ doReform();
 assert(game.stageIndex === 1 && game.unlocks.expeditions === true, 'Deep State: restart at Administration re-unlocks expeditions instantly');
 game.purchasedPerks.delete('deep_state');
 
+console.log('--- 33. The ending: The Final Form ---');
+game.stageIndex = 5;
+game.totalForms = 1e24;
+game.forms = 1e25;
+assert(game.finalFormAt === 0, 'no ending yet');
+buyUpgrade('the_final_form');
+assert(game.finalFormAt > 0, 'purchasing The Final Form marks the ending');
+checkAchievements();
+assert(game.unlockedAchievements.has('the_last_stamp'), 'The Last Stamp achievement unlocks');
+const endingStamp = game.finalFormAt;
+saveGame();
+loadGame();
+assert(game.finalFormAt === endingStamp, 'the ending timestamp survives save/load');
+
 console.log(`\n===== ${__pass} passed, ${__fail} failed =====`);
 process.exit(__fail > 0 ? 1 : 0);
