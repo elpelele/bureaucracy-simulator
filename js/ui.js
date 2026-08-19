@@ -1134,7 +1134,7 @@ function renderExpeditions() {
           ${kills > 0 ? `<span class="wanted-chip captured">CAPTURED ×${kills}</span>` : '<span class="wanted-chip">WANTED</span>'}</div>
         <div class="monster-desc">${monster.desc}</div>
         <div class="monster-stats">
-          Power: ${formatNumber(effPower)}${runKills > 0 ? ' (it adapted — resets on Reform)' : ''} | Duration: ${formatDuration(monster.duration)} | Reward: +${monster.absurdity} Absurdity${relic && !hasRelic ? ` + ${relic.name}` : ''}
+          Power: ${formatNumber(effPower)}${runKills > 0 ? ' (it adapted — resets on Reform)' : ''} | Duration: ${formatDuration(monster.duration)} | Reward: +${monster.absurdity} Absurdity${relic && !hasRelic ? `<br>First victory relic: <strong>${relic.name}</strong> — ${relic.desc}` : ''}
           ${squad.length ? `<br>Success odds with current squad: <strong>${chance}%</strong>${rawChance <= 0.05 ? ` — far too strong for now (a squad of ~${formatNumber(neededFor50)} raw power would have 50%)` : ''}` : ''}
         </div>
         <button class="launch-btn" ${canLaunch ? '' : 'disabled'} onclick="launchExpedition('${monster.id}')">LAUNCH EXPEDITION</button>
