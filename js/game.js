@@ -1228,6 +1228,15 @@ function loadGame() {
     // Older saves had no purchased/active distinction: active = purchased
     game.purchasedPolicies = new Set(data.purchasedPolicies || data.activePolicies || []);
     game.policyCooldowns = data.policyCooldowns || {};
+    // Migration: the bonus-only policies became upgrades — carry ownership over
+    [...game.purchasedPolicies].forEach(id => {
+      if (!POLICIES.find(pl => pl.id === id) && UPGRADES.find(u => u.id === id)) {
+        game.purchasedPolicies.delete(id);
+        game.activePolicies.delete(id);
+        delete game.policyCooldowns[id];
+        game.purchasedUpgrades.add(id);
+      }
+    });
     game.purchasedPerks = new Set(data.purchasedPerks || []);
     game.shadowBudgetLevel = data.shadowBudgetLevel || 0;
     game.unlockedAchievements = new Set(data.unlockedAchievements || []);

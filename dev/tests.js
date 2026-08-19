@@ -550,5 +550,19 @@ assert(game.expedition.team.includes('commissioner'), 'two units make the type e
 game.expedition.team = [];
 STAFF.find(st => st.id === 'commissioner').owned = 0;
 
+console.log('--- 31. Policies tab holds only trade-offs; old saves migrate ---');
+assert(POLICIES.length === 4 && POLICIES.every(pl => pl.downside), 'every remaining policy declares a downside');
+assert(UPGRADES.find(u => u.id === 'triple_redundancy'), 'former bonus-only policies now live in UPGRADES');
+saveGame();
+const rawSave = JSON.parse(localStorage.getItem('bureaucracy_save'));
+rawSave.purchasedPolicies = ['mandatory_overtime', 'triple_redundancy'];
+rawSave.activePolicies = ['mandatory_overtime', 'triple_redundancy'];
+rawSave.purchasedUpgrades = [];
+localStorage.setItem('bureaucracy_save', JSON.stringify(rawSave));
+loadGame();
+assert(!game.purchasedPolicies.has('triple_redundancy') && game.purchasedUpgrades.has('triple_redundancy'), 'old save: triple_redundancy migrated to upgrades');
+assert(game.purchasedPolicies.has('mandatory_overtime'), 'real policies stay policies');
+assert(game.globalMultiplier > 1, 'migrated bonus still applies via recalc');
+
 console.log(`\n===== ${__pass} passed, ${__fail} failed =====`);
 process.exit(__fail > 0 ? 1 : 0);

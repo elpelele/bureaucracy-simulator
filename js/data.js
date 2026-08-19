@@ -932,6 +932,68 @@ const UPGRADES = [
     effect: () => { STAFF.forEach(st => { if (st.stage === 'existential') st.fps *= 1.4; }); },
     unlocked: () => game.totalForms >= 100e21,
     stage: 'existential'
+  },
+
+  // === FORMER BONUS-ONLY POLICIES (moved here: a toggle on a pure bonus is dead UI) ===
+  {
+    id: 'paperless_initiative',
+    name: 'Paperless Initiative (Fake)',
+    desc: 'Pretend to go paperless. Somehow: +35% production.',
+    cost: 200e6,
+    costCurrency: 'forms',
+    unlocked: () => game.totalForms >= 25e6,
+    stage: 'administration',
+    effect: () => { game.globalMultiplier *= 1.35; }
+  },
+  {
+    id: 'triple_redundancy',
+    name: 'Triple Redundancy',
+    desc: 'Every form must be filed in triplicate. More copies means more forms: +30% production.',
+    cost: 12e9,
+    costCurrency: 'forms',
+    unlocked: () => game.totalForms >= 1.5e9,
+    stage: 'ministry',
+    effect: () => { game.globalMultiplier *= 1.3; }
+  },
+  {
+    id: 'eternal_archives',
+    name: 'Eternal Archives',
+    desc: 'Forms are never deleted. Approval inbox capacity +30 min.',
+    cost: 1.2e12,
+    costCurrency: 'forms',
+    unlocked: () => game.totalForms >= 150e9,
+    stage: 'ministry',
+    effect: () => { game.inboxCapacityBonus += 1800; }
+  },
+  {
+    id: 'universal_forms',
+    name: 'Universal Form Standard',
+    desc: 'One form for all nations. +30% production.',
+    cost: 45e12,
+    costCurrency: 'forms',
+    unlocked: () => game.totalForms >= 6e12,
+    stage: 'global',
+    effect: () => { game.globalMultiplier *= 1.3; }
+  },
+  {
+    id: 'quantum_filing',
+    name: 'Quantum Filing System',
+    desc: 'Every observation files a form. Clicks gain +1% of your production.',
+    cost: 450e15,
+    costCurrency: 'forms',
+    unlocked: () => game.totalForms >= 60e15,
+    stage: 'cosmic',
+    effect: () => { game.clickFpsPercent += 0.01; }
+  },
+  {
+    id: 'reality_mandate',
+    name: 'Reality Mandate',
+    desc: 'Existence requires permits. +50% production.',
+    cost: 15e21,
+    costCurrency: 'forms',
+    unlocked: () => game.totalForms >= 2e21,
+    stage: 'existential',
+    effect: () => { game.globalMultiplier *= 1.5; }
   }
 ];
 
@@ -1652,17 +1714,6 @@ const POLICIES = [
     }
   },
   {
-    id: 'paperless_initiative',
-    name: 'Paperless Initiative (Fake)',
-    desc: 'Pretend to go paperless. Somehow: +35% production.',
-    cost: 200e6,
-    costCurrency: 'forms',
-    active: false,
-    unlocked: () => game.totalForms >= 25e6,
-    stage: 'administration',
-    effect: () => { game.globalMultiplier *= 1.35; }
-  },
-  {
     id: 'form_tax',
     name: 'Form Processing Tax',
     desc: 'Tax every form. +75 stamps per second.',
@@ -1676,61 +1727,6 @@ const POLICIES = [
       game.stampsPerSec += 75;
       game.globalMultiplier *= 0.95;
     }
-  },
-  {
-    id: 'triple_redundancy',
-    name: 'Triple Redundancy',
-    desc: 'Every form must be filed in triplicate. More copies means more forms: +30% production.',
-    cost: 12e9,
-    costCurrency: 'forms',
-    active: false,
-    unlocked: () => game.totalForms >= 1.5e9,
-    stage: 'ministry',
-    effect: () => { game.globalMultiplier *= 1.3; }
-  },
-  {
-    id: 'eternal_archives',
-    name: 'Eternal Archives',
-    desc: 'Forms are never deleted. Approval inbox capacity +30 min.',
-    cost: 1.2e12,
-    costCurrency: 'forms',
-    active: false,
-    unlocked: () => game.totalForms >= 150e9,
-    stage: 'ministry',
-    effect: () => { game.inboxCapacityBonus += 1800; }
-  },
-  {
-    id: 'universal_forms',
-    name: 'Universal Form Standard',
-    desc: 'One form for all nations. +30% production.',
-    cost: 45e12,
-    costCurrency: 'forms',
-    active: false,
-    unlocked: () => game.totalForms >= 6e12,
-    stage: 'global',
-    effect: () => { game.globalMultiplier *= 1.3; }
-  },
-  {
-    id: 'quantum_filing',
-    name: 'Quantum Filing System',
-    desc: 'Every observation files a form. Clicks gain +1% of your production.',
-    cost: 450e15,
-    costCurrency: 'forms',
-    active: false,
-    unlocked: () => game.totalForms >= 60e15,
-    stage: 'cosmic',
-    effect: () => { game.clickFpsPercent += 0.01; }
-  },
-  {
-    id: 'reality_mandate',
-    name: 'Reality Mandate',
-    desc: 'Existence requires permits. +50% production.',
-    cost: 15e21,
-    costCurrency: 'forms',
-    active: false,
-    unlocked: () => game.totalForms >= 2e21,
-    stage: 'existential',
-    effect: () => { game.globalMultiplier *= 1.5; }
   },
   {
     id: 'expedited_stamps',
