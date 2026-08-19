@@ -1680,7 +1680,7 @@ const POLICIES = [
   {
     id: 'triple_redundancy',
     name: 'Triple Redundancy',
-    desc: 'Every form needs two copies. +30% production.',
+    desc: 'Every form must be filed in triplicate. More copies means more forms: +30% production.',
     cost: 12e9,
     costCurrency: 'forms',
     active: false,
