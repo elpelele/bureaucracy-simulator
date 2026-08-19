@@ -270,7 +270,12 @@ function render() {
   els.formsRate.classList.toggle('frenzy', frenzy > 1 || prodBuff > 1);
   els.stampsRate.textContent = `+${formatNumber(stampIncomePerSec() * stampBuffFactor(now))}/sec`;
   els.clickInfo.textContent = `${formatNumber(effectiveClickPower)} ${effectiveClickPower < 2 ? 'form' : 'forms'} per click`
-    + (rampage > 1 ? ' [RAMPAGE!]' : '');
+    + (rampage > 1 ? ' [RAMPAGE!]' : '') + (clickBuff > 1 ? ` [DIRECTIVE ×${clickBuff}]` : '');
+  // hover breakdown: why is my click worth this much?
+  els.clickInfo.title = `${formatNumber(game.formsPerClick)} base × ${game.clickMultiplier.toFixed(2)} click power`
+    + (game.clickFpsPercent > 0 ? ` + ${(game.clickFpsPercent * 100).toFixed(1)}% of production (${formatNumber(game.formsPerSec * game.clickFpsPercent)})` : '')
+    + (rampage > 1 ? ` — all ×${rampage} (rampage)` : '')
+    + (clickBuff > 1 ? ` — all ×${clickBuff} (directive)` : '');
 
   // Tab title signals: boss waiting / priority form on screen
   const title = (game.boss.active || bossPending() ? '⚠ ' : '') + (game.goldenActive ? '★ ' : '') + 'Bureaucracy Simulator';
