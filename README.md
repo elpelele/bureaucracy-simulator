@@ -2,7 +2,7 @@
 
 Un idle/clicker en JavaScript pur (aucune dépendance, aucun build) où l'on gravit la hiérarchie administrative en tamponnant des formulaires — du petit bureau jusqu'à la documentation de la réalité elle-même.
 
-**Jouer** : ouvrir `index.html` dans un navigateur. Pour activer le lien « ☕ Buy me a coffee » du footer, renseigner `SUPPORT_URL` en tête de `js/data.js`. La sauvegarde est automatique (localStorage, toutes les 30 s et à la fermeture).
+**Jouer** : https://elpelele.github.io/bureaucracy-simulator/ — ou ouvrir `index.html` dans un navigateur. Pour activer le lien « ☕ Buy me a coffee » du footer, renseigner `SUPPORT_URL` en tête de `js/data.js`. La sauvegarde est automatique (localStorage, toutes les 30 s et à la fermeture).
 
 ---
 
