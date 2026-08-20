@@ -48,6 +48,7 @@ function tick() {
 
   // Timed systems
   goldenTick(now);
+  newsTick(now);
   bossTick(now);
   directiveTick(now);
   expeditionTick(now);

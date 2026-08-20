@@ -237,6 +237,17 @@ DEPARTMENTS.forEach(d => checkDesc(d, 'department'));
 POLICIES.forEach(pl => checkDesc(pl, 'policy'));
 INVESTMENTS.forEach(inv => checkDesc(inv, 'investment'));
 
+console.log('--- Flavor content sanity (news, field reports) ---');
+const newsSeen = new Set();
+NEWS.forEach(n => {
+  if (newsSeen.has(n.text)) flag(`duplicate news headline: "${n.text}"`);
+  newsSeen.add(n.text);
+});
+if (NEWS.filter(n => !n.cond).length < 10) flag('fewer than 10 unconditional news headlines (early-game ticker would repeat)');
+MONSTERS.forEach(m => {
+  if (!m.reports || m.reports.length < 2) flag(`monster ${m.id}: needs at least 2 field reports`);
+});
+
 console.log('--- Visual fields present (icons, stamp texts, labels) ---');
 STAFF.forEach(st => { if (!st.icon) flag(`staff ${st.id}: missing icon`); });
 MONSTERS.forEach(m => { if (!m.icon) flag(`monster ${m.id}: missing icon`); });

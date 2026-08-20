@@ -704,6 +704,9 @@ function resolveExpedition() {
     gainAbsurdity(monster.absurdity);
 
     let msg = `EXPEDITION SUCCESS: ${monster.name} defeated! +${monster.absurdity} Absurdity.`;
+    if (monster.reports && monster.reports.length) {
+      msg += ` Field report: ${monster.reports[Math.floor(Math.random() * monster.reports.length)]}`;
+    }
     if (monster.relic && !game.relics.has(monster.relic)) {
       game.relics.add(monster.relic);
       const relic = RELICS.find(r => r.id === monster.relic);

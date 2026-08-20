@@ -29,6 +29,7 @@ const els = {
   approveBtn: document.getElementById('approve-btn'),
   bossContainer: document.getElementById('boss-container'),
   finaleContainer: document.getElementById('finale-container'),
+  newsTicker: document.getElementById('news-ticker'),
   staffList: document.getElementById('staff-list'),
   upgradesList: document.getElementById('upgrades-list'),
   departmentsList: document.getElementById('departments-list'),
@@ -458,6 +459,25 @@ function renderBoss(now) {
     const cd = document.getElementById('boss-cooldown');
     if (cd) cd.textContent = Math.max(0, Math.ceil((game.boss.cooldownUntil - now) / 1000));
   }
+}
+
+// --------------------------------------------
+// NEWS TICKER — rotating bureaucratic headlines (pure flavor)
+// --------------------------------------------
+let currentNews = '';
+let nextNewsAt = 0;
+
+function newsTick(now) {
+  if (!els.newsTicker) return;
+  if (now < nextNewsAt) return;
+  nextNewsAt = now + 22000 + Math.random() * 8000;
+  const pool = NEWS.filter(n => (!n.cond || n.cond()) && n.text !== currentNews);
+  if (pool.length === 0) return;
+  currentNews = pool[Math.floor(Math.random() * pool.length)].text;
+  els.newsTicker.textContent = '❖ ' + currentNews;
+  els.newsTicker.classList.remove('fresh');
+  void els.newsTicker.offsetWidth;
+  els.newsTicker.classList.add('fresh');
 }
 
 // --------------------------------------------

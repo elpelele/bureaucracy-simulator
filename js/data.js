@@ -1889,6 +1889,7 @@ const INVESTMENTS = [
 const MONSTERS = [
   {
     id: 'unstable_pile',
+    reports: ["'It swayed at us. We filed it under W, for Wobbly.'", "'Two casualties, both paper cuts. Morale acceptable.'"],
     icon: '📚',
     name: 'The Unstable Pile',
     desc: 'A tower of unfiled paperwork. It sways. It hungers.',
@@ -1899,6 +1900,7 @@ const MONSTERS = [
   },
   {
     id: 'duplicate_hydra',
+    reports: ["'We shredded one head. Three grew back, pre-stamped.'", "'Recommend approaching only with single-sided documents.'"],
     icon: '🐍',
     name: 'The Duplicate Hydra',
     desc: 'Destroy one form, two copies grow back. In triplicate.',
@@ -1909,6 +1911,7 @@ const MONSTERS = [
   },
   {
     id: 'eternal_paperclip',
+    reports: ["'It asked if we were writing a letter. We lied.'", "'It offered help until the very end. Especially the end.'"],
     icon: '📎',
     name: 'The Eternal Paperclip',
     desc: '"It looks like you\'re trying to escape. Would you like help?"',
@@ -1919,6 +1922,7 @@ const MONSTERS = [
   },
   {
     id: 'possessed_printer',
+    reports: ["'PC LOAD LETTER was a warning, not an error.'", "'We fed it toner. It wanted more. It always wants more.'"],
     icon: '🖨️',
     name: 'The Possessed Printer of Sub-Level 3',
     desc: 'PC LOAD LETTER. Forever. For everyone.',
@@ -1929,6 +1933,7 @@ const MONSTERS = [
   },
   {
     id: 'ghost_file',
+    reports: ["'It knew our filing codes. All of them.'", "'The folder was empty. The folder was ALWAYS empty.'"],
     icon: '👻',
     name: 'The Ghost of the Lost File (1974)',
     desc: 'Nobody ever found it. Nobody ever will. It found YOU.',
@@ -1939,6 +1944,7 @@ const MONSTERS = [
   },
   {
     id: 'emeritus_director',
+    reports: ["'He signed our incident report before the incident.'", "'He remembered everyone's name. Nobody remembered his.'"],
     icon: '🧓',
     name: 'The Emeritus Director',
     desc: 'Retired 12 years ago. Still signs decrees. Still attends meetings.',
@@ -1949,6 +1955,7 @@ const MONSTERS = [
   },
   {
     id: 'form_a0',
+    reports: ["'We filled in the last field. The field filled us in.'", "'Section 1 asked for our names. Section 2 asked why.'"],
     icon: '📜',
     name: 'FORM A-0',
     desc: 'The form you must fill to be allowed to fill forms. The final boss of paperwork.',
@@ -2174,4 +2181,40 @@ const PERKS = [
     desc: 'You never really left. Reforms restart at The Administration.',
     cost: 250000
   }
+];
+
+// ============================================
+// NEWS TICKER (rotating bureaucratic headlines; cond gates by game state)
+// ============================================
+const NEWS = [
+  { text: 'Local man staples wrong form; families have been notified.' },
+  { text: 'Study finds 8 out of 10 forms are filled out by the other 2.' },
+  { text: 'Ink shortage feared; nation urged to press harder.' },
+  { text: 'New regulation requires all regulations to be regulated.' },
+  { text: 'Employee of the Month award delayed pending paperwork.' },
+  { text: 'Queue at counter 7 enters its third generation.' },
+  { text: 'Man requests form to complain about forms; receives both.' },
+  { text: 'Breaking: stapler reported missing. Investigation stapled shut.' },
+  { text: 'Weather forecast postponed pending stamp of approval.' },
+  { text: 'Committee to decide committee schedules schedules committee.' },
+  { text: 'Archive basement declares itself sovereign territory.' },
+  { text: 'Survey: 100% of respondents still waiting for the survey form.' },
+  { text: 'Retired clerk still shows up daily; nobody has the form to stop him.' },
+  { text: 'Paper cut injuries at record high; gloves now require a permit.' },
+  { text: 'Photocopier repairman enters year six of the on-site visit.' },
+  { text: 'Government announces war on red tape, in triplicate.', cond: () => game.stageIndex >= 1 },
+  { text: 'Audit of the audit office postponed by the audit.', cond: () => game.stageIndex >= 1 },
+  { text: 'Minister denies existence of Form 27-B; Form 27-B unavailable for comment.', cond: () => game.stageIndex >= 2 },
+  { text: 'National archive now visible from space, officials proud.', cond: () => game.stageIndex >= 2 },
+  { text: 'UN declares International Form Day. Again.', cond: () => game.stageIndex >= 3 },
+  { text: 'Border dispute resolved by comparing folder thickness.', cond: () => game.stageIndex >= 3 },
+  { text: 'First alien delegation still queuing at counter 3.', cond: () => game.stageIndex >= 4 },
+  { text: "Saturn's rings reclassified as circular filing.", cond: () => game.stageIndex >= 4 },
+  { text: 'Reality files complaint about being documented; complaint documented.', cond: () => game.stageIndex >= 5 },
+  { text: "Time reports feeling 'used'. Form T-0 has been issued.", cond: () => game.stageIndex >= 5 },
+  { text: 'Red stapler owner reports unusual calm in the department.', cond: () => game.relics.has('red_stapler') },
+  { text: 'Historians disagree on how many administrations came before this one.', cond: () => game.reformCount > 0 },
+  { text: 'Expedition team last seen waving bravely near sub-level 3.', cond: () => game.expedition.active },
+  { text: 'Stamp reserves now exceed GDP; economists file their confusion.', cond: () => game.stamps >= 1e6 },
+  { text: 'Everything is documented. The news continues out of habit.', cond: () => game.finalFormAt > 0 }
 ];
